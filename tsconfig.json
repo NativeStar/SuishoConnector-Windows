@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "outDir": "./dist/",
+        "target": "ES2022",
+        "module": "Node16",
+        "moduleResolution": "Node16",
+        "lib": [
+            "ES2023",
+            "DOM",
+            "ES2023.Array",
+            "ESNext"
+        ],
+        "sourceMap": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+    },
+    "exclude": [
+        "node_modules",
+        "assets/*",
+    ],
+    "include": [
+        "src/**/*",
+        "src/constant/*"
+    ]
+}

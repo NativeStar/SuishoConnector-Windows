@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" class="mdui-theme-auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Audio...</title>
+    <link rel="stylesheet" href="../modules/mdui/mdui.css">
+    <link rel="stylesheet" href="../modules/mdui/outline_icon.css">
+    <link rel="stylesheet" href="../css/audioPlayer.css">
+    <link rel="stylesheet" href="../css/drag.css">
+    <link rel="stylesheet" href="../css/select.css">
+</head>
+<body>
+    <div class="titleBar mdui-theme-auto" id="titleBar">
+        音频播放器
+    </div>
+    <audio id="audioPlayerMain"></audio>
+    <div class="main">
+        <span style="font-size: x-large;color: darkslategray;" id="textTitle">Loading</span>
+        <span style="color: gray;" id="textArtist">Loading</span>
+        <small id="textAlbum" style="color: gray;">Loading</small>
+        <img id="audioPicture">
+        <div id="lyricsList" hidden></div>
+        <div class="audioTime">
+            <span id="playerCurrentTime" style="color: gray;">0:00</span>
+            <span id="playerTotalTime" style="color: gray;">0:00</span>
+        </div>
+        <mdui-slider min="0" max="100" nolabel id="audioPlayerCurrentTime"></mdui-slider>
+        <div style="margin-top: 10;">
+            <mdui-button-icon icon="pause" disabled id="pauseButton"></mdui-button-icon>
+            <mdui-button-icon icon="lyrics" disabled id="lyricButton"></mdui-button-icon>
+        </div>
+    </div>
+</body>
+<script src="../modules/audio/flac-decoder.min.js"></script>
+<script src="../modules/audio/convertWav.js"></script>
+<script src="../modules/jsmediatags.min.js"></script>
+<script src="../modules/audio/lyrics.min.js"></script>
+<script type="module" src="../js/media/audioPlayer.js"></script>
+</html>

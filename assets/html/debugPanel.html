@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DebugPanel</title>
+    <script type="module" src="../js/debugPanel.js"></script>
+</head>
+<script>
+    if(!window.electronMainProcess){
+        alert("运行平台异常!");
+        window.close();
+        document.body.innerHTML = "";
+    }
+</script>
+<body>
+    <button type="button" id="disconnectButton" class="invoke" cmd="rebootServer">断开连接</button>
+    <button type="button" id="getBaseInfoButton" class="invoke" hasResult cmd="main_getDeviceBaseInfo">获取设备基础信息</button>
+    <button type="button" id="getBaseDetailButton" class="invoke" hasResult cmd="main_getDeviceDetailInfo">获取设备详细信息</button>
+    <button type="button" id="getAllConfigButton" class="invoke" hasResult cmd="main_getAllConfig">获取全部配置</button>
+    <button type="button" id="createStartMenuShortcutButton" class="invoke" cmd="main_createStartMenuShortcut">创建开始菜单快捷方式</button>
+    <button type="button" id="startAuthorizationButton" class="invoke" cmd="main_startAuthorization" hasResult>发起验证请求</button>
+    <button type="button" id="checkAndroidClientPermissionButton">检测Android端权限</button>
+    <button type="button" id="openApplicationNotificationProfile">打开目标应用通知转发配置</button>
+    <br>
+    <span>模拟接收数据包:</span><br>
+    <button type="button" id="changeTrustModeButton">切换信任模式</button>
+    <button type="button" id="appendTransmitPlaneTextButton">收到互传文本数据</button>
+    <button type="button" id="appendNotificationButton">收到通知</button>
+    <br>
+    <span>调用主窗口事件:</span><br>
+    <button type="button" id="addStateButton">添加状态</button>
+    <button type="button" id="removeStateButton">移除状态</button>
+</body>
+</html>

@@ -1,0 +1,221 @@
+#navigationRail{
+    width: 10%;
+    margin-top: 5.5%;
+}
+/* 功能页面 */
+.functionsPage {
+    /* margin-left: 6.1%; */
+    width: 90%;
+    height: 100.6%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    min-height: 100%;
+    margin-top: 4%;
+}
+/* 设置页 覆盖禁止滚动 */
+.settingsPage{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    width: 89%;
+    min-height: 94.3%;
+    max-height: 94.3%;
+}
+#fileManagerTipText{
+    position: fixed;
+    top: 49%;
+    left: 54%;
+    color: gray;
+}
+#fileManagerDirectoryList{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    width: 28%;
+    min-height: 34.3%;
+    max-height: 94.3%;
+}
+#fileManagerDirectoryList::-webkit-scrollbar{
+    width: 3px;
+    height: 6px;
+}
+.fileManagerPage{
+    display: flex;
+    flex-direction: row;
+}
+.extensionDetailSettingsDiv{
+    width: 75.8%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    min-height: 34.3%;
+    max-height: 94.3%;
+}
+#fileManagerFilesList{
+    width: 75.7%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    min-height: 34.3%;
+    max-height: 94.3%;
+}
+/* 互传主操作栏 */
+.transmitActionBar {
+    width: 100%;
+    height: 8%;
+    position: fixed;
+    bottom: 0%;
+    left: 9%;
+    border-radius: 5px;
+    background-color: #f8edf9;
+
+}
+/* 标题栏 */
+.titleBar {
+    min-width: 98%;
+    /* min-height: 8%; */
+    background-color: #fdf7fe;
+    color: darkgray;
+    margin-top: -1%;
+    padding-top: 1.2%;
+    padding-bottom: 1.2%;
+    margin-left: -11.1%;
+    padding-left: 2.6%;
+    -webkit-app-region: drag;
+    z-index: 2301;
+    position: fixed;
+}
+.titleBarNotFocus{
+    color: gray;
+}
+/* #screenProjectionHoverMask{
+    opacity: 0.5;
+    background-color: lightgray;
+    text-align: center;
+    position: fixed;
+    width: 240px;
+    height: 360px;
+    cursor: pointer;
+} */
+
+/* 互传消息列表 */
+#messageList {
+    margin-top: -0.5%;
+    width: 98.9%;
+    height: 85.3%;
+    margin-bottom: 8%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+#messageList:empty::after{
+    content: "互传消息为空";
+    text-align: center;
+    color: gray;
+    padding-top: 35%;
+}
+::-webkit-scrollbar {
+    width: 8px;
+    height: 15px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: gray;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: rgb(99, 98, 98);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(99, 98, 98);
+}
+/* 菜单选项文本标签 */
+.navigationLabel {
+    text-align: center;
+}
+
+/* 禁止滚动 */
+.noScroll {
+    overflow: hidden;
+}
+
+/* 互传输入框 */
+#transmit_text_input {
+    width: 68%;
+    height: 65%;
+    margin-top: 0.8%;
+    margin-left: 1.8%;
+    border-radius: 6px;
+    border: 2px;
+    resize: none;
+    overflow: auto;
+}
+
+/* 焦点去掉边框 */
+#transmit_text_input:focus {
+    border: 2px;
+    outline: none;
+}
+
+/* 隐藏滚动条 */
+#transmit_text_input::-webkit-scrollbar {
+    display: none;
+}
+
+/* 互传 按钮 */
+.transmit_action_button {
+    margin-bottom: 5%;
+}
+#extensionSettingList{
+    overflow-y: scroll;
+    overflow-x: hidden;
+    width: 24%;
+    min-height: 34.3%;
+    max-height: 94.3%;
+}
+#transmit_action_send_button {
+    position: absolute;
+    top: 4.5%;
+    right: 19.7%;
+    width: 8.5%;
+    padding-top: 11px;
+    min-height: 0px;
+    height: 88%;
+    padding-left: 2.8%;
+    padding-right: 22px
+}
+
+#transmit_action_more_button {
+    position: absolute;
+    top: 4.5%;
+    right: 9.5%;
+    width: 8.5%;
+    padding-top: 11px;
+    min-height: 0px;
+    height: 88%;
+    padding-left: 2.8%;
+    padding-right: 19px
+}
+.default_flex{
+    display: flex;
+}
+html,
+body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.sizeFull {
+    width: 100%;
+    height: 100%;
+}
+/* 修复列表元素内的mdui-select文字显示不全 */
+.settingSelectFix::part(label){
+    height: 15px;
+    padding-top: 5px;
+    user-select: none;
+}
+mdui-select::part(text-field){
+    user-select: none;
+}

@@ -1,0 +1,6 @@
+node_modules
+out
+dist
+./out/
+test
+srcBackup.zip

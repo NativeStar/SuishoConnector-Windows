@@ -1,0 +1,51 @@
+{
+  "name": "phonelinker",
+  "version": "1.0.0",
+  "description": "Link your phone in local network",
+  "main": "./dist/main.js",
+  "scripts": {
+    "test": "tsc&&electron ./",
+    "start": "electron-forge start",
+    "package": "tsc && electron-forge package",
+    "make": "electron-forge make"
+  },
+  "author": "suisho",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.1.0",
+    "@electron-forge/maker-deb": "^7.1.0",
+    "@electron-forge/maker-rpm": "^7.1.0",
+    "@electron-forge/maker-squirrel": "^7.1.0",
+    "@electron-forge/maker-wix": "^7.7.0",
+    "@electron-forge/maker-zip": "^7.1.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.1.0",
+    "@types/jsmediatags": "^3.9.6",
+    "@types/node": "^20.9.4",
+    "@types/qrcodejs": "^1.0.4",
+    "@types/ws": "^8.5.10",
+    "electron": "^35.0.2",
+    "node-abi": "^4.2.0"
+  },
+  "dependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/uuid": "^9.0.8",
+    "electron-squirrel-startup": "^1.0.0",
+    "fs-extra": "^11.1.1",
+    "get-proxy-settings": "^0.1.13",
+    "i": "^0.3.7",
+    "is-port-available": "^0.1.5",
+    "mdui": "^2.1.1",
+    "node-stream-zip": "^1.15.0",
+    "npm": "^10.9.2",
+    "phonelinker": "file:",
+    "randomthing-js": "^2.0.1",
+    "typescript": "^5.4.5",
+    "uuid": "^10.0.0",
+    "windows-notification-state": "^2.0.0",
+    "ws": "^8.18.0"
+  },
+  "interactive-notifications": {
+    "toast-activator-clsid": "171807FD-769F-4129-A8C2-C603F8F125C8",
+    "protocol": "suishoApps://"
+  }
+}

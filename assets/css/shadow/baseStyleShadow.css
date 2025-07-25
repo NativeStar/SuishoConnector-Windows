@@ -1,0 +1,9 @@
+*:not([class*="draggable"]){
+    -webkit-user-drag: var(--empty-var,none)
+}
+*:not([class*="selectable"]){
+    user-select: var(--empty-var,none)
+}
+.selectable{
+    user-select: var(--empty-var,text)
+}

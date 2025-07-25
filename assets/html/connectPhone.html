@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suisho Connector</title>
+    <link rel="stylesheet" href="../css/select.css">
+    <link rel="stylesheet" href="../css/cursor.css">
+    <link rel="stylesheet" href="../css/connectPhone.css">
+    <link rel="stylesheet" href="../modules/mdui/mdui.css">
+    <link rel="stylesheet" href="../modules/mdui/outline_icon.css">
+    <script src="../modules/qrcode.min.js"></script>
+    <script src="../js/connectPhone.js" type="module"></script>
+</head>
+<script>
+    if(!window.electronMainProcess){
+        alert("运行平台异常!");
+        window.close();
+        document.body.innerHTML = "";
+    }
+</script>
+<body>
+    <div class="titleBar">
+        Suisho Connector
+    </div>
+    <!-- 下载apk遮罩 -->
+    <div id="apkDownloadDiv">
+        <h4 style="color: gray;">下载安卓端</h4>
+        <small style="color: gray;">确保手机和电脑在同一局域网下</small>
+        <small style="color: gray;">使用浏览器扫描下方二维码下载</small>
+        <br>
+        <div id="downloadApkQrCode"></div><br>
+        <!-- TODO 点击github仓库字样后切换仓库链接二维码 -->
+        <span style="color: gray;">
+            或者手机访问官方
+            <a href="javascript:void(0);" target="_blank" style="color: gray;">Github仓库</a>
+            下载安卓端
+        </span><br>
+        <mdui-tooltip content="返回">
+            <mdui-button-icon id="closeApkDownloadMarkButton" icon="close"></mdui-button-icon>
+        </mdui-tooltip>
+    </div>
+    <div class="flex" style="margin-top: 15%;">
+        <h4 style="color: gray;">使用手机端扫码连接</h4>
+        <small style="color: gray;">需要处在同一局域网下</small>
+        <div id="qrCodeShow">
+            <div id="qrcodeMask" hidden>
+                <mdui-circular-progress id="qrcodeConnectingProgressBar"></mdui-circular-progress>
+                <span id="qrcodeConnectingText">连接中...</span>
+            </div>
+        </div>
+        <!-- 自动连接时显示 -->
+        <div id="autoConnectTip" hidden>
+            <mdui-icon name="cell_tower" style="color: gray;position: fixed;left: 22%;top: 68.6%;" id="autoConnectIcon"></mdui-icon>
+            <span style="color: gray;position: fixed; width: max-content;left: 30%;top: 69%;" id="autoConnectText">正在搜索绑定的设备...</span>
+        </div>
+        <div class="buttons">
+            <mdui-tooltip content="手动连接">
+                <mdui-button-icon id="changeConnectMethodButton" icon="support"></mdui-button-icon>
+            </mdui-tooltip>
+            <mdui-tooltip content="刷新">
+                <mdui-button-icon id="refreshButton" icon="refresh"></mdui-button-icon>
+            </mdui-tooltip>
+            <mdui-tooltip content="安卓端下载">
+                <mdui-button-icon id="androidDownload" icon="download"></mdui-button-icon>
+            </mdui-tooltip>
+            <mdui-tooltip content="帮助">
+                <mdui-button-icon id="help" icon="help"></mdui-button-icon>
+            </mdui-tooltip>
+        </div>
+    </div>
+</body>
+
+</html>

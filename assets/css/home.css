@@ -1,0 +1,11 @@
+#stateBar{
+    float: right;
+    margin-right: 5%;
+    margin-top: 2%;
+}
+/* 设备信息卡片 */
+.deviceStateCard{
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5% 1% 0.5% 1%;
+}

@@ -1,0 +1,7 @@
+/*拖动*/
+*:not([class*="draggable"]){
+    -webkit-user-drag: none;
+}
+/* .selectable{
+    -webkit-user-drag: element;
+} */
