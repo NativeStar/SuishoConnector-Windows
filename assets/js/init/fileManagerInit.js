@@ -229,7 +229,7 @@ class FileManager {
                         if (this.#audioFileExtensions.some((value) => {
                             return fileObject.name.endsWith(value);
                         })) {
-                            window.electronMainProcess.openRemoteMediaPlayerWindow("audio", this.#pathArray.join("/") + "/" + fileObject.name);
+                            window.electronMainProcess.openRemoteMediaPlayerWindow("audio", this.#pathArray.join("/") + "/" + fileObject.name.replaceAll("+","%2b"));
                         };
                         //视频
                         if (this.#videoFileExtensions.some((value) => {

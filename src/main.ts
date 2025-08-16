@@ -113,7 +113,7 @@ app.on("ready", async (event, info) => {
             mainWindow.setAlwaysOnTop(false);
             mainWindow.flashFrame(false);
             const lastArg = args[args.length - 1];
-            console.log(lastArg);
+            // console.log(lastArg);
             if (lastArg != null && await fs.exists(lastArg)) {
                 const fileStat = await fs.stat(lastArg);
                 // console.log(lastArg);
@@ -425,6 +425,7 @@ function initTray() {
 }
 //未捕获异常弹窗 给点功能选择
 process.on("uncaughtException", (error, origin) => {
+    console.log(error);
     logger.writeError(error);
     dialog.showMessageBox({
         type: "error",
@@ -795,5 +796,5 @@ app.on("before-quit", () => {
     //发生异常时无法调用close
     connectedDevice?.close();
     logger?.writeInfo("App quit");
-    logger?.closeStream();
+    // logger?.closeStream();
 });

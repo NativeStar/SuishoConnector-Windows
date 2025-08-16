@@ -2,7 +2,6 @@
 import * as md from "../../modules/mdui.esm.js";
 import * as musicMetadataInit from "../../modules/audio/audioMetadata/musicMetadata.js";
 void musicMetadataInit;
-void md;
 const params = new URLSearchParams(location.search);
 const playerProgressBar = document.getElementById("audioPlayerCurrentTime");
 const pauseButton = document.getElementById("pauseButton");
