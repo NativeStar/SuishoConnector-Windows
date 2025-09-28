@@ -460,14 +460,6 @@ class Server {
                 //更新设备状态 电量 温度显示等
                 this.appWindow.webContents.send("webviewEvent", "updateDeviceState", jsonObj);
                 break
-            case "render_addIceCandidate":
-                //rtc添加信令
-                this.appWindow.webContents.send("webviewEvent", "addIceCandidate", jsonObj);
-                break
-            case "render_client_function_state_change":
-                //客户端功能状态改变
-                this.appWindow.webContents.send("webviewEvent", "client_function_state_change", jsonObj);
-                break
             case "edit_state":
                 this.appWindow.webContents.send("webviewEvent", jsonObj.type==="add"?"add_state":"remove_state", jsonObj.name);
                 break   

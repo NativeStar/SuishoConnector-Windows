@@ -183,8 +183,6 @@ async function homePageInit() {
         //不信任
         stateBarInit.addState("info_device_not_trusted");
     }
-    //rtc对象
-    // rtcPeer = new RtcConnection(document.getElementById("screenProjection"), document.getElementById("screenProjectionHoverMask"))
 }
 //其他 与交互有关
 /**
@@ -219,10 +217,6 @@ function electronEventHandle(electronEvent, event, ...args) {
             document.body.classList.add("noScroll");
             document.addEventListener("scroll", event => event.preventDefault());
             rebootApplication("通讯中断", args && args[0] !== "" ? args[0] : "由于未知原因 连接断开", "确定");
-            // if (rtcPeer != null) {
-            //     //rtc掉线处理
-            //     rtcPeer.onDisconnect()
-            // }
             break;
         //纯弹窗 仅提示功能那种
         case "showAlert":
@@ -297,11 +291,6 @@ function electronEventHandle(electronEvent, event, ...args) {
             break
         case "updateNetworkLatency":
             document.getElementById("connectionLatencyText").innerText = `${args[0]}ms`;
-            break
-        case "addIceCandidate":
-            // if (rtcPeer != null) {
-            //     rtcPeer.addIceCandidate({ candidate: args[0].candidate, sdpMid: args[0].sdpMid, sdpMLineIndex: args[0].sdpMLineIndex })
-            // }
             break
         case "client_function_state_change":
             console.log(args);

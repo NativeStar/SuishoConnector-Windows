@@ -14,12 +14,12 @@
     }
 </script>
 <body>
-    <button type="button" id="disconnectButton" class="invoke" cmd="rebootServer">断开连接</button>
-    <button type="button" id="getBaseInfoButton" class="invoke" hasResult cmd="main_getDeviceBaseInfo">获取设备基础信息</button>
-    <button type="button" id="getBaseDetailButton" class="invoke" hasResult cmd="main_getDeviceDetailInfo">获取设备详细信息</button>
-    <button type="button" id="getAllConfigButton" class="invoke" hasResult cmd="main_getAllConfig">获取全部配置</button>
-    <button type="button" id="createStartMenuShortcutButton" class="invoke" cmd="main_createStartMenuShortcut">创建开始菜单快捷方式</button>
-    <button type="button" id="startAuthorizationButton" class="invoke" cmd="main_startAuthorization" hasResult>发起验证请求</button>
+    <button type="button" class="invoke" cmd="rebootServer">断开连接</button>
+    <button type="button" class="invoke" hasResult cmd="main_getDeviceBaseInfo">获取设备基础信息</button>
+    <button type="button" class="invoke" hasResult cmd="main_getDeviceDetailInfo">获取设备详细信息</button>
+    <button type="button" class="invoke" hasResult cmd="main_getAllConfig">获取全部配置</button>
+    <button type="button" class="invoke" cmd="main_createStartMenuShortcut">创建开始菜单快捷方式</button>
+    <button type="button" class="invoke" cmd="main_startAuthorization" hasResult>发起验证请求</button>
     <button type="button" id="checkAndroidClientPermissionButton">检测Android端权限</button>
     <button type="button" id="openApplicationNotificationProfile">打开目标应用通知转发配置</button>
     <br>
@@ -31,5 +31,6 @@
     <span>调用主窗口事件:</span><br>
     <button type="button" id="addStateButton">添加状态</button>
     <button type="button" id="removeStateButton">移除状态</button>
+    <button type="button" class="invoke" cmd="debug_speaker">调试接收手机端音频</button>
 </body>
 </html>

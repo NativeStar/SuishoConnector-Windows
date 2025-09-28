@@ -21,7 +21,10 @@ import { type RightClickMenuItem, RightClickMenuItemId } from "./interface/Right
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
 import RemoteMediaWindowSize from "./constant/remoteMediaWindowSize";
-import { log } from "console";
+
+import Speaker from "speaker";
+import dgram from "dgram";
+
 //随机端口号 超过60000的正则不好搞哦
 let serverPort;
 /** @type {PhoneServer} */
@@ -787,6 +790,18 @@ app.on("certificate-error", (event, webContents, url, error, cert, callback) => 
 //     apkDownloadServerInstance?.close();
 //     apkDownloadServerInstance = null;
 // });
+ipcMain.handle("debug_speaker",()=>{
+    console.log("Start speaker test");
+    const speaker=new Speaker({bitDepth:16,channels:2,sampleRate:44100});
+    const socket=dgram.createSocket("udp4").bind(8899)
+    socket.on("message",(data,remoteInfo)=>{
+        if (remoteInfo.address!==connectedDevice?.getPhoneAddress()) {
+            console.log(remoteInfo);
+            return
+        }
+        speaker.write(data);
+    })
+});
 //测试用 有些要保留
 app.on("before-quit", () => {
     //异常时为null
