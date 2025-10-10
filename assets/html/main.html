@@ -61,17 +61,6 @@
             </mdui-menu>
         </mdui-dropdown>
         <h3 id="modelNameText">Loading</h3>
-        <!-- 投屏video -->
-        <!-- <div style="width: 240px;height: 360px;"> -->
-            <!-- 提示遮罩 -->
-            <!-- <div id="screenProjectionHoverMask" hidden> -->
-                <!-- <mdui-icon name="open_in_browser" style="font-size: 64px;"></mdui-icon><br> -->
-                <!-- <mdui-icon name="connected_tv" style="font-size: 64px;" id="mediaProjectionMaskIcon"></mdui-icon><br> -->
-                <!-- 点击打开投屏操控窗口 -->
-                <!-- <div id="screenProjectionHoverMaskText">点击发起投屏连接</div> -->
-            <!-- </div> -->
-            <!-- <video id="screenProjection" style="width: 240px;height: 360px;cursor: pointer;"></video> -->
-        <!-- </div> -->
         <!-- 设备状态 -->
         <mdui-card class="deviceStateCard">
             <!-- 内存使用率 -->
@@ -87,6 +76,9 @@
             <mdui-icon name="wifi"></mdui-icon>
             <span id="connectionLatencyText">N/A</span>
         </mdui-card>
+        <mdui-button id="home_test_speaker">
+            测试音频
+        </mdui-button>
     </div>
     <!-- 互传 -->
     <div class="functionsPage" pageId="1" hidden initHandle="transmitScrollBottom" id="transmitPage">

@@ -22,10 +22,6 @@ const functionPages = document.getElementsByClassName("functionsPage");
 //主题色
 md.setColorScheme('#895cad');
 window.deviceAndroidId = "";
-window.testDb = Database;
-// window.rightMenu = async () => {
-//     console.log(await window.electronMainProcess.createRightClickMenu(RightClickMenus.MENU_TRANSMIT_TEXT));
-// }
 //程序状态
 const applicationState = {
     // 满电提醒避免多次推送
@@ -183,6 +179,9 @@ async function homePageInit() {
         //不信任
         stateBarInit.addState("info_device_not_trusted");
     }
+    document.getElementById("home_test_speaker").addEventListener("click",()=>{
+        window.electronMainProcess.setAudioForwardEnable(true);
+    })
 }
 //其他 与交互有关
 /**

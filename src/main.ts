@@ -21,9 +21,8 @@ import { type RightClickMenuItem, RightClickMenuItemId } from "./interface/Right
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
 import RemoteMediaWindowSize from "./constant/remoteMediaWindowSize";
-
-import Speaker from "speaker";
-import dgram from "dgram";
+import child_process from "child_process";
+import AudioForward from "./modules/AudioForward";
 
 //随机端口号 超过60000的正则不好搞哦
 let serverPort;
@@ -790,17 +789,13 @@ app.on("certificate-error", (event, webContents, url, error, cert, callback) => 
 //     apkDownloadServerInstance?.close();
 //     apkDownloadServerInstance = null;
 // });
-ipcMain.handle("debug_speaker",()=>{
-    console.log("Start speaker test");
-    const speaker=new Speaker({bitDepth:16,channels:2,sampleRate:44100});
-    const socket=dgram.createSocket("udp4").bind(8899)
-    socket.on("message",(data,remoteInfo)=>{
-        if (remoteInfo.address!==connectedDevice?.getPhoneAddress()) {
-            console.log(remoteInfo);
-            return
-        }
-        speaker.write(data);
-    })
+
+ipcMain.handle("main_setAudioForward",async (event,enable:boolean)=>{
+    if (enable) {
+        AudioForward.start(connectedDevice.getPhoneAddress())
+    }else{
+        AudioForward.stop();
+    }
 });
 //测试用 有些要保留
 app.on("before-quit", () => {
@@ -808,6 +803,8 @@ app.on("before-quit", () => {
     for (const client of connectedDevice?.clients || []) {
         client.close(ConnectionCloseCode.CloseFromServer);
     }
+    //关闭音频转发进程
+    AudioForward.stop();
     //发生异常时无法调用close
     connectedDevice?.close();
     logger?.writeInfo("App quit");

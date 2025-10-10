@@ -39,6 +39,7 @@
     "is-port-available": "^0.1.5",
     "mdui": "^2.1.1",
     "node-stream-zip": "^1.15.0",
+    "opus-decoder": "^0.7.10",
     "randomthing-js": "^2.0.1",
     "speaker": "^0.5.5",
     "typescript": "^5.4.5",

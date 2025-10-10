@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/z2858/AndroidStudioProjects/LinkToComputer/app/src/main/java/com/example/linktocomputer/service/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
