@@ -49,6 +49,7 @@ let phoneFileDownloadWindow: BrowserWindow | null = null;
 如果不这么搞触发will-download回调内读取的文件名永远是第一次触发的文件名
 */
 let phoneFileDownloadPathTemp: string = "";
+let trayInstance: Tray | null = null;
 //设备配置管理
 // let deviceConfig:DeviceConfig|null=null;
 declare global {
@@ -224,7 +225,9 @@ ipcMain.handle("connectPhone_initServer", async (event) => {
                     initTray();
                     trayInitd = true;
                 }
-                connectedDevice.socket?.send(JSON.stringify({ packetType: "main_server_initialled" }));
+                setTimeout(() => {
+                    connectedDevice.socket?.send(JSON.stringify({ packetType: "main_server_initialled" }));
+                }, 150);
                 // }, 200);
                 logger.writeInfo("Opened main window");
             });
@@ -287,7 +290,10 @@ ipcMain.handle("connectPhone_initServer", async (event) => {
                     })
                 }
             });
-        }
+        },
+        getTrayInstance() {
+            return trayInstance;
+        },
     });
     //SSL证书下载服务器
     if (certDownloadServer === null) {
@@ -313,10 +319,10 @@ ipcMain.handle("connectPhone_initServer", async (event) => {
 function initTray() {
     //创建托盘图标
     const trayImage: Electron.NativeImage = nativeImage.createFromPath("./res/tray.png");
-    const tray: Tray = new Tray(trayImage);
-    tray.setTitle("Suisho Connector");
-    tray.setToolTip("Suisho Connector");
-    tray.addListener("double-click", () => {
+    trayInstance = new Tray(trayImage);
+    trayInstance.setTitle("Suisho Connector");
+    trayInstance.setToolTip("Suisho Connector");
+    trayInstance.addListener("double-click", () => {
         if (mainWindow !== null) {
             mainWindow.show();
             if (mainWindow.isMinimized()) {
@@ -423,7 +429,7 @@ function initTray() {
             }
         }
     ];
-    tray.setContextMenu(Menu.buildFromTemplate(trayMenu));
+    trayInstance.setContextMenu(Menu.buildFromTemplate(trayMenu));
 }
 //未捕获异常弹窗 给点功能选择
 process.on("uncaughtException", (error, origin) => {
@@ -768,6 +774,23 @@ ipcMain.on("main_downloadPhoneFile", async (event, downloadFilePath: string) => 
         });
     };
     phoneFileDownloadWindow.loadURL(`https://${connectedDevice?.getPhoneAddress()}:${30767}?filePath=${downloadFilePath}`);
+});
+ipcMain.handle("main_deleteLogs",async ()=>{
+    const logPath=`${app.getPath("userData")}/programData/logs`;
+    const filesList=await fs.readdir(logPath);
+    const currentLogFileName=logger.getLogFileName();
+    for (const file of filesList) {
+        //跳过本次运行产生的日志文件
+        if (file!==currentLogFileName) {
+            //单个文件删除失败时不影响后面的
+            try {
+                await fs.remove(`${app.getPath("userData")}/programData/logs/${file}`)
+            } catch (error) {
+                logger.writeError(error as Error);
+            }
+        }
+    }
+    logger.writeInfo("Deleted all logs");
 });
 app.on("certificate-error", (event, webContents, url, error, cert, callback) => {
     // console.log(url);

@@ -1,7 +1,7 @@
 // import Database from "../../modules/Database.js";
 import * as md from "../../modules/mdui.esm.js";
 import Database from "../../modules/Database.js";
-class NI {
+class NotificationForwardInit {
     // static configWindow = null;
     static deviceDataPath = "";
     /**
@@ -12,7 +12,7 @@ class NI {
     /**
      * @description 页面首次点击初始化
      * @static
-     * @memberof NI
+     * @memberof NotificationForwardInit
      */
     static onPageSelect() {
 
@@ -21,13 +21,13 @@ class NI {
      * 深度隐藏通知map
      * @type {Map<string,boolean>}
      * @static
-     * @memberof NI
+     * @memberof NotificationForwardInit
      */
     static notificationHiddenMap = new Map();
     /**
      * 是否显示隐藏通知
      * @static
-     * @memberof NI
+     * @memberof NotificationForwardInit
      */
     static showDeepHideNotification = false;
     static #filterCardInput = document.getElementById("notificationForwardFilterInput");
@@ -36,7 +36,7 @@ class NI {
     /**
      * @description 页面加载完成
      * @static
-     * @memberof NI
+     * @memberof NotificationForwardInit
      */
     static async onAppLoaded() {
         //保护
@@ -384,4 +384,4 @@ class NI {
         return profile.enableDeepHidden;
     }
 }
-export default NI;
+export default NotificationForwardInit;

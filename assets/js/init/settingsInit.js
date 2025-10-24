@@ -1,16 +1,16 @@
 import * as md from "../../modules/mdui.esm.js";
 class Settings {
     // 初始化标记 
-    static _initd=false;
+    static _initd = false;
     static tempSelect = {
         __oauthSelectChanged: false,
         __cancelProtectMethodChangeEvent: false,
-        __heartBestChangeEvent:false,
-        __logLevelChangeEvent:false,
+        __heartBestChangeEvent: false,
+        __logLevelChangeEvent: false,
         protectMethod: null,
         defaultNotificationShowMode: null,
-        heartBeatDelay:null,
-        logLevel:null
+        heartBeatDelay: null,
+        logLevel: null
     }
     static onAppLoaded() {
         this.#initElementEventListener();
@@ -30,7 +30,22 @@ class Settings {
                 element.children[0].click();
             })
         })
-
+        //删除日志
+        document.getElementById("deleteLogsButton").addEventListener("click", () => {
+            md.confirm({
+                headline: "清除日志确认",
+                description: "确认清除日志?\n(通常不会造成影响)",
+                confirmText: "确认",
+                cancelText: "取消",
+                onConfirm: async () => {
+                    await window.electronMainProcess.deleteLogs();
+                    md.snackbar({
+                        message: "日志清除完成",
+                        autoCloseDelay: 1750
+                    });
+                },
+            });
+        })
     };
     static async #loadSettings() {
         //获取
@@ -259,13 +274,13 @@ class Settings {
         });
         //绑定设备
         //文字
-        document.getElementById("boundDevice").setAttribute("description", globalConfig.boundDeviceId===null?"未绑定":`已绑定设备ID:${globalConfig.boundDeviceId}`);
+        document.getElementById("boundDevice").setAttribute("description", globalConfig.boundDeviceId === null ? "未绑定" : `已绑定设备ID:${globalConfig.boundDeviceId}`);
         //功能
         document.getElementById("boundDevice").addEventListener("click", async () => {
             /**
              * @type {string}
              */
-            const boundDeviceId=await window.electronMainProcess.getConfig("boundDeviceId");
+            const boundDeviceId = await window.electronMainProcess.getConfig("boundDeviceId");
             document.getElementById("boundDevice").blur();
             //如果有windows hello则验证 保证机主操作
             if (globalConfig.hasOAuthCredentials) {
@@ -282,7 +297,7 @@ class Settings {
                 }
             }
             //已有绑定则改为删除
-            if (boundDeviceId===window.deviceAndroidId) {
+            if (boundDeviceId === window.deviceAndroidId) {
                 md.confirm({
                     headline: "解绑当前连接设备?",
                     description: "将不再自动连接到该设备",
@@ -290,9 +305,9 @@ class Settings {
                     cancelText: "取消",
                     onConfirm: async () => {
                         //写入配置
-                        await window.electronMainProcess.sendRequestPacket({packetType:"main_unbindDevice"});
-                        window.electronMainProcess.setConfig("boundDeviceId",null);
-                        window.electronMainProcess.setConfig("boundDeviceKey",null);
+                        await window.electronMainProcess.sendRequestPacket({ packetType: "main_unbindDevice" });
+                        window.electronMainProcess.setConfig("boundDeviceId", null);
+                        window.electronMainProcess.setConfig("boundDeviceKey", null);
                         md.snackbar({
                             message: "已解绑",
                             autoCloseDelay: 2000
@@ -301,7 +316,7 @@ class Settings {
                     }
                 });
                 return
-            }else if (boundDeviceId !== null) {
+            } else if (boundDeviceId !== null) {
                 //绑定了 但不是现在连接这个
                 md.snackbar({
                     message: "无法执行操作,因为当前连接设备不是绑定的设备",
@@ -316,11 +331,11 @@ class Settings {
                 cancelText: "取消",
                 onConfirm: async () => {
                     //发送绑定请求
-                    const key=RT.number_en(256);
-                    await window.electronMainProcess.sendRequestPacket({packetType:"main_bindDevice",msg:key});
+                    const key = RT.number_en(256);
+                    await window.electronMainProcess.sendRequestPacket({ packetType: "main_bindDevice", msg: key });
                     //写入配置
-                    window.electronMainProcess.setConfig("boundDeviceId",window.deviceAndroidId??null);
-                    window.electronMainProcess.setConfig("boundDeviceKey",key);
+                    window.electronMainProcess.setConfig("boundDeviceId", window.deviceAndroidId ?? null);
+                    window.electronMainProcess.setConfig("boundDeviceKey", key);
                     md.snackbar({
                         message: "绑定完成",
                         autoCloseDelay: 2000
@@ -329,54 +344,54 @@ class Settings {
                 }
             })
         });
-        document.getElementById("changePasswordItem").addEventListener("click",async ()=>{
-            if (localStorage.getItem(`pwdHash_${window.deviceAndroidId}`)!==null) {
-                if(!await this.startVerifyPassword("请输入旧密码",false)){
+        document.getElementById("changePasswordItem").addEventListener("click", async () => {
+            if (localStorage.getItem(`pwdHash_${window.deviceAndroidId}`) !== null) {
+                if (!await this.startVerifyPassword("请输入旧密码", false)) {
                     md.snackbar({
-                        message:"验证失败",
-                        autoCloseDelay:2000
+                        message: "验证失败",
+                        autoCloseDelay: 2000
                     });
                     return
                 }
-                this.startVerifyPassword("输入新密码",true).then(value=>{
+                this.startVerifyPassword("输入新密码", true).then(value => {
                     md.snackbar({
-                        message:value?"修改成功":"修改失败",
-                        autoCloseDelay:2000
+                        message: value ? "修改成功" : "修改失败",
+                        autoCloseDelay: 2000
                     })
                 })
-            }else{
-                this.startVerifyPassword("设置一个密码",true).then(value=>{
+            } else {
+                this.startVerifyPassword("设置一个密码", true).then(value => {
                     md.snackbar({
-                        message:value?"设置成功":"设置失败",
-                        autoCloseDelay:2000
+                        message: value ? "设置成功" : "设置失败",
+                        autoCloseDelay: 2000
                     })
                 })
             }
         });
         //提示
-        document.getElementById("heartBeatDelaySelect").addEventListener("change",()=>{
+        document.getElementById("heartBeatDelaySelect").addEventListener("change", () => {
             if (!this.tempSelect.__heartBestChangeEvent) {
-                this.tempSelect.__heartBestChangeEvent=true;
+                this.tempSelect.__heartBestChangeEvent = true;
                 return
             }
             md.snackbar({
-                message:"重启程序后生效",
-                autoCloseDelay:2500
+                message: "重启程序后生效",
+                autoCloseDelay: 2500
             })
         });
-        document.getElementById("logLevelSelect").addEventListener("change",()=>{
+        document.getElementById("logLevelSelect").addEventListener("change", () => {
             if (!this.tempSelect.__logLevelChangeEvent) {
-                this.tempSelect.__logLevelChangeEvent=true;
+                this.tempSelect.__logLevelChangeEvent = true;
                 return
             }
             md.snackbar({
-                message:"重启程序后生效",
-                autoCloseDelay:2500
+                message: "重启程序后生效",
+                autoCloseDelay: 2500
             })
         });
         //正常0.5秒内是不可能动设置的
         setTimeout(() => {
-            this._initd=true;
+            this._initd = true;
         }, 500);
     }
     /**

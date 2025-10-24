@@ -15,12 +15,14 @@ type logInput = number | string | object | Error
 class Logger {
     private logPath: string;
     private level: LogLevel;
+    private logFileName: string;
     writeStream: fs.WriteStream;
     constructor(path: string, level?: LogLevel) {
         this.logPath = path;
         this.level = level??LogLevel.INFO;
         const date: number = Date.now();
         const filePath: string = `${this.logPath}/${date}.log`;
+        this.logFileName = `${date}.log`;
         //获取原本是否存在
         const existFile = fs.existsSync(filePath);
         //保证存在
@@ -82,6 +84,9 @@ class Logger {
             this.writeStream.write(tempStr + "\n");
             console.log("\x1B[31m" + tempStr + "\x1b[0m");
         }
+    }
+    getLogFileName(): string {
+        return this.logFileName;
     }
     closeStream():void{
         this.writeStream.end();

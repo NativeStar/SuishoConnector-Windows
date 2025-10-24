@@ -77,4 +77,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     extension_notificationProcessorShutdown:()=>{ipcRenderer.send("notificationProcessor_shutdown")},
     //控制音频转发开关
     setAudioForwardEnable:(enabled)=>{return ipcRenderer.invoke("main_setAudioForward",enabled)},
+    //清除日志
+    deleteLogs:()=>{return ipcRenderer.invoke("main_deleteLogs")},
 })

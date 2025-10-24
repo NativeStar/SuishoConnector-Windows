@@ -81,8 +81,4 @@ function encodeToWav(channelData, sampleRate, samplesDecoded) {
     decoded.set(waveHeader);
     decoded.set(interleaved, waveHeader.length);
     return decoded;
-    // console.log(decoded);
-    // const player = AV.Player.fromBuffer(decoded);
-    // console.log(player);
-    // return decoded.length;
 };

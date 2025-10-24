@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, app, ipcMain, Notification, session } from "electron";
+import { BrowserWindow, dialog, app, ipcMain, Notification, Tray } from "electron";
 import { IncomingMessage } from "http";
 import https from "https";
 import ws from "ws";
@@ -20,11 +20,12 @@ import { SocketFileWriter } from "./SocketFileWriter";
 declare global {
     var serverAddress: string | null
 }
-interface mainHandle {
-    openMainWindow: Function
+interface MainHandle {
+    openMainWindow: () => void;
+    getTrayInstance: () => Tray | null;
 }
 class Server {
-    private LOG_TAG:string = "Server";
+    private LOG_TAG: string = "Server";
     isConnectVerified: boolean;
     protocolVersion: number;
     phoneAddress: string | undefined = undefined;
@@ -32,7 +33,7 @@ class Server {
     isInMainWindow: boolean;
     isClosed: boolean;
     showDefaultDisconnectAlert: boolean;
-    mainHandle: mainHandle;
+    mainHandle: MainHandle;
     notificationCore: NotificationCore | null;
     socket: ws | null;
     heartBeatDelay: { VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number; REALTIME: number; };
@@ -41,7 +42,7 @@ class Server {
     connectTimestamp: number = -1;
     connectTimeoutTimer: NodeJS.Timeout | number | null = null;
     handshakeTime: number = 0;
-    private appListCache:Object|null=null;
+    private appListCache: Object | null = null;
     /**
      * Creates an instance of server.
      * @param {number} port
@@ -49,7 +50,7 @@ class Server {
      * @param {Function} onMessageMainCallbacks 回调
      * @memberof server
      */
-    constructor(port: number, window: BrowserWindow, onMessageMainCallbacks: mainHandle) {
+    constructor(port: number, window: BrowserWindow, onMessageMainCallbacks: MainHandle) {
         // 是否通过验证 协议版本等
         this.isConnectVerified = false;
         //客户端协议版本
@@ -68,11 +69,11 @@ class Server {
          * @description 通知管理核心
          * @type {NotificationCore}
         */
-       this.notificationCore = null
-       /**
-        * @type {ws}
-       */
-      this.socket = null;
+        this.notificationCore = null
+        /**
+         * @type {ws}
+        */
+        this.socket = null;
         //设备数据
         global.clientMetadata = {
             android: 0,
@@ -155,7 +156,7 @@ class Server {
             this.checkHeartBeat(socket);
             this.initWebviewHandles(socket);
             setTimeout(() => {
-                logger.writeInfo("create app list cache on launch",this.LOG_TAG);
+                logger.writeInfo("create app list cache on launch", this.LOG_TAG);
                 this.createAppListCache();
             }, 5000);
             // this.notificationCore=new NotificationCore();
@@ -172,8 +173,8 @@ class Server {
         //彻底关闭
         this.websocket!.close();
     }
-    private async createAppListCache(){
-        this.appListCache=await this.responseManager?.send({ packetType: "main_queryAllPackages" }) as Object;
+    private async createAppListCache() {
+        this.appListCache = await this.responseManager?.send({ packetType: "main_queryAllPackages" }) as Object;
     }
     /**
      * @description 连接信息处理
@@ -232,7 +233,7 @@ class Server {
                 //清除旧定时器
                 clearTimeout(<number>this.connectTimeoutTimer);
                 //握手包
-                socket.send(JSON.stringify({ packetType: "connect_ping", msg: global.config.deviceId, name: os.hostname(), time: Date.now()}));
+                socket.send(JSON.stringify({ packetType: "connect_ping", msg: global.config.deviceId, name: os.hostname(), time: Date.now() }));
                 //重设定时器
                 this.connectTimeoutTimer = setTimeout(() => {
                     logger.writeError("Device handshake timeout")
@@ -457,12 +458,17 @@ class Server {
                 this.appWindow.webContents.send("webviewEvent", "trustModeChange", jsonObj.trusted)
                 break
             case "updateDeviceState":
-                //更新设备状态 电量 温度显示等
+                //更新tray
+                const tray = this.mainHandle.getTrayInstance();
+                if (tray) {
+                    jsonObj.charging?tray.setToolTip(`Suisho Connector-${jsonObj.batteryLevel}%`):tray.setToolTip(`Suisho Connector`);
+                }
+                //更新前端设备状态 电量 温度显示等
                 this.appWindow.webContents.send("webviewEvent", "updateDeviceState", jsonObj);
                 break
             case "edit_state":
-                this.appWindow.webContents.send("webviewEvent", jsonObj.type==="add"?"add_state":"remove_state", jsonObj.name);
-                break   
+                this.appWindow.webContents.send("webviewEvent", jsonObj.type === "add" ? "add_state" : "remove_state", jsonObj.name);
+                break
             case undefined:
             case null:
                 //无packetType属性
@@ -533,7 +539,7 @@ class Server {
         //关闭窗口时会触发 但窗口已经关闭了 所以会报错
         //判断窗口
         if (this.isInMainWindow) {
-            const reasonStr=ConnectionCloseReasonString[code as ConnectionCloseCode]??"由于未知异常 连接断开";
+            const reasonStr = ConnectionCloseReasonString[code as ConnectionCloseCode] ?? "由于未知异常 连接断开";
             if (!this.appWindow.isDestroyed()) this.appWindow.webContents.send("webviewEvent", "disconnect", reasonStr);
             return
         }
@@ -705,8 +711,8 @@ class Server {
         ipcMain.handle("file_listDir", async (event, dirPath) => {
             return await this.responseManager?.send({ packetType: "file_getFilesList", msg: dirPath });
         });
-        ipcMain.handle("notificationForward_getPackageList",async (event,forceRefresh:boolean=false)=>{
-            if (!forceRefresh&&this.appListCache) {
+        ipcMain.handle("notificationForward_getPackageList", async (event, forceRefresh: boolean = false) => {
+            if (!forceRefresh && this.appListCache) {
                 logger.writeDebug("Load package list from cache")
                 return this.appListCache;
             }
