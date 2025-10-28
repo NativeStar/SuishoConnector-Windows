@@ -160,7 +160,7 @@ class NotificationCore {
  
      * @returns 
      */
-    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
+    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string,key:string, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
         //插件功能
         if (this.notificationProcessorExtension !== null && (!notificationExtensionEnablePackageNameFilter || notificationExtensionTargetPackageName.has(packageName))) {
             this.notificationProcessorExtension.send({
@@ -187,6 +187,8 @@ class NotificationCore {
             enableTextFilter: true,
             show: true
         };
+        //实时通知显示 暂定不进行处理 直接推
+        this.window?.webContents.send("webviewEvent","current_notification_update","add",key,packageName, appName, title, content, time,ongoing);
         //熄屏检测
         if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen") && windowsNotificationStateCode.isLockedScreen(windowsNotificationState.shQueryUserNotificationState())) {
             result.show = false;

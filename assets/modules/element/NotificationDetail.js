@@ -49,11 +49,9 @@ class NotificationDetail extends HTMLElement {
         textDiv.classList.add("notificationDetailTextDiv");
         //展开提示 默认隐藏
         this.spreadImage = document.createElement("mdui-button-icon");
-        // this.spreadImage.src = "../svg/spread_arrow.svg";
         this.spreadImage.setAttribute("icon", "arrow_circle_down");
         //可选中
         this.spreadImage.setAttribute("selectable", "");
-        // this.spreadImage.hidden=true;
         this.spreadImage.style.display = "none";
         this.spreadImage.classList.add("spreadButton");
         this.spreadImage.addEventListener("click", () => {

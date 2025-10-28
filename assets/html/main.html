@@ -76,6 +76,18 @@
             <mdui-icon name="wifi"></mdui-icon>
             <span id="connectionLatencyText">N/A</span>
         </mdui-card>
+        <br>
+        <mdui-card id="activeNotificationsCard">
+            <small style="color: gray;margin-left: 2%;">通知列表</small>
+            <mdui-icon name="refresh" id="refreshActiveNotificationsIcon" class="hoverDarkIcon"></mdui-icon>
+            <mdui-icon name="clear_all" id="clearAllActiveNotificationsIcon" class="hoverDarkIcon"></mdui-icon>
+            <mdui-divider></mdui-divider>
+            <div style="text-align: center;">
+                <span hidden style="color: gray;">暂无正在显示的通知</span>
+            </div>
+            <div id="activeNotificationsList">
+            </div>
+        </mdui-card>
         <mdui-button id="home_test_speaker">
             测试音频
         </mdui-button>

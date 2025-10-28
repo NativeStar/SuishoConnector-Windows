@@ -220,7 +220,7 @@ class Server {
             this.responseManager!.onResponseMessage(jsonObj._responseId, jsonObj);
             return
         }
-        logger.writeDebug(`Receive a packet.Type:${jsonObj.packetType}`);
+        logger.writeDebug(`Received a packet.Type:${jsonObj.packetType}`);
         switch (jsonObj.packetType) {
             //连接握手包
             case "connect_handshake":
@@ -387,7 +387,7 @@ class Server {
                 break
             case "action_notificationForward":
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.ongoing);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName,jsonObj.key,jsonObj.ongoing);
                 break
             case "syncIconPack"://同步应用图标资源包
                 const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconArchive`;
@@ -469,10 +469,14 @@ class Server {
             case "edit_state":
                 this.appWindow.webContents.send("webviewEvent", jsonObj.type === "add" ? "add_state" : "remove_state", jsonObj.name);
                 break
+            case "removeActiveNotification":
+                this.appWindow.webContents.send("webviewEvent", "current_notification_update","remove", jsonObj.key);
+                break
             case undefined:
             case null:
                 //无packetType属性
                 logger.writeWarn("Missing packet type");
+                // console.log(jsonObj);
                 break
             default:
                 //检查协议版本

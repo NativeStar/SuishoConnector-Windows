@@ -9,3 +9,37 @@
     align-items: center;
     padding: 0.5% 1% 0.5% 1%;
 }
+#clearAllActiveNotificationsIcon{
+    cursor: pointer;
+    float: right;
+    margin-right: 2%;
+    color: gray;
+}
+#refreshActiveNotificationsIcon{ 
+    cursor: pointer;
+    float: right;
+    margin-right: 1%;
+    color: gray;
+}
+.hoverDarkIcon:hover{
+    color: black;
+}
+#activeNotificationsCard{
+    width: 40%;
+    min-height: 35%;
+    max-height: 35%;
+    /* text-align: center; */
+    /* overflow-y: scroll; */
+}
+#activeNotificationsList::-webkit-scrollbar {
+    width: 4px;
+    height: 6px;
+}
+#activeNotificationsList{
+    position: absolute;
+    overflow-y: scroll;
+    width: 100%;
+    min-height: 88%;
+    max-height: 88%;
+    /* text-align: initial; */
+}

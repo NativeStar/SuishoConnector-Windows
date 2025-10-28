@@ -1,8 +1,5 @@
 //ui库
 import * as md from "../modules/mdui.esm.js";
-//其他
-import Util from "../modules/Util.js";
-import Widget from "../modules/Widgets.js";
 // import Database from "../modules/Database.js";
 import TransmitPage from "./init/transmitInit.js";
 import NotificationPage from "./init/notificationForwardInit.js";
@@ -11,13 +8,11 @@ import stateBarInit from "./init/stateBarInit.js";
 import ExtensionPage from './init/extensionInit.js';
 import fileManagerInit from "./init/fileManagerInit.js";
 import Database from "../modules/Database.js";
-import { customElementInit, controlInit } from './init/mainPageInit.js';
+import { customElementInit, controlInit, activeNotificationInit, appendActiveNotification } from './init/mainPageInit.js';
 //调试
 import developing from "../modules/developing.js";
 import StateBarInit from "./init/stateBarInit.js";
 import TrustMode from './class/TrustMode.js';
-import RightClickMenus from "./class/RightClickMenus.js";
-import RightClickMenuItem from "./class/RightClickMenuItem.js";
 const functionPages = document.getElementsByClassName("functionsPage");
 //主题色
 md.setColorScheme('#895cad');
@@ -144,6 +139,8 @@ async function envInit() {
  * @description 主页初始化
  */
 async function homePageInit() {
+    //获取当前通知
+    activeNotificationInit();
     //将设备信息对象挂上全局
     window.deviceInfo = {};
     //获取基础信息
@@ -179,9 +176,42 @@ async function homePageInit() {
         //不信任
         stateBarInit.addState("info_device_not_trusted");
     }
-    document.getElementById("home_test_speaker").addEventListener("click",()=>{
+    document.getElementById("home_test_speaker").addEventListener("click", () => {
         window.electronMainProcess.setAudioForwardEnable(true);
-    })
+    });
+    const refreshButton = document.getElementById("refreshActiveNotificationsIcon");
+    const clearButton = document.getElementById("clearAllActiveNotificationsIcon");
+    //刷新通知
+    refreshButton.addEventListener("click", () => {
+        refreshButton.style.display = "none";
+        clearButton.style.display = "none";
+        document.getElementById("activeNotificationsList").innerHTML = "";
+        activeNotificationInit().then(() => {
+            refreshButton.style.display = "block";
+            clearButton.style.display = "block";
+        })
+    });
+    //清除通知
+    clearButton.addEventListener("click", async () => {
+        clearButton.style.display = "none";
+        refreshButton.style.display = "none";
+        document.getElementById("activeNotificationsList").innerHTML = "";
+        const clearNotificationPacket = {
+            packetType: "removeCurrentNotification",
+            key: "all"
+        }
+        await window.electronMainProcess.sendPacket(clearNotificationPacket);
+        //有些通知可能无法清除 如ongoing通知或某些oem软件(平时被魔改systemUi隐藏了用户看不到但可以读取)
+        //刷新一下确保状态正确
+        activeNotificationInit().then(() => {
+            refreshButton.style.display = "block";
+            clearButton.style.display = "block";
+        })
+        // window.electronMainProcess.clearAllActiveNotifications().then(()=>{
+        //     clearButton.style.display = "block";
+        //     refreshButton.style.display = "block";
+        // })
+    });
 }
 //其他 与交互有关
 /**
@@ -245,6 +275,20 @@ function electronEventHandle(electronEvent, event, ...args) {
         //追加通知显示
         case "notification_append":
             NotificationPage.appendNotification(args[0], args[1], args[2], args[3], args[4]);
+            break
+        case "current_notification_update":
+            const updateType = args[0];
+            if (updateType === "add") {
+                appendActiveNotification(args[2], args[4], args[5], args[3], args[1],args[7]);
+            } else if (updateType === "remove") {
+                const notificationElementList = document.getElementById("activeNotificationsList").children
+                for (const item of notificationElementList) {
+                    const key = item.getAttribute("notification-key");
+                    if (key === args[1]) {
+                        item.remove();
+                    }
+                }
+            }
             break
         case "focus_notification":
             //模拟点击 方便快捷
