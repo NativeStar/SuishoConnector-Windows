@@ -24,7 +24,7 @@
     "@types/node": "^20.9.4",
     "@types/qrcodejs": "^1.0.4",
     "@types/ws": "^8.5.10",
-    "electron": "^35.0.2",
+    "electron": "^39.0.0",
     "node-abi": "^4.2.0",
     "npm": "^10.9.2"
   },
