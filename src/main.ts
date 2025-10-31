@@ -50,6 +50,7 @@ let phoneFileDownloadWindow: BrowserWindow | null = null;
 */
 let phoneFileDownloadPathTemp: string = "";
 let trayInstance: Tray | null = null;
+let devLoadLocalhost: boolean = false;
 //设备配置管理
 // let deviceConfig:DeviceConfig|null=null;
 declare global {
@@ -67,6 +68,20 @@ app.on("ready", async (event, info) => {
     global.config = await Util.loadConfig();
     global.logger.setLevel(Reflect.get(LogLevel, config.logLevel));
     app.setAsDefaultProtocolClient("suisho", process.execPath, [app.getAppPath()]);
+    if(!app.isPackaged){
+        const result=await dialog.showMessageBox({
+            type:"question",
+            title:"开发模式启动",
+            message:"选择启动模式",
+            buttons:["本地服务器","构建产物"],
+            cancelId:-1
+        })
+        console.log(result.response);
+        if (result.response===-1) {
+            app.quit();
+        }
+        devLoadLocalhost=result.response===0;
+    }
     connectPhoneWindow = new BrowserWindow({
         titleBarStyle: "hidden",
         center: true,
@@ -102,7 +117,8 @@ app.on("ready", async (event, info) => {
         app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     });
     connectPhoneWindow.setContentProtection(global.config.enableContentProtection);
-    connectPhoneWindow.loadFile("./assets/html/connectPhone.html");
+    devLoadLocalhost?connectPhoneWindow.loadURL("http://localhost:5173/connect-phone"):connectPhoneWindow.loadFile("./assets.old/html/connectPhone.html");
+    // connectPhoneWindow.loadFile(devLoadLocalhost?"http://localhost:5173":"./assets.old/html/connectPhone.html");
     connectPhoneWindow.setMenu(null);
     //阻止多开
     app.on("second-instance", async (event, args, dir, data) => {
@@ -157,7 +173,7 @@ app.on("ready", async (event, info) => {
     });
 });
 //ipc
-ipcMain.handle("connectPhone_initServer", async (event) => {
+ipcMain.handleOnce("connectPhone_initServer", async (event) => {
     let trayInitd = false;
     //检查并获取配置文件
     await Util.updateConfig();
@@ -541,6 +557,7 @@ ipcMain.on("connectPhone_openProxySetting", (event) => {
 });
 //局域网扫描绑定设备
 ipcMain.on("main_startAutoConnectBroadcast", () => {
+    logger.writeInfo("Start auto connect broadcast")
     //开始广播
     broadcaster = new Broadcaster(global.config.boundDeviceKey as any);
     broadcaster.start();

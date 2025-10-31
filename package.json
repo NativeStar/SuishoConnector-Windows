@@ -6,7 +6,7 @@
   "scripts": {
     "test": "tsc&&electron ./",
     "start": "electron-forge start",
-    "package": "tsc && electron-forge package",
+    "package": "tsc && cd ./renderer && react-router build && cd ../ && electron-forge package",
     "make": "electron-forge make"
   },
   "author": "suisho",

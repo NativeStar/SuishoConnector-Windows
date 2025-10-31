@@ -1,0 +1,60 @@
+/* 更改光标 别看起来那么网页 */
+a:not([href]){
+    cursor: default;
+}
+div:not([class*="keepCursor"]){
+    cursor: default;
+}
+h1:not([class*="keepCursor"]){
+    cursor: default;
+}
+h2:not([class*="keepCursor"]){
+    cursor: default;
+}
+h3:not([class*="keepCursor"]){
+    cursor: default;
+}
+h4:not([class*="keepCursor"]){
+    cursor: default;
+}
+h5:not([class*="keepCursor"]){
+    cursor: default;
+}
+small:not([class*="keepCursor"]){
+    cursor: default;
+}
+b:not([class*="keepCursor"]){
+    cursor: default;
+}
+tr:not([class*="keepCursor"]){
+    cursor: default;
+}
+td:not([class*="keepCursor"]){
+    cursor: default;
+}
+li:not([class*="keepCursor"]){
+    cursor: default;
+}
+p:not([class*="keepCursor"]){
+    cursor: default;
+}
+span:not([class*="keepCursor"]){
+    cursor: default;
+}
+ul:not([class*="keepCursor"]){
+    cursor: default;
+}
+label:not([class*="keepCursor"]){
+    cursor: default;
+}
+/*拖动*/
+*:not([class*="draggable"]){
+    -webkit-user-drag: none;
+}
+/*文本选择*/
+*:not([class*="selectable"]){
+    user-select: none;
+}
+.selectable{
+    user-select: text;
+}

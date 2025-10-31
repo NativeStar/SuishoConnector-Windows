@@ -6,8 +6,8 @@ class ApkServer{
     indexHtml:string;
     private packageSize:number;
     constructor(){
-        if (fs.existsSync("./assets/html/apkDownload.html")) {
-            this.indexHtml=fs.readFileSync("./assets/html/apkDownload.html",{encoding:"utf-8"});
+        if (fs.existsSync("./res/android/apkDownload.html")) {
+            this.indexHtml=fs.readFileSync("./res/android/apkDownload.html",{encoding:"utf-8"});
         }else{
             this.indexHtml=`
                 <html>
