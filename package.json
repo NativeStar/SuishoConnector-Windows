@@ -4,9 +4,9 @@
   "description": "Link your phone in local network",
   "main": "./dist/main.js",
   "scripts": {
-    "test": "tsc&&electron ./",
+    "dev": "tsc&&electron ./",
     "start": "electron-forge start",
-    "package": "tsc && cd ./renderer && react-router build && cd ../ && electron-forge package",
+    "package": "tsc && cd ./renderer && react-router build && move ./build/client ../dist/renderer && cd ../ && electron-forge package",
     "make": "electron-forge make"
   },
   "author": "suisho",

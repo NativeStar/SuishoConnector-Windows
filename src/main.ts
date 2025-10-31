@@ -117,7 +117,7 @@ app.on("ready", async (event, info) => {
         app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     });
     connectPhoneWindow.setContentProtection(global.config.enableContentProtection);
-    devLoadLocalhost?connectPhoneWindow.loadURL("http://localhost:5173/connect-phone"):connectPhoneWindow.loadFile("./assets.old/html/connectPhone.html");
+    devLoadLocalhost?connectPhoneWindow.loadURL("http://localhost:5173/connect-phone"):connectPhoneWindow.loadFile("../dist/renderer/index.html");
     // connectPhoneWindow.loadFile(devLoadLocalhost?"http://localhost:5173":"./assets.old/html/connectPhone.html");
     connectPhoneWindow.setMenu(null);
     //阻止多开
