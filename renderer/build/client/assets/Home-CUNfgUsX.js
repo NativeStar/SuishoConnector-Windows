@@ -1,1 +1,0 @@
-import{w as t,p as e}from"./chunk-UIGDSWPH-DMvDs-R_.js";function i({}){return[{title:"Main Window"}]}const r=t(function(){return e.jsx("div",{children:"Welcome React!"})});export{r as default,i as meta};

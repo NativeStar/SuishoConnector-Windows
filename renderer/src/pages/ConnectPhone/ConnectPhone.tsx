@@ -1,20 +1,18 @@
 import { AppBar } from "~/components/AppBar";
-import type { Route } from "./+types/ConnectPhone";
 import { useEffect, useState } from "react";
 import { ConnectQrcode } from "./components/ConnectQrcode";
 import useDevMode from "~/hooks/useDevMode";
 import { type InitServerResult } from "~/types/ipc"
 import * as mdui from "mdui";
+import "mdui/mdui.css"
+import "~/styles/global.css"
+import "~/styles/outline_icon.css"
+import "~/styles/blockWebAction.css"
 import 'mdui/components/icon';
 import "mdui/components/tooltip"
 import "mdui/components/button-icon"
 import useConnectPhoneWindowIpc from "~/hooks/ipc/useConnectPhoneWindowIpc";
 import { QRCodeSVG } from "qrcode.react";
-export function meta({ }: Route.MetaArgs) {
-    return [
-        { title: "Connect Phone Window" },
-    ];
-}
 export default function ConnectPhone() {
     useDevMode();
     const connectPhoneWindowIpc = useConnectPhoneWindowIpc();

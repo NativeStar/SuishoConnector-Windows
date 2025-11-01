@@ -1,7 +1,7 @@
 import useConnectPhoneWindowIpc from "./ipc/useConnectPhoneWindowIpc";
 
 function useDevMode() {
-    const { isDeveloping, devtools } = useConnectPhoneWindowIpc();
+    const { isDeveloping} = useConnectPhoneWindowIpc();
     isDeveloping().then(async (result: boolean) => {
         if (result) {
             document.addEventListener("keydown", (event: KeyboardEvent) => {

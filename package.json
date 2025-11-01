@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsc&&electron ./",
     "start": "electron-forge start",
-    "package": "tsc && cd ./renderer && react-router build && move ./build/client ../dist/renderer && cd ../ && electron-forge package",
+    "package": "tsc && cd ./renderer && npm run build && (if exist ..\\dist\\renderer rmdir /s /q ..\\dist\\renderer) && robocopy ./dist ../dist/renderer /E && cd ../ || electron-forge package",
     "make": "electron-forge make"
   },
   "author": "suisho",
@@ -41,6 +41,7 @@
     "node-stream-zip": "^1.15.0",
     "opus-decoder": "^0.7.10",
     "randomthing-js": "^2.0.1",
+    "react-router-dom": "^7.9.5",
     "speaker": "^0.5.5",
     "typescript": "^5.4.5",
     "uuid": "^10.0.0",

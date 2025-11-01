@@ -4,7 +4,7 @@ module.exports = {
     win32metadata: {
       CompanyName: 'Suisho Apps',
       ProductName: 'Suisho Connector',
-      FileDescription: 'Connect your phone and computer',
+      FileDescription: 'Suisho Connector',
       OriginalFilename: 'Suisho Connector.exe'
     },
     win:{
@@ -25,7 +25,11 @@ module.exports = {
       "node_modules/electron-squirrel-startup",
       "node_modules/@types",
       "forge.config.js",
-      "tsconfig.json"
+      "tsconfig.json",
+      "assets.old",
+      "^/renderer(/|$)",
+      ".claude",
+      ".gitignore",
     ]
   },
   rebuildConfig: {
