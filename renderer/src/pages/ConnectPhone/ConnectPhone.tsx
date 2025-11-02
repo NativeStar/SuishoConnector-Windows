@@ -13,6 +13,8 @@ import "mdui/components/tooltip"
 import "mdui/components/button-icon"
 import useConnectPhoneWindowIpc from "~/hooks/ipc/useConnectPhoneWindowIpc";
 import { QRCodeSVG } from "qrcode.react";
+import {test} from 'shared';
+console.log(test);
 export default function ConnectPhone() {
     useDevMode();
     const connectPhoneWindowIpc = useConnectPhoneWindowIpc();
@@ -96,10 +98,10 @@ export default function ConnectPhone() {
     }
     return (
         <>
-            <AppBar />
+            <AppBar paddingLeft="4.5%"/>
             {inApkDownloadPage ?
                 // apk 下载页面
-                <div className="fixed w-full h-[90%] flex justify-center items-center flex-col">
+                <div className="fixed w-full h-[90%] flex justify-center items-center flex-col mt-8.5">
                     <h4 className="text-[gray] text-base font-bold">下载Android端</h4>
                     <small className="text-[gray] mt-6">确保手机和电脑在同一局域网下</small>
                     <small className="text-[gray] mt-0.5">使用浏览器扫描下方二维码下载</small>
@@ -115,9 +117,9 @@ export default function ConnectPhone() {
                 </div>
                 :
                 // 主页面
-                <div className="flex justify-center items-center flex-col mt-[25%]">
-                    <h4 style={{ color: "gray" }} className="text-base font-bold">使用手机端扫码连接</h4>
-                    <small style={{ color: "gray" }} className="mt-5">需要处在同一局域网下</small>
+                <div className="flex justify-center items-center flex-col mt-[37.2%]">
+                    <h4 className="text-[gray] text-base font-bold">使用手机端扫码连接</h4>
+                    <small className="text-[gray] mt-5">需要处在同一局域网下</small>
                     <br />
                     {qrcodeData !== null && <ConnectQrcode data={JSON.stringify(qrcodeData)} showMark={isConnecting} />}
                     {/* 自动连接 */}

@@ -9,8 +9,8 @@ export function ConnectQrcode({ data, showMark }: ConnectQrcodeProps) {
         <>
             {showMark &&
                 <div className="opacity-75 size-[165px] bg-white z-10 absolute text-center top-[36%]">
-                    <mdui-circular-progress className="fixed top-[43%] left-[44.5%]"/>
-                    <span className="absolute left-[35.5%] top-[55%]">连接中...</span>
+                    <mdui-circular-progress className="fixed top-[45%] left-[44.5%]"/>
+                    <span className="absolute left-[35.5%] top-[58%]">连接中...</span>
                 </div>
             }
             {/* 连接中遮罩 */}

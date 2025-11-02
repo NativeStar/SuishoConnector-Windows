@@ -21,9 +21,7 @@ import { type RightClickMenuItem, RightClickMenuItemId } from "./interface/Right
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
 import RemoteMediaWindowSize from "./constant/remoteMediaWindowSize";
-import child_process from "child_process";
 import AudioForward from "./modules/AudioForward";
-
 //随机端口号 超过60000的正则不好搞哦
 let serverPort;
 /** @type {PhoneServer} */
@@ -76,7 +74,6 @@ app.on("ready", async (event, info) => {
             buttons:["本地服务器","构建产物"],
             cancelId:-1
         })
-        console.log(result.response);
         if (result.response===-1) {
             app.quit();
         }
@@ -248,7 +245,8 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                 logger.writeInfo("Opened main window");
             });
             mainWindow.setMenu(null);
-            mainWindow.loadFile("./assets/html/main.html");
+            devLoadLocalhost?mainWindow.loadURL("http://localhost:5173/#/home"):mainWindow.loadFile("./dist/renderer/index.html",{hash:"home"});
+            // mainWindow.loadFile("./assets/html/main.html");
             mainWindow.setContentProtection(global.config.enableContentProtection);
             mainWindow.on("closed", () => {
                 mainWindow = null;

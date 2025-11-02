@@ -1,5 +1,6 @@
 {
   "name": "phonelinker",
+  "private": true,
   "version": "1.0.0",
   "description": "Link your phone in local network",
   "main": "./dist/main.js",
@@ -51,5 +52,9 @@
   "interactive-notifications": {
     "toast-activator-clsid": "171807FD-769F-4129-A8C2-C603F8F125C8",
     "protocol": "suishoApps://"
-  }
+  },
+  "workspaces": [
+    "renderer",
+    "shared"
+  ]
 }

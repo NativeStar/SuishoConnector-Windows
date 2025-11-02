@@ -1,7 +1,5 @@
 function useConnectPhoneWindowIpc() {
     return {
-        isDeveloping: window.electronMainProcess.isDeveloping,
-        devtools: window.electronMainProcess.devtools,
         rebootApplication: window.electronMainProcess.rebootApplication,
         detectProxy: window.electronMainProcess.detectProxy,
         openProxySetting: window.electronMainProcess.openProxySetting,

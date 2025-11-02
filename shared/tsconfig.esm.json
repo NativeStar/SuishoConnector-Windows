@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist/esm",
+    "moduleResolution": "node10",
+    "module": "esnext",
+    "declaration": false
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "./dist/cjs/src/index.js",
+  "module": "./dist/esm/src/index.js",
+  "types": "./dist/types/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/src/index.js",
+      "types": "./dist/types/src/index.d.ts"
+    },
+    "./*": {
+      "require": "./dist/cjs/src/*.js",
+      "import": "./dist/esm/src/*.js",
+      "types": "./dist/types/src/*.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "run-p build:types build:cjs build:esm",
+    "build:types": "tsc -p tsconfig.types.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

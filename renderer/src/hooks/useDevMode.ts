@@ -1,8 +1,5 @@
-import useConnectPhoneWindowIpc from "./ipc/useConnectPhoneWindowIpc";
-
 function useDevMode() {
-    const { isDeveloping} = useConnectPhoneWindowIpc();
-    isDeveloping().then(async (result: boolean) => {
+    window.electronMainProcess.isDeveloping().then(async (result: boolean) => {
         if (result) {
             document.addEventListener("keydown", (event: KeyboardEvent) => {
                 if (event.key === "F5") {

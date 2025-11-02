@@ -14,11 +14,15 @@
         "sourceMap": true,
         "strict": true,
         "resolveJsonModule": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "paths": {
+            "shared":["./shared/src"]
+        }
     },
     "exclude": [
         "node_modules",
         "assets/*",
+        "shared"
     ],
     "include": [
         "src/**/*",
