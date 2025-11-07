@@ -13,8 +13,6 @@ import "mdui/components/tooltip"
 import "mdui/components/button-icon"
 import useConnectPhoneWindowIpc from "~/hooks/ipc/useConnectPhoneWindowIpc";
 import { QRCodeSVG } from "qrcode.react";
-import {test} from 'shared';
-console.log(test);
 export default function ConnectPhone() {
     useDevMode();
     const connectPhoneWindowIpc = useConnectPhoneWindowIpc();

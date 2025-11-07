@@ -1,4 +1,4 @@
-import type {InitServerResult} from "~/types/ipc"
+import type {InitServerResult,DeviceBaseInfo} from "~/types/ipc"
 declare global { 
     readonly var electronMainProcess:{
         readonly isDeveloping:() => Promise<boolean>;
@@ -17,9 +17,10 @@ declare global {
         readonly startAutoConnectBroadcast:() => Promise<void>;
         readonly startApkDownloadServer:() => Promise<void>;
         readonly autoConnectError:(callback:Function)=>Promise<void>;
-        readonly setEventHandle:(callback:Function)=>Promise<void>;
-        readonly getDeviceBaseInfo:() => Promise<void>;
-        readonly getDeviceDetailInfo:()=>Promise<void>;
+        readonly setEventHandle:(callback:(_electronEvent:never,event:string,...args:any[])=>void)=>Promise<void>;
+        readonly removeEventHandle:(callback:Function)=>Promise<void>;
+        readonly getDeviceBaseInfo:() => Promise<DeviceBaseInfo>;
+        readonly getDeviceDetailInfo:()=>Promise<{batteryLevel:number,memoryInfo:{total:number,avail:number}}>;
         readonly getUserPath:() => Promise<string>;
         readonly fileUploadProgress:(callback:Function)=>Promise<void>;
         readonly openFile:(path:string)=>Promise<boolean>;

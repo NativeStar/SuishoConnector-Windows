@@ -1,12 +1,22 @@
+import type { ApplicationState, States } from "~/types/applicationState"
+import type { StateAction } from "../Home"
 import HomePage from "../subPages/home/HomePage"
 
 export interface PageRouteProps {
-    page: "home" | "transmit" | "notification" | "file" | "extension" | "setting"
+    page: "home" | "transmit" | "notification" | "file" | "extension" | "setting",
+    applicationStates:{[key in States]?:ApplicationState},
+    applicationStatesDispatch:React.ActionDispatch<StateAction>
 }
-export default function PageRoute({ page }: PageRouteProps) {
+export default function PageRoute({ page ,applicationStates,applicationStatesDispatch}: PageRouteProps) {
     return (
         <div className="fixed left-20 top-9.5">
-            {(() => {
+            <HomePage hidden={page !== "home"} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates}/>
+            <div hidden={page !== "transmit"}>transmit</div>
+            <div hidden={page !== "notification"}>notification</div>
+            <div hidden={page !== "file"}>file</div>
+            <div hidden={page !== "extension"}>extension</div>
+            <div hidden={page !== "setting"}>setting</div>
+            {/* {(() => {
                 switch (page) {
                     case "home":
                         return <HomePage/>
@@ -23,7 +33,7 @@ export default function PageRoute({ page }: PageRouteProps) {
                     default:
                         return <>error!!!</>
                 }
-            })()}
+            })()} */}
         </div>
     )
 }

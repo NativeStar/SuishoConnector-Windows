@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     rebootApplication:()=>{ipcRenderer.send("reboot_application")},
     closeApplication:()=>{ipcRenderer.send("close_application")},
     setEventHandle:handle=>{ipcRenderer.on("webviewEvent",handle)},
+    removeEventHandle:handle=>{ipcRenderer.removeListener("webviewEvent",handle)},
     //基础信息
     getDeviceBaseInfo:()=>{return ipcRenderer.invoke("main_getDeviceBaseInfo")},
     //详细信息
