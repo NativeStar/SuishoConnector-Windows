@@ -59,11 +59,21 @@ export default function ActiveNotifications() {
     const [activeNotification, activeNotificationDispatch] = useReducer<ActiveNotification[], ActiveNotificationReducerAction>((state, action) => {
         switch (action.type) {
             case "add":
-                return [...state, action!.notification as ActiveNotification]
+                const next = action!.notification as ActiveNotification;
+                const index = state.findIndex(item => item.key === next.key);
+                if (index === -1) {
+                    return [...state, next];
+                }
+                const clone = [...state];
+                clone[index] = next; // 用最新内容覆盖
+                return clone;
             case "remove":
                 return state.filter(value => value.key !== action.key)
             case "set":
-                return [...action.initNotificationList ?? []];
+                const deduped = new Map(
+                    (action.initNotificationList ?? []).map(item => [item.key, item])
+                );
+                return Array.from(deduped.values());
             case "clear":
                 return [];
         }
@@ -74,17 +84,17 @@ export default function ActiveNotifications() {
         setTimeout(() => {
             updateNotification();
         }, 750);
-        ipc.on("currentNotificationUpdate",data=>{
+        ipc.on("currentNotificationUpdate", data => {
             activeNotificationDispatch({
-                type:data.type,
-                key:data.key,
-                notification:{
-                    appName:data.appName,
-                    content:data.content,
-                    isOngoing:data.ongoing,
-                    key:data.key,
-                    packageName:data.packageName,
-                    title:data.title
+                type: data.type,
+                key: data.key,
+                notification: {
+                    appName: data.appName,
+                    content: data.content,
+                    isOngoing: data.ongoing,
+                    key: data.key,
+                    packageName: data.packageName,
+                    title: data.title
                 }
             })
         })
