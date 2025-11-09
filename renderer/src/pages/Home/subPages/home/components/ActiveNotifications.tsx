@@ -74,7 +74,21 @@ export default function ActiveNotifications() {
         setTimeout(() => {
             updateNotification();
         }, 750);
-    }, [])
+        ipc.on("currentNotificationUpdate",data=>{
+            activeNotificationDispatch({
+                type:data.type,
+                key:data.key,
+                notification:{
+                    appName:data.appName,
+                    content:data.content,
+                    isOngoing:data.ongoing,
+                    key:data.key,
+                    packageName:data.packageName,
+                    title:data.title
+                }
+            })
+        })
+    }, []);
     return (
         <mdui-card className="fixed h-[40%] flex flex-col max-w-[40%] min-w-[40%] ">
             <div className="flex items-center px-2 py-1">

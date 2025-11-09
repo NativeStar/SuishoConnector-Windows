@@ -416,7 +416,7 @@ class Server {
                 try {
                     await fileSocket.init();
                     //不放在这发送事件时窗口更替还没完成 会崩溃
-                    this.appWindow.webContents.send("webviewEvent", "add_state", "busy_waiting_icon_pack");
+                    this.appWindow.webContents.send("webviewEvent", "editState",{type:"add",id:"busy_waiting_icon_pack"});
                     fileSocket.setEventHandle({
                         onError: (err) => {
                             logger.writeWarn(`Failed to download application icons pack\n${err}`);
@@ -441,7 +441,7 @@ class Server {
                             await fs.remove(file);
                             logger.writeInfo("Success download and extracted applications icon pack");
                             //移除提醒
-                            this.appWindow.webContents.send("webviewEvent", "remove_state", "busy_waiting_icon_pack");
+                            this.appWindow.webContents.send("webviewEvent", "editState",{type:"remove",id:"busy_waiting_icon_pack"});
                         }
                     })
                     logger.writeDebug("File init success");
@@ -467,10 +467,10 @@ class Server {
                 this.appWindow.webContents.send("webviewEvent", "updateDeviceState", jsonObj);
                 break
             case "edit_state":
-                this.appWindow.webContents.send("webviewEvent", jsonObj.type === "add" ? "add_state" : "remove_state", jsonObj.name);
+                this.appWindow.webContents.send("webviewEvent", "editState",{type:jsonObj.type,id:jsonObj.name});
                 break
             case "removeActiveNotification":
-                this.appWindow.webContents.send("webviewEvent", "current_notification_update","remove", jsonObj.key);
+                this.appWindow.webContents.send("webviewEvent", "currentNotificationUpdate", {type:"remove",key:jsonObj.key});
                 break
             case undefined:
             case null:

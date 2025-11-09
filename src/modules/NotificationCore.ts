@@ -113,7 +113,7 @@ class NotificationCore {
             //插件初始化
             this.notificationProcessorExtension = new NotificationProcessorExtension(global.config.extension_notificationProcessorPort, {
                 onPortInUse() {
-                    notificationExtensionWindow?.webContents.send("webviewEvent", "add_state", "error_notification_processor_port_in_use");
+                    notificationExtensionWindow?.webContents.send("webviewEvent", "editState", { type: "add", id: "error_notification_processor_port_in_use" });
                 },
                 onConnectStateChange(state) {
                     switch (state) {
@@ -160,7 +160,7 @@ class NotificationCore {
  
      * @returns 
      */
-    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string,key:string, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
+    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
         //插件功能
         if (this.notificationProcessorExtension !== null && (!notificationExtensionEnablePackageNameFilter || notificationExtensionTargetPackageName.has(packageName))) {
             this.notificationProcessorExtension.send({
@@ -188,7 +188,7 @@ class NotificationCore {
             show: true
         };
         //实时通知显示 暂定不进行处理 直接推
-        this.window?.webContents.send("webviewEvent","current_notification_update","add",key,packageName, appName, title, content, time,ongoing);
+        this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing });
         //熄屏检测
         if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen") && windowsNotificationStateCode.isLockedScreen(windowsNotificationState.shQueryUserNotificationState())) {
             result.show = false;
@@ -385,7 +385,7 @@ class NotificationCore {
     private ipcInit(): void {
         //打开窗口
         ipcMain.handle("notification_openConfigWindow", (event, pkgName: string | null = null, appName: string | null = null): void => {
-            logger.writeDebug("Open config window",this.LOG_TAG)
+            logger.writeDebug("Open config window", this.LOG_TAG)
             this.openConfigWindow(pkgName, appName);
         });
         //获取数据
@@ -423,7 +423,7 @@ class NotificationCore {
             }
             return null;
         });
-        ipcMain.on("notificationProcessor_shutdown",()=>{
+        ipcMain.on("notificationProcessor_shutdown", () => {
             this.notificationProcessorExtension?.close();
         })
     };
@@ -434,7 +434,7 @@ class NotificationCore {
         //xml格式通知
         if (!this.#hasXmlPermission) {
             setTimeout(() => {
-                this.window?.webContents.send("webviewEvent", "add_state", "warn_xml_notification_cannot_show");
+                this.window?.webContents.send("webviewEvent", "editState", { type: "add", id: "warn_xml_notification_cannot_show" });
             }, 550);
             return
         }
@@ -446,10 +446,10 @@ class NotificationCore {
     onNotificationClick(notification?: ElectronNotification) {
         //打开主窗口
         if (this.window?.isMinimized()) {
-            logger.writeDebug("Restore main window from notification click",this.LOG_TAG)
+            logger.writeDebug("Restore main window from notification click", this.LOG_TAG)
             this.window.restore()
         } else {
-            logger.writeDebug("Show main window from notification click",this.LOG_TAG)
+            logger.writeDebug("Show main window from notification click", this.LOG_TAG)
             this.window?.show();
         }
         this.window?.webContents.send("webviewEvent", "focus_notification");
@@ -462,7 +462,7 @@ class NotificationCore {
             await this.updateConfigObject();
             await fs.writeFile(this.configPath, JSON.stringify(this.config));
             this.configSaving = false;
-            logger.writeDebug("Notification forward config file saved",this.LOG_TAG)
+            logger.writeDebug("Notification forward config file saved", this.LOG_TAG)
         }, 300);
     }
     openConfigWindow(pkgName: string | null = null, appName: string | null = null) {
@@ -491,12 +491,12 @@ class NotificationCore {
             //成功关闭时
             this.configWindow.setContentProtection(global.config.enableContentProtection);
             this.configWindow.on("closed", () => {
-                logger.writeDebug("Config window closed",this.LOG_TAG);
+                logger.writeDebug("Config window closed", this.LOG_TAG);
                 this.configWindow = null;
             });
             //直接打开指定软件设置
             if (pkgName !== null && appName !== null) {
-                logger.writeDebug(`Request open target package notification setting:${pkgName}`,this.LOG_TAG);
+                logger.writeDebug(`Request open target package notification setting:${pkgName}`, this.LOG_TAG);
                 this.configWindow.loadFile("./assets/html/notificationFilterSetting.html", { query: { pkgName: pkgName, appName: appName } });
             } else {
                 this.configWindow.loadFile("./assets/html/notificationFilterSetting.html");
@@ -509,14 +509,14 @@ class NotificationCore {
             });
             this.configWindow.once("ready-to-show", () => {
                 this.configWindow?.setMaximizable(false);
-                logger.writeDebug("Config window showed",this.LOG_TAG);
+                logger.writeDebug("Config window showed", this.LOG_TAG);
                 this.configWindow?.show();
             });
         } else if (pkgName !== null && appName !== null) {
-            logger.writeDebug(`Request change to target package notification setting:${pkgName}`,this.LOG_TAG);
+            logger.writeDebug(`Request change to target package notification setting:${pkgName}`, this.LOG_TAG);
             this.configWindow.loadFile("./assets/html/notificationFilterSetting.html", { query: { pkgName: pkgName, appName: appName } });
         } else {
-            logger.writeDebug("Config window focused",this.LOG_TAG);
+            logger.writeDebug("Config window focused", this.LOG_TAG);
             //处理被最小化
             if (this.configWindow.isMinimized()) {
                 this.configWindow.restore();
@@ -536,7 +536,7 @@ class NotificationCore {
     }
     recheckXmlPermission(): void {
         this.#hasXmlPermission = this.checkNotificationPermission();
-        logger.writeInfo(`Recheck xml notification permission result: ${this.#hasXmlPermission}`,this.LOG_TAG)
+        logger.writeInfo(`Recheck xml notification permission result: ${this.#hasXmlPermission}`, this.LOG_TAG)
     }
 }
 // module.exports = NotificationCore;

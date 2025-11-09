@@ -13,31 +13,31 @@ export interface ApplicationState {
     onClick?: () => void
 }
 const States = {
-    WaitingIconPack:{
+    busy_waiting_icon_pack:{
         level:ApplicationStateLevel.Busy,
         title:"正在下载图标包",
         content:"这会需要一段时间",
         clickable:false,
     },
-    DeviceNotTrusted:{
+    info_device_not_trusted:{
         level:ApplicationStateLevel.Info,
         title:"此计算机不被信任",
         content:"将只运行基础功能",
         clickable:false
     },
-    XmlNotificationCannotShow:{
+    warn_xml_notification_cannot_show:{
         level:ApplicationStateLevel.Warn,
         title:"通知显示异常",
         content:"通知内容可能不全\n请检查桌面或开始菜单是否有该软件快捷方式\n(系统限制)",
         clickable:true
     },
-    PhoneFileServer:{
+    error_phone_file_server:{
         level:ApplicationStateLevel.Error,
         title:"文件浏览初始化异常",
         content:"部分相关功能可能无法工作\n请尝试清理数据重启软件",
         clickable:false
     },
-    NotificationProcessorPortInUse:{
+    error_notification_processor_port_in_use:{
         level:ApplicationStateLevel.Error,
         title:"通知处理扩展端口被占用",
         content:"请尝试关闭占用端口的程序或更改端口号后重启软件",

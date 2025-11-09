@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
+import type { States } from "~/types/applicationState";
 interface IpcEvents {
     updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean };
-    updateNetworkLatency:number
+    updateNetworkLatency: number,
+    editState: { type: "add" | "remove", id: States },
+    trustModeChange: boolean,
+    currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean }
 }
 function useMainWindowIpc() {
     const listenersRef = useRef(new Map<string, Function[]>());

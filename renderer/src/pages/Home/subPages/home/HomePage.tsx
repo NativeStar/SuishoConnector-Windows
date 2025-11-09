@@ -6,6 +6,7 @@ import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
 import type { StateAction, StatesListObject } from "../../Home";
 import ApplicationStatesBar from "./components/ApplicationStatesBar";
 import ActiveNotifications from "./components/ActiveNotifications";
+import type { States } from "~/types/applicationState";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
@@ -45,9 +46,17 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
         });
         mainWindowIpc.on("updateNetworkLatency", value => {
             setDeviceState(prevState => ({ ...prevState, latency: value }))
-        })
+        });
+        mainWindowIpc.on("trustModeChange",(trusted)=>{
+            applicationStatesDispatch({
+                type:trusted?"remove":"add",
+                id:"info_device_not_trusted"
+            });
+        });
+        mainWindowIpc.on("editState",value=>{
+            applicationStatesDispatch({type:value.type,id:value.id})
+        });
     }, []);
-
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
             <h1 className="text-lg">{deviceName}</h1>
@@ -56,21 +65,21 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
             <button onClick={()=>{
                 applicationStatesDispatch({
                     type:"add",
-                    id:"DeviceNotTrusted"
+                    id:"info_device_not_trusted"
                 });
                 applicationStatesDispatch({
                     type:"add",
-                    id:"PhoneFileServer"
+                    id:"error_phone_file_server"
                 });
             }}>add</button>
             <button onClick={()=>{
                 applicationStatesDispatch({
                     type:"remove",
-                    id:"DeviceNotTrusted"
+                    id:"info_device_not_trusted"
                 });
                 applicationStatesDispatch({
                     type:"remove",
-                    id:"PhoneFileServer"
+                    id:"error_phone_file_server"
                 });
             }}>remove</button>
             <ApplicationStatesBar states={applicationStates}/>
