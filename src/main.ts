@@ -216,6 +216,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                 show: false,
                 // skipTaskbar:true,
                 webPreferences: {
+                    webSecurity: app.isPackaged,
                     spellcheck: false,
                     contextIsolation: true,
                     preload: path.join(__dirname, 'preload/mainPreload.js'),

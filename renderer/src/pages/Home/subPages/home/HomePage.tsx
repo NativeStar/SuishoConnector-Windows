@@ -5,6 +5,7 @@ import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
 // import { type ApplicationState, type States } from "~/types/applicationState";
 import type { StateAction, StatesListObject } from "../../Home";
 import ApplicationStatesBar from "./components/ApplicationStatesBar";
+import ActiveNotifications from "./components/ActiveNotifications";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
@@ -51,6 +52,7 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
         <div style={{ display: hidden ? "none" : "block" }}>
             <h1 className="text-lg">{deviceName}</h1>
             <DeviceStateBar state={deviceState} />
+            {/* 调试用按钮 */}
             <button onClick={()=>{
                 applicationStatesDispatch({
                     type:"add",
@@ -73,7 +75,7 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
             }}>remove</button>
             <ApplicationStatesBar states={applicationStates}/>
             <br />
-            
+            <ActiveNotifications/>
         </div>
     )
 }

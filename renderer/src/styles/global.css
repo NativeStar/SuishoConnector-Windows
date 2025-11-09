@@ -1,4 +1,30 @@
 @import "tailwindcss";
-.title-bar{
+
+.title-bar {
   -webkit-app-region: drag;
+}
+
+.activeNotificationsList::-webkit-scrollbar {
+  width: 4px;
+  height: 6px;
+}
+mdui-select::part(text-field){
+    user-select: none;
+}
+::-webkit-scrollbar {
+    width: 8px;
+    height: 15px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: gray;
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: rgb(99, 98, 98);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(99, 98, 98);
 }

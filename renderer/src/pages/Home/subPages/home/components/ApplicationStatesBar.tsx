@@ -64,7 +64,7 @@ export default function ApplicationStatesBar({ states }: ApplicationStateBarProp
                     Reflect.ownKeys(states).map((stateId) => {
                         const state = states[stateId as States]!;
                         return (
-                            <ApplicationStateCard stateInstance={state} />
+                            <ApplicationStateCard key={stateId as string} stateInstance={state} />
                         )
                     })
                 }

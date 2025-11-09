@@ -1,0 +1,115 @@
+import { useEffect, useReducer, useState } from "react";
+import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
+import useTextTruncated from "~/hooks/useTextTruncated";
+import { twMerge } from "tailwind-merge";
+import "mdui/components/divider";
+interface ActiveNotificationCardProp {
+    notification: ActiveNotification,
+    dataPath: string
+    onClose: (key: string) => void
+}
+interface ActiveNotification {
+    packageName: string,
+    title: string,
+    content: string,
+    appName: string,
+    key: string,
+    isOngoing: boolean
+}
+type ActiveNotificationReducerAction = [{
+    type: "add" | "remove" | "set" | "clear",
+    key?: string,
+    notification?: ActiveNotification,
+    initNotificationList?: ActiveNotification[]
+}];
+
+function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotificationCardProp) {
+    const [defaultIsOverflow, , contentRef] = useTextTruncated(-10);
+    const [spread, setSpread] = useState<boolean>(false);
+    useEffect(() => {
+        if (defaultIsOverflow) {
+            contentRef.current!.className = twMerge("block ml-0.5 text-sm max-w-[99.6%]", spread ? "" : "truncate")
+        }
+    }, [spread])
+    return (
+        <mdui-card className="flex mt-1 mb-0.5 ml-1.5 pb-0.5 min-w-[98%] max-w-[98%]">
+            <img className="w-5 h-5 mt-0.5 ml-0.5" src={`${dataPath}assets/iconCache/${notification.packageName}`} />
+            <div className="relative flex flex-col flex-1 select-none overflow-hidden">
+                <small className="block ml-0.5 mt-0.5 max-w-[99.6%] text-xs">{notification.appName}</small>
+                <b className="block ml-0.5 truncate max-w-[99.6%]">{notification.title}</b>
+                <div ref={contentRef} className={twMerge("block ml-0.5 text-sm max-w-[99.6%] truncate")}>{notification.content}</div>
+            </div>
+            {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} onClick={() => {
+                setSpread(!spread)
+            }} />}
+            {!notification.isOngoing && <mdui-icon name="close" onClick={() => onClose(notification.key)} />}
+        </mdui-card>
+    )
+}
+export default function ActiveNotifications() {
+    function updateNotification() {
+        ipc.sendRequestPacket<{ list: ActiveNotification[] }>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
+            activeNotificationDispatch({ type: "set", initNotificationList: value.list });
+            setEnableInteraction(true);
+        })
+    }
+    const ipc = useMainWindowIpc();
+    const [dataPath, setDataPath] = useState<string>("");
+    ipc.getDeviceDataPath().then(value => setDataPath(value));
+    const [activeNotification, activeNotificationDispatch] = useReducer<ActiveNotification[], ActiveNotificationReducerAction>((state, action) => {
+        switch (action.type) {
+            case "add":
+                return [...state, action!.notification as ActiveNotification]
+            case "remove":
+                return state.filter(value => value.key !== action.key)
+            case "set":
+                return [...action.initNotificationList ?? []];
+            case "clear":
+                return [];
+        }
+    }, []);
+    const [enableInteraction, setEnableInteraction] = useState<boolean>(true);
+    // 初始化
+    useEffect(() => {
+        setTimeout(() => {
+            updateNotification();
+        }, 750);
+    }, [])
+    return (
+        <mdui-card className="fixed h-[40%] flex flex-col max-w-[40%] min-w-[40%] ">
+            <div className="flex items-center px-2 py-1">
+                <small className="text-[gray]">通知列表</small>
+                <div className="ml-auto flex items-center text-[gray]">
+                    {/* 刷新按钮 */}
+                    <mdui-icon hidden={!enableInteraction} name="refresh" className="cursor-pointer ml-1" onClick={() => {
+                        setEnableInteraction(false);
+                        activeNotificationDispatch({ type: "clear" });
+                        updateNotification();
+                    }}
+                    />
+                    {/* 清空按钮 */}
+                    <mdui-icon hidden={!enableInteraction} name="clear_all" className="cursor-pointer ml-1" onClick={() => {
+                        setEnableInteraction(false);
+                        activeNotificationDispatch({ type: "clear" });
+                        ipc.sendPacket({ packetType: "removeCurrentNotification", key: "all" });
+                        updateNotification();
+                    }}
+                    />
+                </div>
+            </div>
+            <mdui-divider />
+            <div className="flex-1 overflow-hidden">
+                <div className="h-full overflow-y-scroll pr-1 activeNotificationsList">
+                    {
+                        activeNotification.map(value => (
+                            <ActiveNotificationCard key={value.key} dataPath={dataPath} notification={value} onClose={key => {
+                                ipc.sendPacket({ packetType: "removeCurrentNotification", key: key });
+                                activeNotificationDispatch({ type: "remove", key: key })
+                            }} />
+                        ))
+                    }
+                </div>
+            </div>
+        </mdui-card>
+    )
+}

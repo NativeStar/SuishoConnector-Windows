@@ -34,6 +34,9 @@ function useMainWindowIpc() {
         rebootApplication: window.electronMainProcess.rebootApplication,
         getDeviceBaseInfo: window.electronMainProcess.getDeviceBaseInfo,
         getDeviceDetailInfo: window.electronMainProcess.getDeviceDetailInfo,
+        sendPacket: window.electronMainProcess.sendPacket,
+        sendRequestPacket: window.electronMainProcess.sendRequestPacket,
+        getDeviceDataPath: window.electronMainProcess.getDeviceDataPath,
     }
 }
 export default useMainWindowIpc;
