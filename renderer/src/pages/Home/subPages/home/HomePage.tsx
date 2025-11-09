@@ -6,7 +6,6 @@ import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
 import type { StateAction, StatesListObject } from "../../Home";
 import ApplicationStatesBar from "./components/ApplicationStatesBar";
 import ActiveNotifications from "./components/ActiveNotifications";
-import type { States } from "~/types/applicationState";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
@@ -61,27 +60,6 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
         <div style={{ display: hidden ? "none" : "block" }}>
             <h1 className="text-lg">{deviceName}</h1>
             <DeviceStateBar state={deviceState} />
-            {/* 调试用按钮 */}
-            <button onClick={()=>{
-                applicationStatesDispatch({
-                    type:"add",
-                    id:"info_device_not_trusted"
-                });
-                applicationStatesDispatch({
-                    type:"add",
-                    id:"error_phone_file_server"
-                });
-            }}>add</button>
-            <button onClick={()=>{
-                applicationStatesDispatch({
-                    type:"remove",
-                    id:"info_device_not_trusted"
-                });
-                applicationStatesDispatch({
-                    type:"remove",
-                    id:"error_phone_file_server"
-                });
-            }}>remove</button>
             <ApplicationStatesBar states={applicationStates}/>
             <br />
             <ActiveNotifications/>
