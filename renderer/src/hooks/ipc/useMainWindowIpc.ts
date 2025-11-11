@@ -6,6 +6,8 @@ interface IpcEvents {
     editState: { type: "add" | "remove", id: States },
     trustModeChange: boolean,
     currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean }
+    rebootConfirm:void,
+    closeConfirm:void
 }
 function useMainWindowIpc() {
     const listenersRef = useRef(new Map<string, Function[]>());
@@ -36,6 +38,7 @@ function useMainWindowIpc() {
         },
         closeApplication: window.electronMainProcess.closeApplication,
         rebootApplication: window.electronMainProcess.rebootApplication,
+        openDebugPanel:window.electronMainProcess.openDebugPanel,
         getDeviceBaseInfo: window.electronMainProcess.getDeviceBaseInfo,
         getDeviceDetailInfo: window.electronMainProcess.getDeviceDetailInfo,
         sendPacket: window.electronMainProcess.sendPacket,

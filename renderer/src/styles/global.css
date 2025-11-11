@@ -8,6 +8,13 @@
   width: 4px;
   height: 6px;
 }
+.transmitInputArea{
+    border: 2px;
+    border-radius: 6px;
+}
+.transmitInputArea::-webkit-scrollbar{
+    display: none;
+}
 mdui-select::part(text-field){
     user-select: none;
 }

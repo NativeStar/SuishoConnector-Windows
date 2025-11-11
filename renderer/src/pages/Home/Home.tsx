@@ -1,11 +1,14 @@
 import { AppBar } from "~/components/AppBar";
+import { confirm } from "mdui/functions/confirm"
 import NavigationRail from "./components/NavigationRail";
 import useDevMode from "~/hooks/useDevMode";
 import PageRoute, { type PageRouteProps } from "./components/PageRoute";
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import AndroidIdContext from "~/context/AndroidIdContext";
 import { getStateInstance, type ApplicationState, type States } from "~/types/applicationState";
-export type StatesListObject={[key in States]?:ApplicationState};
+import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
+import LoadingScreen from "./subPages/home/components/LoadingScreen";
+export type StatesListObject = { [key in States]?: ApplicationState };
 export type StateAction = [{
   type: "add" | "remove",
   id: States,
@@ -13,28 +16,71 @@ export type StateAction = [{
 }];
 export default function Home() {
   useDevMode();
+  let hasDialog: boolean=false;
+  const ipc = useMainWindowIpc();
   const [page, setPage] = useState<PageRouteProps["page"]>("home");
-  const [androidId, setAndroidId] = useState<string | null>(null);
+  const [androidId, setAndroidId] = useState<string>("");
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
-    if (action.type==="add") {
-      const stateInstance=getStateInstance(action.id,action.onClick);
+    if (action.type === "add") {
+      const stateInstance = getStateInstance(action.id, action.onClick);
       return {
         ...state,
         [action.id]: stateInstance
       }
-    }else{
-      Reflect.deleteProperty(state,action.id);
+    } else {
+      Reflect.deleteProperty(state, action.id);
       return {
         ...state
       }
     }
   }, {});
+  useEffect(() => {
+    ipc.getDeviceBaseInfo().then(value => {
+      setAndroidId(value.androidId);
+    });
+    ipc.on("rebootConfirm", () => {
+      if (hasDialog) return;
+      confirm({
+        headline: "重启程序",
+        description: "确认重启程序?所有连接将关闭",
+        confirmText: "重启",
+        cancelText: "取消",
+        onOpened() {
+          hasDialog=true
+        },
+        onClose() {
+          hasDialog=false
+        },
+        onConfirm: () => {
+          ipc.rebootApplication();
+        }
+      }).catch(() => {})
+    });
+    ipc.on("closeConfirm", () => {
+      if (hasDialog) return;
+      confirm({
+        headline: "关闭程序",
+        description: "确认关闭程序?",
+        confirmText: "关闭",
+        cancelText: "取消",
+        onOpened() {
+          hasDialog=true
+        },
+        onClose() {
+          hasDialog=false
+        },
+        onConfirm: () => {
+          ipc.closeApplication();
+        }
+      }).catch(() => {})
+    })
+  }, [])
   return (
     <>
       <AppBar paddingLeft="3%" />
-      <NavigationRail onChange={setPage} />
       <AndroidIdContext.Provider value={{ androidId, setAndroidId }}>
-        <PageRoute page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates}/>
+        {androidId !== "" && <NavigationRail onChange={setPage} />}
+        {androidId !== "" ? <PageRoute page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} /> : <LoadingScreen />}
       </AndroidIdContext.Provider>
     </>
   )

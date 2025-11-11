@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "dexie": "^4.2.1",
+    "dexie-react-hooks": "^4.2.0",
     "mdui": "^2.1.4",
     "qrcode.react": "^4.2.0",
+    "rc-virtual-list": "^3.19.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.9.5",

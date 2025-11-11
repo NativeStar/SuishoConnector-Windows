@@ -1,5 +1,4 @@
-import { useContext, useEffect, useState } from "react"
-import AndroidIdContext from "~/context/AndroidIdContext";
+import { useEffect, useState } from "react"
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
 // import { type ApplicationState, type States } from "~/types/applicationState";
@@ -13,7 +12,6 @@ interface HomePageProps {
 }
 export default function HomePage({ hidden ,applicationStates,applicationStatesDispatch}: HomePageProps) {
     const mainWindowIpc = useMainWindowIpc();
-    const { setAndroidId } = useContext(AndroidIdContext);
     const [deviceName, setDeviceName] = useState<string>("");
     const [deviceState, setDeviceState] = useState<DeviceState>({
         memoryUsage: 0,
@@ -24,7 +22,6 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
     });
     useEffect(() => {
         mainWindowIpc.getDeviceBaseInfo().then(value => {
-            setAndroidId(value.androidId);
             setDeviceName(value.model);
         });
         mainWindowIpc.getDeviceDetailInfo().then(value => {

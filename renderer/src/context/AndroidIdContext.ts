@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-export default createContext<{androidId:string|null,setAndroidId:(id:string)=>void}>({
-    androidId:null,
+export default createContext<{androidId:string,setAndroidId:(id:string)=>void}>({
+    androidId:"",
     setAndroidId:()=>{}
 });
