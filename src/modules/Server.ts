@@ -326,7 +326,7 @@ class Server {
                         //文件大小检查 -1为无效
                         if (jsonObj.size === -1) {
                             logger.writeWarn("Receive file size error");
-                            this.appWindow.webContents.send("webviewEvent", "showAlert", "接收文件异常", "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug");
+                            this.appWindow.webContents.send("webviewEvent", "showAlert", {title:"接收文件异常",content:"异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug"});
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug" }));
                             return
                         }
@@ -335,7 +335,7 @@ class Server {
                         //如果返回值是错误对象
                         if (fileSocket instanceof ReferenceError) {
                             logger.writeError(`Transmit failed to create file socket:${fileSocket}`);
-                            this.appWindow.webContents.send("webviewEvent", "showAlert", "接收文件异常", fileSocket.stack);
+                            this.appWindow.webContents.send("webviewEvent", "showAlert", {title:"接收文件异常", content:fileSocket.stack});
                             //通知安卓端
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: `PC端发生异常\n${fileSocket.stack}` }));
                             return
@@ -703,13 +703,13 @@ class Server {
                         this.appWindow.webContents.send("webviewEvent", "transmit_fileUploadSuccess", name, name, 1, form === undefined ? 0 : form);
                     },
                     //失败时执行 throw可能抓不到
-                    onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmit_fileTransmitFailed", "上传失败", error.message)
+                    onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmit_fileTransmitFailed", {title:"上传失败",message: error.message})
                 });
                 await uploader.init();
                 this.responseManager?.send({ packetType: "transmit_uploadFile", port: <number>uploader.port, fileName: name, _request_id: RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE, fileSize: size });
             } catch (error: any) {
                 logger.writeError(`Upload file failed:${error}`);
-                this.appWindow.webContents.send("webviewEvent", "transmit_fileTransmitFailed", "上传失败", error.message);
+                this.appWindow.webContents.send("webviewEvent", "transmit_fileTransmitFailed", {title:"上传失败", message:error.message});
             }
         });
         ipcMain.handle("file_listDir", async (event, dirPath) => {

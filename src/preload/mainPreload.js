@@ -17,7 +17,8 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     //存盘
     // writeFile:(path,data)=>{return ipcRenderer.invoke("main_writeFile",path,data)},
     // 文件上传进度
-    fileUploadProgress:handle=>{ipcRenderer.on("fileUploadProgressUpdate",handle)},
+    registerFileUploadProgressListener:handle=>{ipcRenderer.on("fileUploadProgressUpdate",handle)},
+    unregisterFileUploadProgressListener:handle=>{ipcRenderer.removeListener("fileUploadProgressUpdate",handle)},
     //打开文件
     openFile:(file)=>{return ipcRenderer.invoke("main_shellOpenFile",file)},
     //拖出文件

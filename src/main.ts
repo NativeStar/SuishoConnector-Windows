@@ -17,7 +17,7 @@ import ManualConnect from "./modules/ManualConnect";
 import OAuthService from "./modules/OAuthService";
 import DeviceConfig from "./modules/DeviceConfig";
 import Broadcaster from "./modules/Broadcaster";
-import { type RightClickMenuItem, RightClickMenuItemId } from "./interface/RightClickMenuItem";
+import {RightClickMenuItemId ,type RightClickMenuItem} from "shared/const/RightClickMenuItems"
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
 import RemoteMediaWindowSize from "./constant/remoteMediaWindowSize";

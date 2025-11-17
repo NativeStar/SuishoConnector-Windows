@@ -1,4 +1,5 @@
 import type {InitServerResult,DeviceBaseInfo} from "~/types/ipc"
+import {RightClickMenuItemId,type RightClickMenuItem} from "shared/const/RightClickMenuItems"
 declare global { 
     readonly var electronMainProcess:{
         readonly isDeveloping:() => Promise<boolean>;
@@ -22,13 +23,14 @@ declare global {
         readonly getDeviceBaseInfo:() => Promise<DeviceBaseInfo>;
         readonly getDeviceDetailInfo:()=>Promise<{batteryLevel:number,memoryInfo:{total:number,avail:number}}>;
         readonly getUserPath:() => Promise<string>;
-        readonly fileUploadProgress:(callback:Function)=>Promise<void>;
+        readonly registerFileUploadProgressListener:(callback:(_event:never,progress:number)=>void)=>Promise<void>;
+        readonly unregisterFileUploadProgressListener:(callback:Function)=> Promise<void>;
         readonly openFile:(path:string)=>Promise<boolean>;
         readonly generateTransmitFileURL:(path:string)=> Promise<string>;
-        readonly openInExplorer:(type:"transmitFolder"|"transmitFile", path:string) => Promise<boolean>;
+        readonly openInExplorer:(type:"transmitFolder"|"transmitFile", path?:string) => Promise<boolean>;
         readonly sendPacket:(packet:object)=> Promise<void>;
         readonly sendRequestPacket:<T>(packet:object)=> Promise<T>;
-        readonly transmitUploadFile:(path:string, name:string, size:number, form:number)=> Promise<void>;
+        readonly transmitUploadFile:(name:string, path:string, size:number)=> Promise<void>;
         readonly openNotificationForwardConfigWindow:(pkgName?:string,appName?:string)=>Promise<void>;
         readonly getDeviceDataPath:()=> Promise<string>;
         readonly getConfig:(key:string)=> Promise<null|string|number|boolean>;
@@ -44,12 +46,13 @@ declare global {
         readonly createStartMenuShortcut:(listItem:{id:string,label:string}[])=>Promise<number>;
         readonly openUrl:(url:string)=>Promise<void>;
         readonly openDebugPanel:()=> Promise<void>;
-        readonly getFilePath:(file:string)=>Promise<string>;
+        readonly getFilePath:(file:File)=>string;
         readonly checkAndroidClientPermission:(permission:string)=>Promise<{result:boolean}>;
         readonly getPhoneDirectoryFiles:(path:string)=>Promise<{code:number,data:{type:"folder"|"file",name:string,size:number}[]}>
         readonly openRemoteMediaPlayerWindow:(type:"audio"|"video"|"image")=>Promise<void>;
         readonly getPhoneIp:()=>Promise<string>;
         readonly downloadPhoneFile:(path:string)=>Promise<void>;
         readonly deleteLogs:()=>Promise<void>
+        readonly createRightClickMenu:(menu:RightClickMenuItem[]) => Promise<RightClickMenuItemId>
     }
 }

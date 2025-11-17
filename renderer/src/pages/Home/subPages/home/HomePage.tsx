@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
-// import { type ApplicationState, type States } from "~/types/applicationState";
 import type { StateAction, StatesListObject } from "../../Home";
 import ApplicationStatesBar from "./components/ApplicationStatesBar";
 import ActiveNotifications from "./components/ActiveNotifications";
@@ -31,7 +30,7 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
                 memoryUsage: ((value.memoryInfo.total - value.memoryInfo.avail) / value.memoryInfo.total) * 100
             }))
         })
-        mainWindowIpc.on("updateDeviceState", (value) => {
+        const updateDeviceStateCleanup=mainWindowIpc.on("updateDeviceState", (value) => {
             setDeviceState(prevState => ({
                 ...prevState,
                 charging: value.charging,
@@ -40,18 +39,25 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
                 memoryUsage: ((value.memInfo.total - value.memInfo.avail) / value.memInfo.total) * 100
             }))
         });
-        mainWindowIpc.on("updateNetworkLatency", value => {
+        const updateNetworkLatencyCleanup=mainWindowIpc.on("updateNetworkLatency", value => {
             setDeviceState(prevState => ({ ...prevState, latency: value }))
         });
-        mainWindowIpc.on("trustModeChange",(trusted)=>{
+        const trustModeChangeCleanup=mainWindowIpc.on("trustModeChange",(trusted)=>{
             applicationStatesDispatch({
                 type:trusted?"remove":"add",
                 id:"info_device_not_trusted"
             });
         });
-        mainWindowIpc.on("editState",value=>{
+        const editStateCleanup=mainWindowIpc.on("editState",value=>{
+            console.log(value);
             applicationStatesDispatch({type:value.type,id:value.id})
         });
+        return ()=>{
+            updateDeviceStateCleanup();
+            updateNetworkLatencyCleanup();
+            trustModeChangeCleanup();
+            editStateCleanup();
+        }
     }, []);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>

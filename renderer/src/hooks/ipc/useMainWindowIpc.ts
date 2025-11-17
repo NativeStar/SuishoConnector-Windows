@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { States } from "~/types/applicationState";
 interface IpcEvents {
     updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean };
@@ -6,44 +6,71 @@ interface IpcEvents {
     editState: { type: "add" | "remove", id: States },
     trustModeChange: boolean,
     currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean }
-    rebootConfirm:void,
-    closeConfirm:void
+    rebootConfirm: void,
+    closeConfirm: void,
+    transmit_appendPlainText:string,
+    transmit_appendFile:{displayName:string,size:number,fileName:string},
+    transmit_fileUploadSuccess:void,//那几个数据应该是用不上了
+    transmit_fileTransmitFailed:{title:string,message:string}
+    disconnect?:string,
+    showAlert:{title:string,content:string}
+}
+let registeredEventListener = false;
+type EventListener = (...args: any[]) => void;
+const listeners = new Map<string, Set<EventListener>>();
+function eventHandle(_unused: never, event: string, ...args: any[]) {
+    if (listeners.has(event)) {
+        listeners.get(event)?.forEach(listener => listener(...args));
+    }
+}
+function createListenerCleanup(event: string, callback: EventListener) {
+    return () => {
+        const listenersForEvent = listeners.get(event);
+        if (!listenersForEvent) {
+            return;
+        }
+        listenersForEvent.delete(callback);
+        if (listenersForEvent.size === 0) {
+            listeners.delete(event);
+        }
+    };
+}
+function registerListener(event: string, callback: EventListener) {
+    if (!listeners.has(event)) {
+        listeners.set(event, new Set<EventListener>());
+    }
+    listeners.get(event)!.add(callback);
+    return createListenerCleanup(event, callback);
 }
 function useMainWindowIpc() {
-    const listenersRef = useRef(new Map<string, Function[]>());
     useEffect(() => {
-        function handle(_unused: never, event: string, ...args: any[]) {
-            if (listenersRef.current.has(event)) {
-                listenersRef.current.get(event)?.forEach(listener => listener(...args));
-            }
-        }
-        window.electronMainProcess.setEventHandle(handle)
-        return () => {
-            window.electronMainProcess.removeEventHandle(handle);
-            listenersRef.current.clear();
+        if (!registeredEventListener) {
+            window.electronMainProcess.setEventHandle(eventHandle);
+            registeredEventListener = true;
         }
     }, [])
     return {
         on<T extends keyof IpcEvents>(
             type: T,
             callback: (data: IpcEvents[T]) => void
-        ): void {
-            if (listenersRef.current.has(type)) {
-                const tmpListenersList = listenersRef.current.get(type)!;
-                tmpListenersList?.push(callback);
-                listenersRef.current.set(type, tmpListenersList);
-            } else {
-                listenersRef.current.set(type, [callback]);
-            }
+        ): () => void {
+            return registerListener(type, callback as EventListener);
         },
         closeApplication: window.electronMainProcess.closeApplication,
         rebootApplication: window.electronMainProcess.rebootApplication,
-        openDebugPanel:window.electronMainProcess.openDebugPanel,
+        openDebugPanel: window.electronMainProcess.openDebugPanel,
         getDeviceBaseInfo: window.electronMainProcess.getDeviceBaseInfo,
         getDeviceDetailInfo: window.electronMainProcess.getDeviceDetailInfo,
         sendPacket: window.electronMainProcess.sendPacket,
         sendRequestPacket: window.electronMainProcess.sendRequestPacket,
         getDeviceDataPath: window.electronMainProcess.getDeviceDataPath,
+        registerFileUploadProgressListener:window.electronMainProcess.registerFileUploadProgressListener,
+        unregisterFileUploadProgressListener:window.electronMainProcess.unregisterFileUploadProgressListener,
+        openFile:window.electronMainProcess.openFile,
+        openInExplorer:window.electronMainProcess.openInExplorer,
+        getFilePath:window.electronMainProcess.getFilePath,
+        transmitUploadFile:window.electronMainProcess.transmitUploadFile,
+        createRightClickMenu:window.electronMainProcess.createRightClickMenu
     }
 }
 export default useMainWindowIpc;

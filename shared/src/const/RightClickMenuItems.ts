@@ -1,4 +1,4 @@
-enum RightClickMenuItemId{
+export enum RightClickMenuItemId{
     Null=-1,//未选择
     Copy,//复制
     Cut,//剪切
@@ -11,14 +11,8 @@ enum RightClickMenuItemId{
     OpenUrl,//打开链接
     OpenSelectedUrl//打开选中的链接
 }
-interface RightClickMenuItem{
+export interface RightClickMenuItem{
     id:RightClickMenuItemId;
     label:string;
     enabled?:boolean;
-    // icon:string;
-    // click:()=>void;
-}
-export {
-    RightClickMenuItemId,
-    RightClickMenuItem
 }

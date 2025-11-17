@@ -79,7 +79,7 @@ class TransmitFileWriter {
         const verifyTimer = setTimeout(() => {
             logger.writeWarn(`Transmit file writer connect timeout. file:${this.outputPath}`);
             socket.end();
-            this.window.webContents.send("webviewEvent", "showAlert", "上传文件失败", "客户端响应验证超时");
+            this.window.webContents.send("webviewEvent", "showAlert", {title:"上传文件失败",content:"客户端响应验证超时"});
             this.writeStream?.close();
             fs.remove(this.outputPath);
         }, 8000);
@@ -95,7 +95,7 @@ class TransmitFileWriter {
                     this.isVerified = true;
                     logger.writeInfo(`Transmit file writer device verify success:${data.toString()}`);
                     //通知ui创建文件项和进度条
-                    this.window.webContents.send("webviewEvent", "transmit_appendFile", this.displayName, this.fileSize, this.fileName);
+                    this.window.webContents.send("webviewEvent", "transmit_appendFile", {displayName:this.displayName, size:this.fileSize, fileName:this.fileName});
                     //发送开始信号
                     //\r用于掐断readLine
                     if (!socket.destroyed) socket.write("START\r");
@@ -105,7 +105,7 @@ class TransmitFileWriter {
                     //不通过 关闭socket
                     if (!socket.destroyed) socket.end("VERIFY_FAILED\r");
                     //给前端信号显示消息
-                    this.window.webContents.send("webviewEvent", "showAlert", "上传文件失败", "设备ID验证失败");
+                    this.window.webContents.send("webviewEvent", "showAlert", {title:"上传文件失败",content:"设备ID验证失败"});
                     return
                 }
             }
@@ -138,7 +138,7 @@ class TransmitFileWriter {
                 this.writeStream?.close();
                 fs.remove(this.outputPath);
                 logger.writeWarn(`Transmit file download failed: file"${this.outputPath}" raw size is ${this.fileSize} but downloaded size is ${this.writeStream?.bytesWritten}`)
-                this.window.webContents.send("webviewEvent", "transmit_fileTransmitFailed", "接收失败", `文件"${this.fileName}"校验失败:\n接收大小与源文件不一致\n可能存在数据丢失`)
+                this.window.webContents.send("webviewEvent", "transmit_fileTransmitFailed", {title:"接收失败", message:`文件"${this.fileName}"完整性校验失败`})
             }
             this.window.setProgressBar(-1)
             this.fileSocket.close();

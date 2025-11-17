@@ -1,36 +1,196 @@
-import List from "rc-virtual-list";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
+import { alert, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { useEffect, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import useDatabase from "~/hooks/useDatabase";
+import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
+import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
+import { FileMessage, TextMessage } from "./components/TransmitMessage";
+import { TransmitMessageListMenu } from "~/types/contextMenus";
+import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 interface TransmitPageProps {
-    hidden: boolean
+    hidden: boolean,
+    setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>
 }
-export default function TransmitPage({ hidden }: TransmitPageProps) {
-    const db = useDatabase();
+export type TransmitMessageListDispatch = [{
+    type: "add" | "remove" | "set" | "put" | "clear",
+    timestamp?: number,
+    messageInstance?: (TransmitTextMessage | TransmitFileMessage),
+    initNotificationList?: (TransmitTextMessage | TransmitFileMessage)[],
+}];
+
+export default function TransmitPage({ hidden, setHasNewTransmitMessage }: TransmitPageProps) {
+    function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
+        if (hasProgressingFile) {
+            snackbar({
+                message: "请等待上一个上传任务完成",
+                autoCloseDelay: 1500
+            });
+            return
+        }
+        const fileTimestamp = Date.now();
+        uploadingFileTimestamp.current = fileTimestamp;
+        const fileObject = event.target.files![0];
+        const messageInstance: TransmitFileMessage = {
+            timestamp: fileTimestamp,
+            type: "file",
+            from: "computer",
+            isDeleted: false,
+            displayName: fileObject.name,
+            name: fileObject.name,
+            size: fileObject.size
+        }
+        db.addData(messageInstance);
+        fileInputRef.current!.value = "";
+        messageListDispatch({
+            type: "add",
+            messageInstance
+        });
+        ipc.transmitUploadFile(fileObject.name, ipc.getFilePath(fileObject), fileObject.size);
+        listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
+    }
+    function onMessageListContextMenu() {
+        ipc.createRightClickMenu(TransmitMessageListMenu).then(menu => {
+            if (menu === RightClickMenuItemId.Upload) {
+                fileInputRef.current?.click();
+            }
+        })
+    }
+    const ipc = useMainWindowIpc();
+    const db = useDatabase("transmit");
     const fileInputRef = useRef<HTMLInputElement>(null);
-    useEffect(()=>{
-        console.log(db.getAllData("transmit").then(value=>{
-            console.log(value);
-        }));
-    },[])
+    const uploadingFileTimestamp = useRef<number>(null);
+    const listRef = useRef<VirtuosoHandle>(null);
+    const isAtBottom=useRef(true);
+    // const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+    let hasProgressingFile = false;
+    const [messageList, messageListDispatch] = useReducer<(TransmitTextMessage | TransmitFileMessage)[], TransmitMessageListDispatch>((state, action) => {
+        switch (action.type) {
+            case "add":
+                return [...state, action.messageInstance!];
+            case "remove":
+                return state.filter(item => item.timestamp !== action.timestamp);
+            case "set":
+                return [...action.initNotificationList ?? []];
+            case "clear":
+                return [];
+            case "put":
+                return state.map(item => {
+                    if (item.timestamp === action.timestamp) {
+                        return action.messageInstance!;
+                    }
+                    return item;
+                });
+        }
+    }, []);
+    useEffect(() => {
+        db.getAllData().then(data => {
+            messageListDispatch({
+                type: "set",
+                initNotificationList: data
+            });
+            listRef.current?.scrollToIndex(data.length - 1);
+        });
+        // 接收到文本
+        const appendTextCleanup = ipc.on("transmit_appendPlainText", text => {
+            const messageInstance: TransmitTextMessage = {
+                timestamp: Date.now(),
+                type: "text",
+                from: "phone",
+                message: text,
+            }
+            console.log(isAtBottom.current);
+            if (!isAtBottom.current) {
+                setHasNewTransmitMessage(true);
+            }
+            messageListDispatch({
+                type: "add",
+                messageInstance
+            })
+            db.addData(messageInstance);
+        });
+        // 接收就是有进度
+        const appendFileCleanup = ipc.on("transmit_appendFile", file => {
+            const messageTimestamp: number = Date.now();
+            uploadingFileTimestamp.current = messageTimestamp;
+            hasProgressingFile = true;
+            const messageInstance: TransmitFileMessage = {
+                timestamp: messageTimestamp,
+                type: "file",
+                from: "phone",
+                isDeleted: false,
+                displayName: file.displayName,
+                name: file.fileName,
+                size: file.size
+            };
+            db.addData(messageInstance);
+            if (!isAtBottom.current) {
+                setHasNewTransmitMessage(true);
+            }
+            messageListDispatch({
+                type: "add",
+                messageInstance: messageInstance
+            });
+
+        });
+        const uploadFileSuccessListenerCleanup = ipc.on("transmit_fileUploadSuccess", () => {
+            hasProgressingFile = false;
+            uploadingFileTimestamp.current = null;
+        });
+        const uploadFileFailListenerCleanup = ipc.on("transmit_fileTransmitFailed", ({ title, message }) => {
+            db.deleteData(uploadingFileTimestamp.current!);
+            messageListDispatch({
+                type: "remove",
+                timestamp: uploadingFileTimestamp.current!
+            });
+            hasProgressingFile = false;
+            alert({
+                headline: title,
+                description: message,
+                confirmText: "确定",
+                onConfirm: () => { },
+            })
+        });
+        return () => {
+            appendTextCleanup();
+            appendFileCleanup();
+            uploadFileSuccessListenerCleanup();
+            uploadFileFailListenerCleanup();
+        }
+    }, []);
     return (
-        <div style={{ display: hidden ? "none" : "block" }}>
+        <div style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenuCapture={onMessageListContextMenu}>
             {/* 列表内容 */}
-            <List itemKey="id" data={[{id:'1'}, {id:'2'}, {id:'3'}]}>
-                {(item, index, prop) => {
-                    console.log(item, index, prop);
-                    return (
-                        <div>
-                            <div>{item.id}</div>
-                        </div>
-                    )
+            <Virtuoso
+                className="w-full"
+                ref={listRef}
+                style={{ height: window.innerHeight * 0.85 }}
+                data={messageList}
+                followOutput="smooth"
+                atBottomThreshold={150}
+                atBottomStateChange={(atBottom) => {
+                    console.log(atBottom);
+                    isAtBottom.current = atBottom;
+                    if (atBottom) {
+                        setHasNewTransmitMessage(false);
+                    }
                 }}
-            </List>
+                itemContent={(_index, item) => {
+                    switch (item.type) {
+                        case "text":
+                            return <TextMessage text={item.message} from={item.from} />
+                        case "file":
+                            return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp.current === item.timestamp} database={db} messageDispatch={messageListDispatch} />
+                        default:
+                            return <div className="text-red-500">Unknown message type:{(item as any)?.type ?? "null"}</div>
+                    }
+                }}
+            />
             {/* 输入和菜单区 */}
             <div className="fixed w-full h-[8%] bottom-0 left-[9%] border-r-[5px] bg-[#f8edf9]">
                 {/* 文件上传input */}
-                <input type="file" hidden ref={fileInputRef}/>
-                <TransmitTextInputArea/>
+                <input type="file" hidden ref={fileInputRef} onChange={onFileInputValueChange} />
+                <TransmitTextInputArea messageDispatch={messageListDispatch} database={db} list={listRef} />
                 <mdui-dropdown>
                     {/* 菜单按钮 */}
                     <mdui-button slot="trigger" variant="text" className="ml-2.5">
@@ -39,8 +199,8 @@ export default function TransmitPage({ hidden }: TransmitPageProps) {
                     <mdui-menu>
                         <mdui-menu-item>清空消息</mdui-menu-item>
                         <mdui-menu-item>搜索</mdui-menu-item>
-                        <mdui-menu-item onClick={()=>fileInputRef.current?.click()}>上传文件</mdui-menu-item>
-                        <mdui-menu-item>打开文件夹</mdui-menu-item>
+                        <mdui-menu-item onClick={() => fileInputRef.current?.click()}>上传文件</mdui-menu-item>
+                        <mdui-menu-item onClick={() => ipc.openInExplorer("transmitFolder")}>打开文件夹</mdui-menu-item>
                     </mdui-menu>
                 </mdui-dropdown>
             </div>

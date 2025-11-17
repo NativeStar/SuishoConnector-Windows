@@ -84,7 +84,7 @@ export default function ActiveNotifications() {
         setTimeout(() => {
             updateNotification();
         }, 750);
-        ipc.on("currentNotificationUpdate", data => {
+        const updateNotificationCleanup=ipc.on("currentNotificationUpdate", data => {
             activeNotificationDispatch({
                 type: data.type,
                 key: data.key,
@@ -97,7 +97,10 @@ export default function ActiveNotifications() {
                     title: data.title
                 }
             })
-        })
+        });
+        return () => {
+            updateNotificationCleanup();
+        }
     }, []);
     return (
         <mdui-card className="fixed h-[40%] flex flex-col max-w-[40%] min-w-[40%] ">
