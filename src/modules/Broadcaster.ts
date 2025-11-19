@@ -19,7 +19,7 @@ class Broadcaster {
             if (processInfo) {
                 const dialogResult = await dialog.showMessageBox({
                     type: "warning",
-                    message: `自动连接未能按预期工作 因为所需的端口被进程"${processInfo.name}"占用\n终止该进程或重启计算机可能解决该问题\n或者尝试手动扫码连接\n如果选择终止进程 会在尝试杀进程后自动重启本软件\n且如果有必要会申请管理员权限`,
+                    message: `自动连接未能按预期工作 因为所需的端口被进程"${processInfo.name}"占用\n终止该进程或重启计算机可能解决该问题\n或者通过手动扫码连接\n如选择终止进程 会在尝试杀进程后自动重启本软件\n且必要时会申请管理员权限`,
                     buttons: ["终止进程", "忽略"],
                     defaultId: 0,
                     title: "自动连接异常"
@@ -46,9 +46,8 @@ class Broadcaster {
                 }
                 return
             }
-            // }
             logger.writeError(err);
-            dialog.showErrorBox("自动连接异常", `功能发生未知异常 重启计算机可能会得到解决\n或者可以尝试手动扫码连接\n详情:${err}`);
+            dialog.showErrorBox("自动连接异常", `功能发生未知异常 重启计算机可能解决该问题\n或者尝试手动扫码连接\n详情:${err}`);
         });
     }
     start() {

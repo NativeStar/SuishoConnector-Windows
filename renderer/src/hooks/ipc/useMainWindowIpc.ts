@@ -70,7 +70,8 @@ function useMainWindowIpc() {
         openInExplorer:window.electronMainProcess.openInExplorer,
         getFilePath:window.electronMainProcess.getFilePath,
         transmitUploadFile:window.electronMainProcess.transmitUploadFile,
-        createRightClickMenu:window.electronMainProcess.createRightClickMenu
+        createRightClickMenu:window.electronMainProcess.createRightClickMenu,
+        openUrl:window.electronMainProcess.openUrl
     }
 }
 export default useMainWindowIpc;

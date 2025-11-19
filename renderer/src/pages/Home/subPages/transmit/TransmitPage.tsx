@@ -1,7 +1,7 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -159,7 +159,7 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
         }
     }, []);
     return (
-        <div style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenuCapture={onMessageListContextMenu}>
+        <div style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
             {/* 列表内容 */}
             <Virtuoso
                 className="w-full"
@@ -169,7 +169,6 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
                 followOutput="smooth"
                 atBottomThreshold={150}
                 atBottomStateChange={(atBottom) => {
-                    console.log(atBottom);
                     isAtBottom.current = atBottom;
                     if (atBottom) {
                         setHasNewTransmitMessage(false);
@@ -178,7 +177,7 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
                 itemContent={(_index, item) => {
                     switch (item.type) {
                         case "text":
-                            return <TextMessage text={item.message} from={item.from} />
+                            return <TextMessage timestamp={item.timestamp} text={item.message} from={item.from} createRightClickMenu={ipc.createRightClickMenu} database={db} messageDispatch={messageListDispatch} openUrl={ipc.openUrl}/>
                         case "file":
                             return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp.current === item.timestamp} database={db} messageDispatch={messageListDispatch} />
                         default:

@@ -16,3 +16,10 @@ export function parseFileSize(size: number): string {
     }
     return `${(sizeGB / 1024).toFixed(2)} TB`
 }
+const urlRegexp = /^(?:https?:\/\/)?(?:(?:[\p{L}\p{N}-]+\.)+[A-Za-z\u00a1-\uffff]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:[/?#][^\s]*)?$/iu;
+export function checkUrl(text: string): boolean {
+    if (!/^[a-z][\w.+-]*:\/\//i.test(text) && !/[/?#]/.test(text)) {
+        return false;
+    }
+    return urlRegexp.test(text);
+}

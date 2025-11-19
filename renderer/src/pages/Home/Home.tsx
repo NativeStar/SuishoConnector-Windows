@@ -17,11 +17,11 @@ export type StateAction = [{
 }];
 export default function Home() {
   useDevMode();
-  let hasDialog: boolean=false;
+  let hasDialog: boolean = false;
   const ipc = useMainWindowIpc();
   const [page, setPage] = useState<PageRouteProps["page"]>("home");
   const [androidId, setAndroidId] = useState<string>("");
-  const [hasNewTransmitMessage,setHasNewTransmitMessage]=useState<boolean>(false);
+  const [hasNewTransmitMessage, setHasNewTransmitMessage] = useState<boolean>(false);
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
     if (action.type === "add") {
       const stateInstance = getStateInstance(action.id, action.onClick);
@@ -36,11 +36,12 @@ export default function Home() {
       }
     }
   }, {});
+  // ipc相关初始化
   useEffect(() => {
     ipc.getDeviceBaseInfo().then(value => {
       setAndroidId(value.androidId);
     });
-    const rebootConfirmCleanup=ipc.on("rebootConfirm", () => {
+    const rebootConfirmCleanup = ipc.on("rebootConfirm", () => {
       if (hasDialog) return;
       confirm({
         headline: "重启程序",
@@ -48,17 +49,17 @@ export default function Home() {
         confirmText: "重启",
         cancelText: "取消",
         onOpened() {
-          hasDialog=true
+          hasDialog = true
         },
         onClose() {
-          hasDialog=false
+          hasDialog = false
         },
         onConfirm: () => {
           ipc.rebootApplication();
         }
-      }).catch(() => {})
+      }).catch(() => { })
     });
-    const closeConfirmCleanup=ipc.on("closeConfirm", () => {
+    const closeConfirmCleanup = ipc.on("closeConfirm", () => {
       if (hasDialog) return;
       confirm({
         headline: "关闭程序",
@@ -66,29 +67,29 @@ export default function Home() {
         confirmText: "关闭",
         cancelText: "取消",
         onOpened() {
-          hasDialog=true
+          hasDialog = true
         },
         onClose() {
-          hasDialog=false
+          hasDialog = false
         },
         onConfirm: () => {
           ipc.closeApplication();
         }
-      }).catch(() => {})
+      }).catch(() => { })
     });
-    const disconnectEventCleanup=ipc.on("disconnect",(reason=>{
+    const disconnectEventCleanup = ipc.on("disconnect", (reason => {
       alert({
-        headline:"通讯中断",
-        description:reason??"由于未知原因 连接断开",
+        headline: "通讯中断",
+        description: reason ?? "由于未知原因 连接断开",
         onConfirm() {
           ipc.rebootApplication();
         },
       })
     }));
-    const showAlertCleanup=ipc.on("showAlert",({title,content})=>{
+    const showAlertCleanup = ipc.on("showAlert", ({ title, content }) => {
       alert({
-        headline:title,
-        description:content,
+        headline: title,
+        description: content,
       })
     });
     return () => {
@@ -97,13 +98,30 @@ export default function Home() {
       disconnectEventCleanup();
       showAlertCleanup();
     }
-  }, [])
+  }, []);
+  // 普通初始化
+  useEffect(() => {
+    document.addEventListener("keydown", event => {
+      //接管系统复制 防止背景样式可能被粘贴到word类软件中
+      if (event.key.toUpperCase() === "C" && event.ctrlKey) {
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        //写入
+        const selectedText = getSelection()?.toString();
+        if (selectedText && selectedText !== "") {
+          navigator.clipboard.writeText(selectedText);
+          getSelection()?.removeAllRanges();
+        }
+      }
+    })
+  }, []);
   return (
     <>
       <AppBar paddingLeft="3%" />
       <AndroidIdContext.Provider value={{ androidId, setAndroidId }}>
-        {androidId !== "" && <NavigationRail onChange={setPage} hasNewTransmitMessage={hasNewTransmitMessage}/>}
-        {androidId !== "" ? <PageRoute page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage}/> : <LoadingScreen />}
+        {androidId !== "" && <NavigationRail onChange={setPage} hasNewTransmitMessage={hasNewTransmitMessage} />}
+        {androidId !== "" ? <PageRoute page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} /> : <LoadingScreen />}
       </AndroidIdContext.Provider>
     </>
   )
