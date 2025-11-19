@@ -26,7 +26,7 @@ declare global {
         readonly registerFileUploadProgressListener:(callback:(_event:never,progress:number)=>void)=>Promise<void>;
         readonly unregisterFileUploadProgressListener:(callback:Function)=> Promise<void>;
         readonly openFile:(path:string)=>Promise<boolean>;
-        readonly generateTransmitFileURL:(path:string)=> Promise<string>;
+        readonly generateTransmitFileURL:(fileName:string)=> Promise<string>;
         readonly openInExplorer:(type:"transmitFolder"|"transmitFile", path?:string) => Promise<boolean>;
         readonly sendPacket:(packet:object)=> Promise<void>;
         readonly sendRequestPacket:<T>(packet:object)=> Promise<T>;

@@ -2,7 +2,7 @@ import { twMerge } from "tailwind-merge";
 import type { TransmitFileMessage } from "~/types/database";
 import { checkUrl, parseFileSize } from "~/utils";
 import "mdui/components/linear-progress"
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import type useDatabase from "~/hooks/useDatabase";
 import type { TransmitMessageListDispatch } from "../TransmitPage";
@@ -92,6 +92,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
     const [progressValue, setProgressValue] = useState<number>(0);
     const [progressing, setProgressing] = useState<boolean>(hasProgress);
     const [isDeleted, setIsDeleted] = useState<boolean>(data.isDeleted);
+    const fileFullPathRef = useRef<string>(null);
     useEffect(() => {
         const progressListener = (_event: never, progress: number) => {
             setProgressValue(progress);
@@ -111,6 +112,11 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
             return () => {
                 ipc.unregisterFileUploadProgressListener(progressListener);
             }
+        }
+        if(!data.isDeleted&&data.from==="phone"){
+            ipc.generateTransmitFileURL(data.name).then(fullPath => {
+                fileFullPathRef.current = fullPath;
+            })
         }
     }, []);
     function onContextMenu(event: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -145,6 +151,12 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
             }
         })
     }
+    function onDragStart(event: React.DragEvent<HTMLElement>) {
+        if (data.from === "phone") {
+            event.dataTransfer.setData("DownloadURL", `application/x-www-form-urlencoded:${data.displayName}:${fileFullPathRef.current}`);
+        }
+        event.dataTransfer.setData("from_self", "true");
+    }
     function openFile() {
         if (data.from === "computer") return
         ipc.openFile(data.name).then(result => {
@@ -161,7 +173,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         })
     }
     return (
-        <mdui-card onContextMenu={onContextMenu} onClick={openFile} clickable={!isDeleted && data.from === "phone"} className={twMerge("mdui-theme-auto w-65 h-23.5 rounded-[9px] mt-1 whitespace-pre-wrap text-ellipsis", data.from === "phone" ? "bg-[#ede7ed]" : "bg-[#f3ebf3] ml-110")} variant="elevated">
+        <mdui-card draggable={data.from === "phone" && !isDeleted} onDragStart={onDragStart} onContextMenu={onContextMenu} onClick={openFile} clickable={!isDeleted && data.from === "phone"} className={twMerge("draggable mdui-theme-auto w-65 h-23.5 rounded-[9px] mt-1 whitespace-pre-wrap text-ellipsis", data.from === "phone" ? "bg-[#ede7ed]" : "bg-[#f3ebf3] ml-110")} variant="elevated">
             <img src="/transmit_file_default.png" className="w-[32%] h-[85%] float-left mt-1.5" />
             <div className="flex flex-col" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>
                 <b className="whitespace-nowrap text-ellipsis overflow-hidden mt-1.5 ml-15px" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{data.displayName}</b>

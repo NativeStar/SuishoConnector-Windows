@@ -71,7 +71,8 @@ function useMainWindowIpc() {
         getFilePath:window.electronMainProcess.getFilePath,
         transmitUploadFile:window.electronMainProcess.transmitUploadFile,
         createRightClickMenu:window.electronMainProcess.createRightClickMenu,
-        openUrl:window.electronMainProcess.openUrl
+        openUrl:window.electronMainProcess.openUrl,
+        generateTransmitFileURL:window.electronMainProcess.generateTransmitFileURL,
     }
 }
 export default useMainWindowIpc;
