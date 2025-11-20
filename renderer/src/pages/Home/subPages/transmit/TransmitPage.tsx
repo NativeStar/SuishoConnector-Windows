@@ -1,13 +1,14 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import { FileMessage, TextMessage } from "./components/TransmitMessage";
 import { TransmitMessageListMenu } from "~/types/contextMenus";
 import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
+import DragFileMark from "./components/DragFileMark";
 interface TransmitPageProps {
     hidden: boolean,
     setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>
@@ -21,6 +22,9 @@ export type TransmitMessageListDispatch = [{
 
 export default function TransmitPage({ hidden, setHasNewTransmitMessage }: TransmitPageProps) {
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
+        uploadTransmitFile(event.target.files![0]);
+    }
+    function uploadTransmitFile(file: File) {
         if (hasProgressingFile) {
             snackbar({
                 message: "请等待上一个上传任务完成",
@@ -30,15 +34,15 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
         }
         const fileTimestamp = Date.now();
         uploadingFileTimestamp.current = fileTimestamp;
-        const fileObject = event.target.files![0];
+        // const fileObject = event.target.files![0];
         const messageInstance: TransmitFileMessage = {
             timestamp: fileTimestamp,
             type: "file",
             from: "computer",
             isDeleted: false,
-            displayName: fileObject.name,
-            name: fileObject.name,
-            size: fileObject.size
+            displayName: file.name,
+            name: file.name,
+            size: file.size
         }
         db.addData(messageInstance);
         fileInputRef.current!.value = "";
@@ -46,7 +50,7 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
             type: "add",
             messageInstance
         });
-        ipc.transmitUploadFile(fileObject.name, ipc.getFilePath(fileObject), fileObject.size);
+        ipc.transmitUploadFile(file.name, ipc.getFilePath(file), file.size);
         listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
     }
     function onMessageListContextMenu() {
@@ -56,13 +60,17 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
             }
         })
     }
+    function onFileDragEnterComponent(event: React.DragEvent<HTMLDivElement>) {
+        if (!event.dataTransfer.types.includes("Files") || event.dataTransfer.types.length !== 1) return
+        setShowFileDragMark(true);
+    }
     const ipc = useMainWindowIpc();
+    const [showFileDragMark, setShowFileDragMark] = useState(false);
     const db = useDatabase("transmit");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadingFileTimestamp = useRef<number>(null);
     const listRef = useRef<VirtuosoHandle>(null);
-    const isAtBottom=useRef(true);
-    // const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
+    const isAtBottom = useRef(true);
     let hasProgressingFile = false;
     const [messageList, messageListDispatch] = useReducer<(TransmitTextMessage | TransmitFileMessage)[], TransmitMessageListDispatch>((state, action) => {
         switch (action.type) {
@@ -159,7 +167,8 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
         }
     }, []);
     return (
-        <div style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
+        <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
+            {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
             {/* 列表内容 */}
             <Virtuoso
                 className="w-full"
@@ -177,7 +186,7 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
                 itemContent={(_index, item) => {
                     switch (item.type) {
                         case "text":
-                            return <TextMessage timestamp={item.timestamp} text={item.message} from={item.from} createRightClickMenu={ipc.createRightClickMenu} database={db} messageDispatch={messageListDispatch} openUrl={ipc.openUrl}/>
+                            return <TextMessage timestamp={item.timestamp} text={item.message} from={item.from} createRightClickMenu={ipc.createRightClickMenu} database={db} messageDispatch={messageListDispatch} openUrl={ipc.openUrl} />
                         case "file":
                             return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp.current === item.timestamp} database={db} messageDispatch={messageListDispatch} />
                         default:

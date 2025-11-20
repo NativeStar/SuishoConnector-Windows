@@ -114,7 +114,12 @@ export default function Home() {
           getSelection()?.removeAllRanges();
         }
       }
-    })
+    });
+    // 阻止拖动文本
+    document.addEventListener("dragstart", event => {
+      const target=event.target as HTMLElement;
+      if (target.nodeName === "#text") event.preventDefault();
+    });
   }, []);
   return (
     <>
