@@ -15,7 +15,7 @@ export default function NavigationRail({
     hasNewTransmitMessage
 }:NavigationRailProps) {
     return (
-        <mdui-navigation-rail value="home" className="w-[10%] h-[91.5%] top-[8%]" onChange={event=>onChange((event.target as MduiNavigationRail)!.value as PageRouteProps["page"])}>
+        <mdui-navigation-rail value="home" className="w-[10%] h-[91.5%] top-[8%]" onClick={event=>onChange((event.target as MduiNavigationRail)!.value as PageRouteProps["page"])}>
             {/* 未来改为功能菜单键 */}
             {/* <mdui-tooltip content="设置" slot="bottom">
                 <mdui-button-icon icon=""/>

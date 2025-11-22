@@ -1,7 +1,7 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -11,10 +11,17 @@ import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import DragFileMark from "./components/DragFileMark";
 import { useFuzzySearchList } from "@nozbe/microfuzz/react"
 import ItemFilterCard from "../../components/ItemFilterCard";
+
 interface TransmitPageProps {
     hidden: boolean,
     setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>
 }
+
+export interface TransmitPageRef {
+    // 滚动到底部
+    scrollToBottom(): void
+}
+
 export type TransmitMessageListDispatch = [{
     type: "add" | "remove" | "set" | "put" | "clear",
     timestamp?: number,
@@ -22,7 +29,12 @@ export type TransmitMessageListDispatch = [{
     initNotificationList?: (TransmitTextMessage | TransmitFileMessage)[],
 }];
 
-export default function TransmitPage({ hidden, setHasNewTransmitMessage }: TransmitPageProps) {
+const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, setHasNewTransmitMessage }: TransmitPageProps, ref) => {
+    useImperativeHandle(ref, () => ({
+        scrollToBottom() {
+            listRef.current?.scrollToIndex(messageList.length - 1);
+        },
+    }));
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
         uploadTransmitFile(event.target.files![0]);
     }
@@ -261,4 +273,7 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
             </div>
         </div>
     )
-}
+});
+
+export default TransmitPage;
+
