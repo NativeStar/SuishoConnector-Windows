@@ -49,7 +49,6 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
             });
         });
         const editStateCleanup=mainWindowIpc.on("editState",value=>{
-            console.log(value);
             applicationStatesDispatch({type:value.type,id:value.id})
         });
         return ()=>{

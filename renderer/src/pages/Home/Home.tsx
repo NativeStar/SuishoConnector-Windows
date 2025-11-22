@@ -3,8 +3,8 @@ import { confirm } from "mdui/functions/confirm"
 import { alert } from "mdui/functions/alert";
 import NavigationRail from "./components/NavigationRail";
 import useDevMode from "~/hooks/useDevMode";
-import PageRoute, { type PageRouteProps } from "./components/PageRoute";
-import { useEffect, useReducer, useState } from "react";
+import PageRoute, { type PageRouteProps, type PageRouteRef } from "./components/PageRoute";
+import { useEffect, useReducer, useRef, useState } from "react";
 import AndroidIdContext from "~/context/AndroidIdContext";
 import { getStateInstance, type ApplicationState, type States } from "~/types/applicationState";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -22,6 +22,7 @@ export default function Home() {
   const [page, setPage] = useState<PageRouteProps["page"]>("home");
   const [androidId, setAndroidId] = useState<string>("");
   const [hasNewTransmitMessage, setHasNewTransmitMessage] = useState<boolean>(false);
+  const routeRef=useRef<PageRouteRef>(null);
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
     if (action.type === "add") {
       const stateInstance = getStateInstance(action.id, action.onClick);
@@ -117,16 +118,25 @@ export default function Home() {
     });
     // 阻止拖动文本
     document.addEventListener("dragstart", event => {
-      const target=event.target as HTMLElement;
+      const target = event.target as HTMLElement;
       if (target.nodeName === "#text") event.preventDefault();
     });
   }, []);
+  function setPageHandle(targetPage: PageRouteProps["page"]) {
+    if (page === targetPage) {
+      //重复点击事件 滚动列表等
+      routeRef.current?.onPageDoubleClick(page);
+      return
+    }
+    // 重复点击
+    setPage(targetPage);
+  }
   return (
     <>
       <AppBar paddingLeft="3%" />
       <AndroidIdContext.Provider value={{ androidId, setAndroidId }}>
-        {androidId !== "" && <NavigationRail onChange={setPage} hasNewTransmitMessage={hasNewTransmitMessage} />}
-        {androidId !== "" ? <PageRoute page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} /> : <LoadingScreen />}
+        {androidId !== "" && <NavigationRail onChange={setPageHandle} hasNewTransmitMessage={hasNewTransmitMessage} />}
+        {androidId !== "" ? <PageRoute ref={routeRef} page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} /> : <LoadingScreen />}
       </AndroidIdContext.Provider>
     </>
   )

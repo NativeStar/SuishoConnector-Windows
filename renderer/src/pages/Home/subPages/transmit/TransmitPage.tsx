@@ -1,7 +1,7 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -9,6 +9,8 @@ import { FileMessage, TextMessage } from "./components/TransmitMessage";
 import { TransmitMessageListMenu } from "~/types/contextMenus";
 import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import DragFileMark from "./components/DragFileMark";
+import { useFuzzySearchList } from "@nozbe/microfuzz/react"
+import ItemFilterCard from "../../components/ItemFilterCard";
 interface TransmitPageProps {
     hidden: boolean,
     setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>
@@ -34,7 +36,6 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
         }
         const fileTimestamp = Date.now();
         uploadingFileTimestamp.current = fileTimestamp;
-        // const fileObject = event.target.files![0];
         const messageInstance: TransmitFileMessage = {
             timestamp: fileTimestamp,
             type: "file",
@@ -66,6 +67,9 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
     }
     const ipc = useMainWindowIpc();
     const [showFileDragMark, setShowFileDragMark] = useState(false);
+    const [showFilterCard, setShowFilterCard] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [searchCapsSensitive, setSearchCapsSensitive] = useState(false);
     const db = useDatabase("transmit");
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadingFileTimestamp = useRef<number>(null);
@@ -91,6 +95,27 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
                 });
         }
     }, []);
+    const filteredMessageList = useFuzzySearchList({
+        list: messageList,
+        queryText: searchText,
+        strategy: "off",
+        mapResultItem: ({ item }) => item,
+        getText(item) {
+            if (item.type === "file") return [item.displayName];
+            if (item.type === "text") return [item.message];
+            return [];
+        },
+    }).filter((value) => {
+        if (showFilterCard && searchCapsSensitive) {
+            if (value.type === "text") {
+                return value.message.includes(searchText);
+            } else if (value.type === "file") {
+                return value.displayName.includes(searchText);
+            }
+        }
+        return true
+    }).sort((a, b) => a.timestamp - b.timestamp);
+    const sortedMessageList = useMemo(() => filteredMessageList,[filteredMessageList, searchCapsSensitive]);
     useEffect(() => {
         db.getAllData().then(data => {
             messageListDispatch({
@@ -107,7 +132,6 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
                 from: "phone",
                 message: text,
             }
-            console.log(isAtBottom.current);
             if (!isAtBottom.current) {
                 setHasNewTransmitMessage(true);
             }
@@ -166,16 +190,39 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
             uploadFileFailListenerCleanup();
         }
     }, []);
+    // 当搜索内容变化时拖到底部
+    useEffect(() => {
+        listRef.current?.scrollToIndex({
+            index: "LAST",
+            align: "end",
+            behavior: "auto"
+        });
+    }, [searchText]);
+    // 事件监听等
+    useEffect(() => {
+        function onKeyDown(event: KeyboardEvent) {
+            if (!hidden) {
+                if (event.ctrlKey && event.key.toUpperCase() === "F") {
+                    setShowFilterCard(state => !state);
+                }
+            }
+        }
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+        };
+    }, [hidden])
     return (
         <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
             {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
+            {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} searchCapsSensitive={searchCapsSensitive} setSearchCapsSensitive={setSearchCapsSensitive} />}
             {/* 列表内容 */}
             <Virtuoso
                 className="w-full"
                 ref={listRef}
                 style={{ height: window.innerHeight * 0.85 }}
-                data={messageList}
-                followOutput="smooth"
+                data={sortedMessageList}
+                followOutput={searchText === "" ? "smooth" : "auto"}
                 atBottomThreshold={150}
                 atBottomStateChange={(atBottom) => {
                     isAtBottom.current = atBottom;
@@ -206,7 +253,7 @@ export default function TransmitPage({ hidden, setHasNewTransmitMessage }: Trans
                     </mdui-button>
                     <mdui-menu>
                         <mdui-menu-item>清空消息</mdui-menu-item>
-                        <mdui-menu-item>搜索</mdui-menu-item>
+                        <mdui-menu-item onClick={() => setShowFilterCard(state => !state)}>搜索</mdui-menu-item>
                         <mdui-menu-item onClick={() => fileInputRef.current?.click()}>上传文件</mdui-menu-item>
                         <mdui-menu-item onClick={() => ipc.openInExplorer("transmitFolder")}>打开文件夹</mdui-menu-item>
                     </mdui-menu>
