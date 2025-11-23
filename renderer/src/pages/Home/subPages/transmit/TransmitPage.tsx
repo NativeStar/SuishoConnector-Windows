@@ -1,5 +1,5 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
-import { alert, snackbar } from "mdui";
+import { alert, confirm, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
 import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import useDatabase from "~/hooks/useDatabase";
@@ -77,6 +77,20 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         if (!event.dataTransfer.types.includes("Files") || event.dataTransfer.types.length !== 1) return
         setShowFileDragMark(true);
     }
+    function onClearMessageList() {
+        confirm({
+            headline: "清空消息确认",
+            description: "确认清空消息列表?\n接收的文件不会从硬盘中删除",
+            confirmText: "确认",
+            cancelText: "取消",
+            onConfirm:async ()=>{
+                await db.clearData()
+                messageListDispatch({
+                    type:"clear"
+                })
+            },
+        })
+    }
     const ipc = useMainWindowIpc();
     const [showFileDragMark, setShowFileDragMark] = useState(false);
     const [showFilterCard, setShowFilterCard] = useState(false);
@@ -127,7 +141,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         }
         return true
     }).sort((a, b) => a.timestamp - b.timestamp);
-    const sortedMessageList = useMemo(() => filteredMessageList,[filteredMessageList, searchCapsSensitive]);
+    const sortedMessageList = useMemo(() => filteredMessageList, [filteredMessageList, searchCapsSensitive]);
     useEffect(() => {
         db.getAllData().then(data => {
             messageListDispatch({
@@ -229,6 +243,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
             {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} searchCapsSensitive={searchCapsSensitive} setSearchCapsSensitive={setSearchCapsSensitive} />}
             {/* 列表内容 */}
+            {sortedMessageList.length===0 &&<div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}
             <Virtuoso
                 className="w-full"
                 ref={listRef}
@@ -264,7 +279,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                         <img src="./open_in_new.svg" />
                     </mdui-button>
                     <mdui-menu>
-                        <mdui-menu-item>清空消息</mdui-menu-item>
+                        <mdui-menu-item onClick={onClearMessageList}>清空消息</mdui-menu-item>
                         <mdui-menu-item onClick={() => setShowFilterCard(state => !state)}>搜索</mdui-menu-item>
                         <mdui-menu-item onClick={() => fileInputRef.current?.click()}>上传文件</mdui-menu-item>
                         <mdui-menu-item onClick={() => ipc.openInExplorer("transmitFolder")}>打开文件夹</mdui-menu-item>

@@ -30,6 +30,8 @@ export default function ItemFilterCard({ className, setSearchText,setShowFilterC
             textFieldRef.current?.removeEventListener("clear", onInputClear);
             // 清空搜索内容
             setSearchText("");
+            // 重置大小写
+            setSearchCapsSensitive(false);
         }
     }, []);
     return (

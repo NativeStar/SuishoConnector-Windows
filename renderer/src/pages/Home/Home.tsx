@@ -124,7 +124,7 @@ export default function Home() {
   }, []);
   function setPageHandle(targetPage: PageRouteProps["page"]) {
     if (page === targetPage) {
-      //重复点击事件 滚动列表等
+      //重复点击事件 用于滚动列表等
       routeRef.current?.onPageDoubleClick(page);
       return
     }
