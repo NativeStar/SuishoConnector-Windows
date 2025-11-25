@@ -24,7 +24,7 @@ type ActiveNotificationReducerAction = [{
 }];
 
 function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotificationCardProp) {
-    const [defaultIsOverflow, , contentRef] = useTextTruncated(-10);
+    const [defaultIsOverflow, contentRef] = useTextTruncated(-10);
     const [spread, setSpread] = useState<boolean>(false);
     useEffect(() => {
         if (defaultIsOverflow) {

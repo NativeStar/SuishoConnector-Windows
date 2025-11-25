@@ -286,7 +286,7 @@ class Server {
                 //处理文件等
                 switch (jsonObj.messageType) {
                     case "planeText":
-                        this.appWindow.webContents.send("webviewEvent", "transmit_appendPlainText", jsonObj.data);
+                        this.appWindow.webContents.send("webviewEvent", "transmitAppendPlainText", jsonObj.data);
                         break;
                     case "file":
                         //文件存储路径
@@ -700,16 +700,16 @@ class Server {
                     onSuccess: () => {
                         uploader = null;
                         logger.writeInfo("Upload file success");
-                        this.appWindow.webContents.send("webviewEvent", "transmit_fileUploadSuccess", name, name, 1, form === undefined ? 0 : form);
+                        this.appWindow.webContents.send("webviewEvent", "transmitFileUploadSuccess", name, name, 1, form === undefined ? 0 : form);
                     },
                     //失败时执行 throw可能抓不到
-                    onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmit_fileTransmitFailed", {title:"上传失败",message: error.message})
+                    onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", {title:"上传失败",message: error.message})
                 });
                 await uploader.init();
                 this.responseManager?.send({ packetType: "transmit_uploadFile", port: <number>uploader.port, fileName: name, _request_id: RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE, fileSize: size });
             } catch (error: any) {
                 logger.writeError(`Upload file failed:${error}`);
-                this.appWindow.webContents.send("webviewEvent", "transmit_fileTransmitFailed", {title:"上传失败", message:error.message});
+                this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", {title:"上传失败", message:error.message});
             }
         });
         ipcMain.handle("file_listDir", async (event, dirPath) => {

@@ -99,13 +99,13 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         }
         if (hasProgress) {
             ipc.registerFileUploadProgressListener(progressListener);
-            ipc.on("transmit_fileUploadSuccess", () => {
+            ipc.on("transmitFileUploadSuccess", () => {
                 //进度条消失之前填满
                 setProgressValue(data.size);
                 setProgressing(false);
                 ipc.unregisterFileUploadProgressListener(progressListener);
             });
-            ipc.on("transmit_fileTransmitFailed", () => {
+            ipc.on("transmitFileTransmitFailed", () => {
                 setProgressing(false);
                 ipc.unregisterFileUploadProgressListener(progressListener);
             })

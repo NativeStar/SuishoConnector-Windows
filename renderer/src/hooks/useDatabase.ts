@@ -1,10 +1,10 @@
 import { useContext, useMemo } from "react";
 import { Dexie } from "dexie";
 import AndroidIdContext from "~/context/AndroidIdContext";
-import type { TransmitTextMessage ,TransmitFileMessage} from "~/types/database";
+import type { TransmitTextMessage ,TransmitFileMessage, NotificationItem} from "~/types/database";
 interface DatabaseObject {
     "transmit": TransmitTextMessage|TransmitFileMessage,
-    "notification": {},
+    "notification": NotificationItem
 }
 
 function useDatabase<T extends keyof DatabaseObject>(type: T) {

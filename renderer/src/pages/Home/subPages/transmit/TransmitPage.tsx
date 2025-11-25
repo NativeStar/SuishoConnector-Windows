@@ -26,7 +26,7 @@ export type TransmitMessageListDispatch = [{
     type: "add" | "remove" | "set" | "put" | "clear",
     timestamp?: number,
     messageInstance?: (TransmitTextMessage | TransmitFileMessage),
-    initNotificationList?: (TransmitTextMessage | TransmitFileMessage)[],
+    initMessageList?: (TransmitTextMessage | TransmitFileMessage)[],
 }];
 
 const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, setHasNewTransmitMessage }: TransmitPageProps, ref) => {
@@ -109,7 +109,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             case "remove":
                 return state.filter(item => item.timestamp !== action.timestamp);
             case "set":
-                return [...action.initNotificationList ?? []];
+                return [...action.initMessageList ?? []];
             case "clear":
                 return [];
             case "put":
@@ -146,12 +146,12 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         db.getAllData().then(data => {
             messageListDispatch({
                 type: "set",
-                initNotificationList: data
+                initMessageList: data
             });
             listRef.current?.scrollToIndex(data.length - 1);
         });
         // 接收到文本
-        const appendTextCleanup = ipc.on("transmit_appendPlainText", text => {
+        const appendTextCleanup = ipc.on("transmitAppendPlainText", text => {
             const messageInstance: TransmitTextMessage = {
                 timestamp: Date.now(),
                 type: "text",
@@ -168,7 +168,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             db.addData(messageInstance);
         });
         // 接收就是有进度
-        const appendFileCleanup = ipc.on("transmit_appendFile", file => {
+        const appendFileCleanup = ipc.on("transmitAppendFile", file => {
             const messageTimestamp: number = Date.now();
             uploadingFileTimestamp.current = messageTimestamp;
             hasProgressingFile = true;
@@ -189,13 +189,12 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 type: "add",
                 messageInstance: messageInstance
             });
-
         });
-        const uploadFileSuccessListenerCleanup = ipc.on("transmit_fileUploadSuccess", () => {
+        const uploadFileSuccessListenerCleanup = ipc.on("transmitFileUploadSuccess", () => {
             hasProgressingFile = false;
             uploadingFileTimestamp.current = null;
         });
-        const uploadFileFailListenerCleanup = ipc.on("transmit_fileTransmitFailed", ({ title, message }) => {
+        const uploadFileFailListenerCleanup = ipc.on("transmitFileTransmitFailed", ({ title, message }) => {
             db.deleteData(uploadingFileTimestamp.current!);
             messageListDispatch({
                 type: "remove",
@@ -241,7 +240,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     return (
         <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
             {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
-            {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} searchCapsSensitive={searchCapsSensitive} setSearchCapsSensitive={setSearchCapsSensitive} />}
+            {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock"/>}
             {/* 列表内容 */}
             {sortedMessageList.length===0 &&<div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}
             <Virtuoso

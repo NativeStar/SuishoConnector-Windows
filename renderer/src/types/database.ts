@@ -13,3 +13,10 @@ export interface TransmitFileMessage{
     name:string,
     isDeleted:boolean
 }
+export interface NotificationItem{
+    timestamp:number,
+    appName:string,
+    title:string,
+    content:string,
+    packageName:string
+}

@@ -302,7 +302,7 @@ class NotificationCore {
         }
         //转发给渲染进程 数据原封不动
         if (global.deviceConfig.getConfigProp("enableNotificationLog") && this.window !== null && forwardToRendererProcess) {
-            this.window.webContents.send("webviewEvent", "notification_append", packageName, appName, title, content, time);
+            this.window.webContents.send("webviewEvent", "notificationAppend", {packageName, appName, title, content, timestamp:time});
         }
         //是否推送
         if (!result.show) return

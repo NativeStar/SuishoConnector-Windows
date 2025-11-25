@@ -6,10 +6,12 @@ interface ItemFilterCardProps {
     className?: string,
     setSearchText: React.Dispatch<React.SetStateAction<string>>,
     setShowFilterCard:React.Dispatch<React.SetStateAction<boolean>>,
-    searchCapsSensitive:boolean,
-    setSearchCapsSensitive:React.Dispatch<React.SetStateAction<boolean>>
+    extSwitchIcon:string,
+    extSwitchText:string,
+    extSwitchState:boolean,
+    setExtSwitchState:React.Dispatch<React.SetStateAction<boolean>>
 }
-export default function ItemFilterCard({ className, setSearchText,setShowFilterCard,searchCapsSensitive,setSearchCapsSensitive}: ItemFilterCardProps) {
+export default function ItemFilterCard({ className, setSearchText,setShowFilterCard,extSwitchIcon,extSwitchText,extSwitchState,setExtSwitchState}: ItemFilterCardProps) {
     const textFieldRef = useRef<HTMLElement>(null);
     const [searchTextInner, setSearchTextInner]=useState<string>("");
     function onInputFieldKeyUp(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -31,7 +33,7 @@ export default function ItemFilterCard({ className, setSearchText,setShowFilterC
             // 清空搜索内容
             setSearchText("");
             // 重置大小写
-            setSearchCapsSensitive(false);
+            setExtSwitchState(false);
         }
     }, []);
     return (
@@ -40,8 +42,8 @@ export default function ItemFilterCard({ className, setSearchText,setShowFilterC
             <mdui-tooltip content="搜索(Enter)">
                 <mdui-button-icon variant="tonal" icon="search" className="ml-1" onClick={()=>setSearchText(searchTextInner)}/>
             </mdui-tooltip>
-            <mdui-tooltip content="区分大小写">
-                <mdui-button-icon selected={searchCapsSensitive} onClick={()=>setSearchCapsSensitive(state=>!state)} icon="keyboard_capslock" selectable className="ml-1"/>
+            <mdui-tooltip content={extSwitchText}>
+                <mdui-button-icon selected={extSwitchState} onClick={()=>setExtSwitchState(state=>!state)} icon={extSwitchIcon} selectable className="ml-1"/>
             </mdui-tooltip>
             <mdui-tooltip content="关闭">
                 <mdui-button-icon icon="close" className="ml-1" onClick={()=>setShowFilterCard(false)}/>

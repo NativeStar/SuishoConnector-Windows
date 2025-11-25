@@ -95,7 +95,7 @@ class TransmitFileWriter {
                     this.isVerified = true;
                     logger.writeInfo(`Transmit file writer device verify success:${data.toString()}`);
                     //通知ui创建文件项和进度条
-                    this.window.webContents.send("webviewEvent", "transmit_appendFile", {displayName:this.displayName, size:this.fileSize, fileName:this.fileName});
+                    this.window.webContents.send("webviewEvent", "transmitAppendFile", {displayName:this.displayName, size:this.fileSize, fileName:this.fileName});
                     //发送开始信号
                     //\r用于掐断readLine
                     if (!socket.destroyed) socket.write("START\r");
@@ -132,13 +132,13 @@ class TransmitFileWriter {
                 this.writeStream.end();
                 // this.writeStream.close();
                 logger.writeInfo(`Transmit file writer download success:${this.outputPath}`);
-                this.window.webContents.send("webviewEvent", "transmit_fileUploadSuccess", this.fileName, this.displayName, null/* 占位 屎山来了 */, 0/* 手机 */);
+                this.window.webContents.send("webviewEvent", "transmitFileUploadSuccess", this.fileName, this.displayName, null/* 占位 屎山来了 */, 0/* 手机 */);
             } else {
                 //传输失败 大小不一致
                 this.writeStream?.close();
                 fs.remove(this.outputPath);
                 logger.writeWarn(`Transmit file download failed: file"${this.outputPath}" raw size is ${this.fileSize} but downloaded size is ${this.writeStream?.bytesWritten}`)
-                this.window.webContents.send("webviewEvent", "transmit_fileTransmitFailed", {title:"接收失败", message:`文件"${this.fileName}"完整性校验失败`})
+                this.window.webContents.send("webviewEvent", "transmitFileTransmitFailed", {title:"接收失败", message:`文件"${this.fileName}"完整性校验失败`})
             }
             this.window.setProgressBar(-1)
             this.fileSocket.close();

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { States } from "~/types/applicationState";
+import type { NotificationItem } from "~/types/database";
 interface IpcEvents {
     updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean };
     updateNetworkLatency: number,
@@ -8,12 +9,13 @@ interface IpcEvents {
     currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean }
     rebootConfirm: void,
     closeConfirm: void,
-    transmit_appendPlainText:string,
-    transmit_appendFile:{displayName:string,size:number,fileName:string},
-    transmit_fileUploadSuccess:void,//那几个数据应该是用不上了
-    transmit_fileTransmitFailed:{title:string,message:string}
+    transmitAppendPlainText:string,
+    transmitAppendFile:{displayName:string,size:number,fileName:string},
+    transmitFileUploadSuccess:void,//那几个数据应该是用不上了
+    transmitFileTransmitFailed:{title:string,message:string}
     disconnect?:string,
-    showAlert:{title:string,content:string}
+    showAlert:{title:string,content:string},
+    notificationAppend:NotificationItem
 }
 let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;

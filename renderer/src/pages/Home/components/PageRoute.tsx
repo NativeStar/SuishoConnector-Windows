@@ -3,6 +3,7 @@ import type { StateAction } from "../Home"
 import HomePage from "../subPages/home/HomePage"
 import TransmitPage, { type TransmitPageRef } from "../subPages/transmit/TransmitPage"
 import { forwardRef, useImperativeHandle, useRef } from "react"
+import NotificationPage from "../subPages/notification/NotificationPage"
 
 export interface PageRouteProps {
     page: "home" | "transmit" | "notification" | "file" | "extension" | "setting",
@@ -38,7 +39,7 @@ const PageRoute = forwardRef<PageRouteRef, PageRouteProps>(({ page, applicationS
         <div className="fixed left-20 top-9.5 right-0 bottom-0">
             <HomePage hidden={page !== "home"} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} />
             <TransmitPage ref={transmitPageRef} hidden={page !== "transmit"} setHasNewTransmitMessage={setHasNewTransmitMessage} />
-            <div hidden={page !== "notification"}>notification</div>
+            <NotificationPage hidden={page !== "notification"} />
             <div hidden={page !== "file"}>file</div>
             <div hidden={page !== "extension"}>extension</div>
             <div hidden={page !== "setting"}>setting</div>
