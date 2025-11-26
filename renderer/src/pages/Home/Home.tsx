@@ -9,6 +9,7 @@ import AndroidIdContext from "~/context/AndroidIdContext";
 import { getStateInstance, type ApplicationState, type States } from "~/types/applicationState";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import LoadingScreen from "./subPages/home/components/LoadingScreen";
+import { setColorScheme } from "mdui";
 export type StatesListObject = { [key in States]?: ApplicationState };
 export type StateAction = [{
   type: "add" | "remove",
@@ -39,6 +40,7 @@ export default function Home() {
   }, {});
   // ipc相关初始化
   useEffect(() => {
+    setColorScheme("#895cad")
     ipc.getDeviceBaseInfo().then(value => {
       setAndroidId(value.androidId);
     });
