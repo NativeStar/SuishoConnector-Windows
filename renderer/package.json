@@ -13,6 +13,7 @@
     "@nozbe/microfuzz": "^1.0.0",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
+    "js-sha256": "^0.11.1",
     "mdui": "^2.1.4",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.1",

@@ -64,3 +64,21 @@ export const TransmitMessageMenuFile = [
         label: "删除"
     }
 ]
+export const NotificationItemNotSelectedText = [
+    {
+        id: RightClickMenuItemId.CopyTitle,
+        label: "复制标题"
+    },
+    {
+        id: RightClickMenuItemId.CopyContent,
+        label: "复制内容"
+    },
+    {
+        id: RightClickMenuItemId.OpenNotificationApplicationPanel,
+        label: "管理应用通知",
+    },
+    {
+        id: RightClickMenuItemId.Delete,
+        label: "删除"
+    }
+]

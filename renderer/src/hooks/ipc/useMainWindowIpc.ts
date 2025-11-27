@@ -75,6 +75,8 @@ function useMainWindowIpc() {
         createRightClickMenu:window.electronMainProcess.createRightClickMenu,
         openUrl:window.electronMainProcess.openUrl,
         generateTransmitFileURL:window.electronMainProcess.generateTransmitFileURL,
+        getDeviceConfig:window.electronMainProcess.getDeviceConfig,
+        startAuthorization:window.electronMainProcess.startAuthorization
     }
 }
 export default useMainWindowIpc;

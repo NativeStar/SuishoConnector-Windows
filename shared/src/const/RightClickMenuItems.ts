@@ -8,7 +8,8 @@ export enum RightClickMenuItemId{
     OpenInExplorer,//资源管理器中打开
     CopyTitle,//通知转发 复制标题
     CopyContent,//通知转发 复制内容
-    OpenUrl//打开链接
+    OpenUrl,//打开链接
+    OpenNotificationApplicationPanel//通知转发 打开目标应用设置
 }
 export interface RightClickMenuItem{
     id:RightClickMenuItemId;

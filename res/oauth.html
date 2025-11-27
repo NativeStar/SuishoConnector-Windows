@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Authorization</title>
+</head>
+<script>
+    if(!window.electronMainProcess){
+        alert("运行平台异常!");
+        window.close();
+        document.body.innerHTML = "";
+    }
+</script>
+<body>
+    验证人脸 指纹或输入密码
+    <br>
+    这个窗口本应是隐藏的 如果你看到了它 这是个bug 希望您能反馈给开发者
+</body>
+<script>
+    //创建凭证
+    async function createCredentials() {
+        try {
+            const createResult = await navigator.credentials.create({
+                publicKey: {
+                    extensions: {
+                        credProps: true
+                    },
+                    attestation: "none",
+                    authenticatorSelection: {
+                        requireResidentKey: false,
+                        residentKey: "preferred",
+                        userVerification: "preferred",
+                        authenticatorAttachment: "platform"
+                    },
+                    rp: {
+                        name: "localhost",
+                        id: "localhost"
+                    },
+                    excludeCredentials: [
+                        {
+                            id: new Uint8Array([1, 2, 3, 4, 5, 6]),
+                            type: "public-key",
+                            transports: ["internal"]
+                        }
+                    ],
+                    challenge: new Uint8Array([1, 2, 3, 4, 5, 6]),
+                    rp: {
+                        name: "addVerify"
+                    },
+                    user: {
+                        id: new Uint8Array([1, 2, 3, 4, 5, 7]),
+                        name: "Authorization",
+                        displayName: "Authorization"
+                    },
+                    hints: ["client-device"],
+                    pubKeyCredParams: [
+                        {
+                            alg: -7,
+                            type: "public-key"
+                        },
+                        {
+                            alg: -257,
+                            type: "public-key"
+                        },
+                        {
+                            alg: -258,
+                            type: "public-key"
+                        },
+                        {
+                            alg: -259,
+                            type: "public-key"
+                        },
+                        {
+                            alg: -36,
+                            type: "public-key"
+                        },
+                        {
+                            alg: -37,
+                            type: "public-key"
+                        },
+                        {
+                            alg: -38,
+                            type: "public-key"
+                        },
+                        {
+                            alg: -39,
+                            type: "public-key"
+                        }
+                    ],
+                    timeout: 60000
+                }
+            });
+            if (createResult.rawId != null) {
+                window.electronMainProcess.saveRawID(createResult.rawId);
+                window.electronMainProcess.createCredentialsResult(true);
+                return
+            }
+            window.electronMainProcess.createCredentialsResult(false);
+        } catch (error) {
+            console.log(error);
+            window.electronMainProcess.createCredentialsResult(false);
+        }
+    };
+    async function authorization(event,idBuffer) {
+        try {
+            const result= await navigator.credentials.get({
+                publicKey: {
+                    mediation: "conditional",
+                    challenge: new Uint8Array([1, 2, 3, 4, 5]),
+                    allowCredentials: [
+                        {
+                            //要用create返回的rawId来登录
+                            id: idBuffer,
+                            transports: ["internal", "hybrid"],
+                            type: "public-key"
+                        }
+                    ],
+                    userVerification: "required"
+                }
+            });
+            window.electronMainProcess.authorizationResult(result.rawId!=null);
+        } catch (error) {
+            window.electronMainProcess.authorizationResult(false);
+        }
+    }
+    window.electronMainProcess.createCredentials(createCredentials);
+    window.electronMainProcess.setStartAuthorization(authorization)
+</script>
+
+</html>
