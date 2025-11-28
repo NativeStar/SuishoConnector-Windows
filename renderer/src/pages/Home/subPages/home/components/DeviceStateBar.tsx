@@ -18,7 +18,7 @@ export default function DeviceStateBar({ state }: DeviceStateBarProps) {
             <mdui-icon name="thermostat"></mdui-icon>
             <span >{state.batteryTemperature/10}°C</span>
             {/* 电量和充电状态 */}
-            <mdui-icon name={state.charging?"battery_charging_full":"battery_full"} id="batteryChargingIcon"></mdui-icon>
+            <mdui-icon name={state.charging?"battery_charging_full":"battery_full"}></mdui-icon>
             <span>{state.batteryLevel}%</span>
             {/* 通讯延迟 */}
             <mdui-icon name="wifi"></mdui-icon>

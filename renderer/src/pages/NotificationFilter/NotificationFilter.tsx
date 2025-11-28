@@ -89,7 +89,7 @@ export default function NotificationFilter() {
             <AppBar paddingLeft="3%" subtitle="通知过滤设置" />
             <mdui-tabs full-width value="textFilter" className="fixed top-9 w-full">
                 <mdui-tab value="textFilter">内容过滤</mdui-tab>
-                <mdui-tab value="appProfile" id="appProfileTab">应用配置</mdui-tab>
+                <mdui-tab value="appProfile">应用配置</mdui-tab>
                 {/* 内容过滤面板 */}
                 <TextFilterPanel />
                 <mdui-tab-panel slot="panel" value="appProfile">
