@@ -497,9 +497,11 @@ class NotificationCore {
             //直接打开指定软件设置
             if (pkgName !== null && appName !== null) {
                 logger.writeDebug(`Request open target package notification setting:${pkgName}`, this.LOG_TAG);
-                this.configWindow.loadFile("./assets/html/notificationFilterSetting.html", { query: { pkgName: pkgName, appName: appName } });
+                app.isPackaged?this.configWindow.loadFile("./dist/renderer/index.html",{hash:"notification-filter",query:{pkgName,appName}}):this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
+                // this.configWindow.loadFile("./assets/html/notificationFilterSetting.html", { query: { pkgName: pkgName, appName: appName } });
             } else {
-                this.configWindow.loadFile("./assets/html/notificationFilterSetting.html");
+                app.isPackaged?this.configWindow.loadFile("./dist/renderer/index.html",{hash:"notification-filter"}):this.configWindow.loadURL("http://localhost:5173/#/notification-filter");
+                // this.configWindow.loadFile("./assets/html/notificationFilterSetting.html");
             }
             this.configWindow.hookWindowMessage(278, () => {
                 this.configWindow?.setEnabled(false);

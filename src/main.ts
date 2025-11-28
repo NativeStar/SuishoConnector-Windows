@@ -48,7 +48,6 @@ let phoneFileDownloadWindow: BrowserWindow | null = null;
 */
 let phoneFileDownloadPathTemp: string = "";
 let trayInstance: Tray | null = null;
-let devLoadLocalhost: boolean = false;
 //设备配置管理
 // let deviceConfig:DeviceConfig|null=null;
 declare global {
@@ -66,19 +65,6 @@ app.on("ready", async (event, info) => {
     global.config = await Util.loadConfig();
     global.logger.setLevel(Reflect.get(LogLevel, config.logLevel));
     app.setAsDefaultProtocolClient("suisho", process.execPath, [app.getAppPath()]);
-    if(!app.isPackaged){
-        const result=await dialog.showMessageBox({
-            type:"question",
-            title:"开发模式启动",
-            message:"选择启动模式",
-            buttons:["本地服务器","构建产物"],
-            cancelId:-1
-        })
-        if (result.response===-1) {
-            app.quit();
-        }
-        devLoadLocalhost=result.response===0;
-    }
     connectPhoneWindow = new BrowserWindow({
         titleBarStyle: "hidden",
         center: true,
@@ -114,8 +100,7 @@ app.on("ready", async (event, info) => {
         app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     });
     connectPhoneWindow.setContentProtection(global.config.enableContentProtection);
-    devLoadLocalhost?connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone"):connectPhoneWindow.loadFile("./dist/renderer/index.html",{hash:"connect-phone"});
-    // connectPhoneWindow.loadFile(devLoadLocalhost?"http://localhost:5173":"./assets.old/html/connectPhone.html");
+    app.isPackaged?connectPhoneWindow.loadFile("./dist/renderer/index.html",{hash:"connect-phone"}):connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone");
     connectPhoneWindow.setMenu(null);
     //阻止多开
     app.on("second-instance", async (event, args, dir, data) => {
@@ -246,8 +231,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                 logger.writeInfo("Opened main window");
             });
             mainWindow.setMenu(null);
-            devLoadLocalhost?mainWindow.loadURL("http://localhost:5173/#/home"):mainWindow.loadFile("./dist/renderer/index.html",{hash:"home"});
-            // mainWindow.loadFile("./assets/html/main.html");
+            app.isPackaged?mainWindow.loadFile("./dist/renderer/index.html",{hash:"home"}):mainWindow.loadURL("http://localhost:5173/#/home");
             mainWindow.setContentProtection(global.config.enableContentProtection);
             mainWindow.on("closed", () => {
                 mainWindow = null;

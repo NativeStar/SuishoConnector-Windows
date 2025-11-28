@@ -13,7 +13,6 @@ interface NotificationItemProps {
     createRightClickMenu: typeof window.electronMainProcess.createRightClickMenu
     db: ReturnType<typeof useDatabase<"notification">>,
     notificationDispatch: React.ActionDispatch<NotificationListDispatch>
-
 }
 export default function NotificationItem({ dataPath, notification, createRightClickMenu, db, notificationDispatch }: NotificationItemProps) {
     function onContextMenu() {

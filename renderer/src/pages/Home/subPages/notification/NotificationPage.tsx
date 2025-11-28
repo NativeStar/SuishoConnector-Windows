@@ -102,7 +102,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                 </mdui-button>
             </mdui-tooltip>
             <mdui-tooltip content="转发设置" placement="bottom">
-                <mdui-button disabled={protectType === "protected"} variant="text">
+                <mdui-button disabled={protectType === "protected"} variant="text" onClick={()=>ipc.openNotificationForwardConfigWindow()}>
                     <mdui-icon name="filter_alt" />
                 </mdui-button>
             </mdui-tooltip>

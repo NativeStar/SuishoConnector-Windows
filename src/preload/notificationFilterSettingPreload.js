@@ -13,9 +13,9 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     //获取设备数据路径
     getDeviceDataPath:()=>{return ipcRenderer.invoke("main_getDeviceDataPath")},
     //获取通知配置
-    getProfile:(pkg)=>{return ipcRenderer.invoke("notificationForward_getProfile",pkg)},
+    getNotificationProfile:(pkg)=>{return ipcRenderer.invoke("notificationForward_getProfile",pkg)},
     //设置通知配置
-    saveProfile:(pkg,profile)=>{return ipcRenderer.invoke("notificationForward_saveProfile",pkg,profile)},
+    setNotificationProfile:(pkg,profile)=>{ipcRenderer.invoke("notificationForward_saveProfile",pkg,profile)},
     //获取应用列表
     getPackageList:(forceUpdate)=>{return ipcRenderer.invoke("notificationForward_getPackageList",forceUpdate)},
 })
