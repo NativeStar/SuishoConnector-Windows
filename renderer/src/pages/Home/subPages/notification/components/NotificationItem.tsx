@@ -48,6 +48,7 @@ export default function NotificationItem({ dataPath, notification, createRightCl
             }
         })
     }
+    // TODO 该hook与Virtuoso冲突 fix it
     const [defaultIsOverflow, contentRef] = useTextTruncated(0);
     const [spread, setSpread] = useState<boolean>(false);
     useEffect(() => {
@@ -56,7 +57,7 @@ export default function NotificationItem({ dataPath, notification, createRightCl
         }
     }, [defaultIsOverflow, spread]);
     return (
-        <mdui-card clickable className="flex w-[98.5%] mt-1.5 cursor-default" onContextMenu={onContextMenu}>
+        <mdui-card clickable className="flex w-[98.5%] cursor-default" onContextMenu={onContextMenu}>
             <img src={`${dataPath}assets/iconCache/${notification.packageName}`} className="w-5 h-5 ml-1.5 mt-0.5" onError={(e) => {
                 // 替换统一图标
                 (e.target as HTMLImageElement).src = "/app_icon_unknown.png"

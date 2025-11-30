@@ -481,6 +481,7 @@ class NotificationCore {
                     symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
                 },
                 webPreferences: {
+                    webSecurity:app.isPackaged,
                     spellcheck: false,
                     contextIsolation: true,
                     // 逆天调试环境

@@ -29,7 +29,7 @@ export type NotificationListDispatch = [{
     notification?: NotificationItemType,
     initNotificationList?: NotificationItemType[],
 }];
-function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, db ,notificationListDispatch}: ButtonGroupProf) {
+function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, db, notificationListDispatch }: ButtonGroupProf) {
     const ipc = useMainWindowIpc();
     const [unlockButtonLoading, setUnlockButtonLoading] = useState(false);
     const { androidId } = useContext(AndroidIdContext);
@@ -92,7 +92,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                     autoCloseDelay: 1750
                 });
             }
-        }).catch(()=>{});
+        }).catch(() => { });
     }
     return (
         <div className="mt-1">
@@ -102,7 +102,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                 </mdui-button>
             </mdui-tooltip>
             <mdui-tooltip content="转发设置" placement="bottom">
-                <mdui-button disabled={protectType === "protected"} variant="text" onClick={()=>ipc.openNotificationForwardConfigWindow()}>
+                <mdui-button disabled={protectType === "protected"} variant="text" onClick={() => ipc.openNotificationForwardConfigWindow()}>
                     <mdui-icon name="filter_alt" />
                 </mdui-button>
             </mdui-tooltip>
@@ -122,7 +122,11 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
 const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(({ hidden }, ref) => {
     useImperativeHandle(ref, () => ({
         scrollToBottom() {
-            listRef.current?.scrollToIndex(notificationList.length - 1);
+            listRef.current?.scrollToIndex({
+                index: "LAST",
+                align: "end",
+                behavior: "auto"
+            });
         },
     }));
     const ipc = useMainWindowIpc();
@@ -199,11 +203,18 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
         return () => {
             document.removeEventListener("keydown", onKeyDown);
         };
-    }, [hidden])
+    }, [hidden]);
+    useEffect(() => {
+        if (currentProtectState === "unlocked") {
+            // setTimeout(()=>{
+            listRef.current?.scrollToIndex(memoNotificationList.length - 1);
+            // },300)
+        }
+    }, [currentProtectState]);
     ipc.getDeviceDataPath().then(value => setDataPath(value));
     return (
         <div style={{ display: hidden ? "none" : "block" }} className="flex flex-col">
-            <ButtonGroup setShowFilterCard={setShowFilterCard} protectType={currentProtectState} setCurrentProtectState={setCurrentProtectState} db={db} notificationListDispatch={notificationDispatch}/>
+            <ButtonGroup setShowFilterCard={setShowFilterCard} protectType={currentProtectState} setCurrentProtectState={setCurrentProtectState} db={db} notificationListDispatch={notificationDispatch} />
             {showFilterCard && <ItemFilterCard className="mt-[2%]" setShowFilterCard={setShowFilterCard} setSearchText={setSearchText} extSwitchIcon="apps" extSwitchText="搜索包括应用名" extSwitchState={searchIncludeAppName} setExtSwitchState={setSearchIncludeAppName} />}
             {memoNotificationList.length === 0 && <div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}
             {currentProtectState === "protected" ?
@@ -221,7 +232,13 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
                     style={{ height: window.innerHeight * 0.85 }}
                     data={memoNotificationList}
                     atBottomThreshold={150}
-                    itemContent={(_index, item) => <NotificationItem dataPath={dataPath} notification={item} createRightClickMenu={ipc.createRightClickMenu} db={db} notificationDispatch={notificationDispatch}/>}
+                    followOutput="smooth"
+                    defaultItemHeight={67.2}
+                    itemContent={(_index, item) => (
+                        <div className="py-0.5">
+                            <NotificationItem dataPath={dataPath} notification={item} createRightClickMenu={ipc.createRightClickMenu} db={db} notificationDispatch={notificationDispatch} />
+                        </div>
+                    )}
                 />}
         </div>
     )

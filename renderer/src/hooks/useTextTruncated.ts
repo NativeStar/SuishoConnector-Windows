@@ -14,20 +14,23 @@ function useTextTruncated(offset: number) {
     }
     useEffect(() => {
         if (textRef.current) {
-            if (textRef.current.clientWidth === 0 || textRef.current.scrollWidth === 0) {
-                const observer = new ResizeObserver((entries) => {
-                    if (entries[0].contentRect.width !== 0) {
+            // 不延迟的话读取scrollWidth之类属性会把Virtuoso滚动干崩 天知道原因
+            requestAnimationFrame(() => {
+                if (textRef?.current?.clientWidth === 0 || textRef?.current?.scrollWidth === 0) {
+                    const observer = new ResizeObserver((entries) => {
+                        if (entries[0].contentRect.width !== 0) {
+                            observer.disconnect();
+                            calc();
+                        }
+                    });
+                    observer.observe(textRef.current);
+                    return () => {
                         observer.disconnect();
-                        calc();
                     }
-                });
-                observer.observe(textRef.current);
-                return () => {
-                    observer.disconnect();
+                } else {
+                    calc();
                 }
-            } else {
-                calc();
-            }
+            });
         }
     }, []);
     return [defaultIsOverflow, textRef] as const;
