@@ -174,7 +174,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
     }
     return (
         <mdui-card draggable={data.from === "phone" && !isDeleted} onDragStart={onDragStart} onContextMenu={onContextMenu} onClick={openFile} clickable={!isDeleted && data.from === "phone"} className={twMerge("draggable mdui-theme-auto w-65 h-23.5 rounded-[9px] mt-1 whitespace-pre-wrap text-ellipsis", data.from === "phone" ? "bg-[#ede7ed]" : "bg-[#f3ebf3] ml-110")} variant="elevated">
-            <img src="/transmit_file_default.png" className="w-[32%] h-[85%] float-left mt-1.5" />
+            <img src="./transmit_file_default.png" className="w-[32%] h-[85%] float-left mt-1.5" />
             <div className="flex flex-col" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>
                 <b className="whitespace-nowrap text-ellipsis overflow-hidden mt-1.5 ml-15px" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{data.displayName}</b>
                 <div className={twMerge("mt-5", isDeleted ? "text-red-500" : "")} style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{isDeleted ? "文件被删除" : parseFileSize(data.size)}</div>
