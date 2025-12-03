@@ -326,7 +326,7 @@ class Server {
                         //文件大小检查 -1为无效
                         if (jsonObj.size === -1) {
                             logger.writeWarn("Receive file size error");
-                            this.appWindow.webContents.send("webviewEvent", "showAlert", {title:"接收文件异常",content:"异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug"});
+                            this.appWindow.webContents.send("webviewEvent", "showAlert", { title: "接收文件异常", content: "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug" });
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug" }));
                             return
                         }
@@ -335,7 +335,7 @@ class Server {
                         //如果返回值是错误对象
                         if (fileSocket instanceof ReferenceError) {
                             logger.writeError(`Transmit failed to create file socket:${fileSocket}`);
-                            this.appWindow.webContents.send("webviewEvent", "showAlert", {title:"接收文件异常", content:fileSocket.stack});
+                            this.appWindow.webContents.send("webviewEvent", "showAlert", { title: "接收文件异常", content: fileSocket.stack });
                             //通知安卓端
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: `PC端发生异常\n${fileSocket.stack}` }));
                             return
@@ -387,7 +387,7 @@ class Server {
                 break
             case "action_notificationForward":
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName,jsonObj.key,jsonObj.ongoing);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.ongoing);
                 break
             case "syncIconPack"://同步应用图标资源包
                 const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconArchive`;
@@ -416,7 +416,17 @@ class Server {
                 try {
                     await fileSocket.init();
                     //不放在这发送事件时窗口更替还没完成 会崩溃
-                    this.appWindow.webContents.send("webviewEvent", "editState",{type:"add",id:"busy_waiting_icon_pack"});
+                    Util.execTaskWithAutoRetry(() => {
+                        try {
+                            if (!this.appWindow || this.appWindow.isDestroyed()) {
+                                return false
+                            }
+                            this.appWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "busy_waiting_icon_pack" });
+                            return true
+                        } catch (error) {
+                            return false;
+                        }
+                    }, 300, 5,"addIconPackReceivingState");
                     fileSocket.setEventHandle({
                         onError: (err) => {
                             logger.writeWarn(`Failed to download application icons pack\n${err}`);
@@ -441,7 +451,17 @@ class Server {
                             await fs.remove(file);
                             logger.writeInfo("Success download and extracted applications icon pack");
                             //移除提醒
-                            this.appWindow.webContents.send("webviewEvent", "editState",{type:"remove",id:"busy_waiting_icon_pack"});
+                            Util.execTaskWithAutoRetry(() => {
+                                try {
+                                    if (!this.appWindow || this.appWindow.isDestroyed()) {
+                                        return false
+                                    }
+                                    this.appWindow.webContents.send("webviewEvent", "editState", { type: "remove", id: "busy_waiting_icon_pack" });
+                                    return true
+                                } catch (error) {
+                                    return false;
+                                }
+                            },300,5,"removeIconPackReceivingState")
                         }
                     })
                     logger.writeDebug("File init success");
@@ -461,16 +481,16 @@ class Server {
                 //更新tray
                 const tray = this.mainHandle.getTrayInstance();
                 if (tray) {
-                    jsonObj.charging?tray.setToolTip(`Suisho Connector-${jsonObj.batteryLevel}%`):tray.setToolTip(`Suisho Connector`);
+                    jsonObj.charging ? tray.setToolTip(`Suisho Connector-${jsonObj.batteryLevel}%`) : tray.setToolTip(`Suisho Connector`);
                 }
                 //更新前端设备状态 电量 温度显示等
                 this.appWindow.webContents.send("webviewEvent", "updateDeviceState", jsonObj);
                 break
             case "edit_state":
-                this.appWindow.webContents.send("webviewEvent", "editState",{type:jsonObj.type,id:jsonObj.name});
+                this.appWindow.webContents.send("webviewEvent", "editState", { type: jsonObj.type, id: jsonObj.name });
                 break
             case "removeActiveNotification":
-                this.appWindow.webContents.send("webviewEvent", "currentNotificationUpdate", {type:"remove",key:jsonObj.key});
+                this.appWindow.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "remove", key: jsonObj.key });
                 break
             case undefined:
             case null:
@@ -703,13 +723,13 @@ class Server {
                         this.appWindow.webContents.send("webviewEvent", "transmitFileUploadSuccess", name, name, 1, form === undefined ? 0 : form);
                     },
                     //失败时执行 throw可能抓不到
-                    onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", {title:"上传失败",message: error.message})
+                    onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message })
                 });
                 await uploader.init();
                 this.responseManager?.send({ packetType: "transmit_uploadFile", port: <number>uploader.port, fileName: name, _request_id: RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE, fileSize: size });
             } catch (error: any) {
                 logger.writeError(`Upload file failed:${error}`);
-                this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", {title:"上传失败", message:error.message});
+                this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message });
             }
         });
         ipcMain.handle("file_listDir", async (event, dirPath) => {
@@ -721,13 +741,6 @@ class Server {
                 return this.appListCache;
             }
             await this.createAppListCache();
-            if (forceRefresh) {
-                logger.writeDebug("Force refresh package list")
-                this.notificationCore?.configWindow?.close();
-                setTimeout(() => {
-                    this.notificationCore?.openConfigWindow();
-                }, 250);
-            }
             return this.appListCache;
         })
     }

@@ -7,8 +7,6 @@ declare global {
         readonly rebootServer: () => Promise<void>;
         readonly rebootApplication: () => Promise<void>;
         readonly closeApplication: () => Promise<void>;
-        readonly onPhoneConnected: (callback: Function) => void;
-        readonly onPhoneConnectFailed: (callback: Function) => void;
         readonly initServer: () => Promise<Error | InitServerResult>;
         readonly onPhoneConnected: (callback: Function) => Promise<void>;
         readonly onPhoneConnectFailed: (callback: Function) => Promise<void>;
@@ -33,13 +31,11 @@ declare global {
         readonly transmitUploadFile: (name: string, path: string, size: number) => Promise<void>;
         readonly openNotificationForwardConfigWindow: (pkgName?: string, appName?: string) => Promise<void>;
         readonly getDeviceDataPath: () => Promise<string>;
-        readonly getConfig: (key: string) => Promise<null | string | number | boolean>;
         readonly getAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
         readonly setConfig: (key: string, value: string | number | boolean) => Promise<void>;
         readonly getDeviceConfig: (key: string) => Promise<null | string | number | boolean>;
         readonly getDeviceAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
         readonly setDeviceConfig: (key: string, value: string | number | boolean) => Promise<void>;
-        readonly getNotificationProfile: (pkg: string) => Promise<null | object>;
         readonly createCredentials: () => Promise<boolean>;
         readonly startAuthorization: () => Promise<boolean>;
         readonly createStartMenuShortcut: () => Promise<boolean>;

@@ -241,6 +241,19 @@ class Util {
             });
         });
     }
+    static async execTaskWithAutoRetry(func:()=>boolean,delay:number,maxRetryCount:number,taskName?:string) {
+        for (let index = 0; index < maxRetryCount; index++) {
+            const result = func();
+            if (!result) {
+                if(taskName) logger.writeInfo(`Task "${taskName}" failed.Retry count:${index}`,"Retry task");
+                await this.delay(delay);
+            }else{
+                if(taskName) logger.writeDebug(`Task "${taskName}" success`,"Retry task");
+                return
+            }
+        }
+        if(taskName) logger.writeError(`Task "${taskName}" full failed`,"Retry task");
+    }
 }
 export default Util;
 export {

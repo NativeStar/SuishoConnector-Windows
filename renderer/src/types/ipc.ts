@@ -15,6 +15,7 @@ export type DeviceBaseInfo = {
 export type ApplicationNotificationProfile = {
     enableProfile: boolean,
     enableNotification: boolean,
+    enableDeepHidden:boolean,
     detailShowMode: "all" | "nameOnly" | "hide" | "none",
     enableTextFilter: boolean
     disableRecord: boolean

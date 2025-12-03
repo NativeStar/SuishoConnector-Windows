@@ -25,7 +25,9 @@ mdui-select::part(text-field){
     width: 8px;
     height: 15px;
 }
-
+.mduiAvatarBorder{
+    --shape-corner:5px
+}
 ::-webkit-scrollbar-thumb {
     background-color: gray;
     border-radius: 8px;
