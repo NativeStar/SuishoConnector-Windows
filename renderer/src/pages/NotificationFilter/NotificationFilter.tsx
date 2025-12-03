@@ -10,17 +10,29 @@ import "mdui/components/fab"
 import useDevMode from "~/hooks/useDevMode";
 import TextFilterPanel from "./components/TextFilterPanel";
 import AppProfilePanel from "./components/AppProfilePanel";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 export default function NotificationFilter() {
-    useDevMode()
+    useDevMode();
+    const [searchParams]=useSearchParams();
+    const [tabValue,setTabValue]=useState<"textFilter"|"appProfile">("textFilter");
+    useEffect(() => {
+        // 获取当前配置
+        const targetAppPkgName = searchParams.get("pkgName");
+        const targetAppName = searchParams.get("appName");
+        if (targetAppPkgName && targetAppName) {
+            setTabValue("appProfile");
+        }
+    }, [searchParams])
     return (
         <>
             <AppBar paddingLeft="3%" subtitle="通知过滤设置" />
-            <mdui-tabs full-width value="textFilter" className="fixed top-9 w-full">
+            <mdui-tabs full-width value={tabValue} className="fixed top-9 w-full">
                 <mdui-tab value="textFilter">内容过滤</mdui-tab>
                 <mdui-tab value="appProfile">应用配置</mdui-tab>
                 {/* 内容过滤面板 */}
                 <TextFilterPanel />
-                <AppProfilePanel />
+                <AppProfilePanel packageName={searchParams.get("pkgName")} appName={searchParams.get("appName")}/>
             </mdui-tabs>
         </>
     )

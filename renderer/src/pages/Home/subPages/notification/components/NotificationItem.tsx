@@ -12,9 +12,10 @@ interface NotificationItemProps {
     notification: NotificationItem,
     createRightClickMenu: typeof window.electronMainProcess.createRightClickMenu
     db: ReturnType<typeof useDatabase<"notification">>,
-    notificationDispatch: React.ActionDispatch<NotificationListDispatch>
+    notificationDispatch: React.ActionDispatch<NotificationListDispatch>,
+    openNotificationForwardConfigWindow:typeof window.electronMainProcess.openNotificationForwardConfigWindow
 }
-export default function NotificationItem({ dataPath, notification, createRightClickMenu, db, notificationDispatch }: NotificationItemProps) {
+export default function NotificationItem({ dataPath, notification, createRightClickMenu, db, notificationDispatch ,openNotificationForwardConfigWindow}: NotificationItemProps) {
     function onContextMenu() {
         const selectedText = getSelection()?.toString() ?? "";
         createRightClickMenu(selectedText === "" ? NotificationItemNotSelectedText : TransmitMessageMenuSelectedCommonText).then(result => {
@@ -40,7 +41,7 @@ export default function NotificationItem({ dataPath, notification, createRightCl
                     })
                     break
                 case RightClickMenuItemId.OpenNotificationApplicationPanel:
-                    console.log("TODO");
+                    openNotificationForwardConfigWindow(notification.packageName,notification.appName)
                     break
                 default:
                     console.warn(`Unsupported type:${result}`);

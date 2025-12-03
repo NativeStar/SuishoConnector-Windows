@@ -302,7 +302,7 @@ class NotificationCore {
         }
         //转发给渲染进程 数据原封不动
         if (global.deviceConfig.getConfigProp("enableNotificationLog") && this.window !== null && forwardToRendererProcess) {
-            this.window.webContents.send("webviewEvent", "notificationAppend", {packageName, appName, title, content, timestamp:time});
+            this.window.webContents.send("webviewEvent", "notificationAppend", { packageName, appName, title, content, timestamp: time });
         }
         //是否推送
         if (!result.show) return
@@ -481,7 +481,7 @@ class NotificationCore {
                     symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
                 },
                 webPreferences: {
-                    webSecurity:app.isPackaged,
+                    webSecurity: app.isPackaged,
                     spellcheck: false,
                     contextIsolation: true,
                     // 逆天调试环境
@@ -498,11 +498,9 @@ class NotificationCore {
             //直接打开指定软件设置
             if (pkgName !== null && appName !== null) {
                 logger.writeDebug(`Request open target package notification setting:${pkgName}`, this.LOG_TAG);
-                app.isPackaged?this.configWindow.loadFile("./dist/renderer/index.html",{hash:"notification-filter",query:{pkgName,appName}}):this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
-                // this.configWindow.loadFile("./assets/html/notificationFilterSetting.html", { query: { pkgName: pkgName, appName: appName } });
+                app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash: "notification-filter", query: { pkgName, appName } }) : this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
             } else {
-                app.isPackaged?this.configWindow.loadFile("./dist/renderer/index.html",{hash:"notification-filter"}):this.configWindow.loadURL("http://localhost:5173/#/notification-filter");
-                // this.configWindow.loadFile("./assets/html/notificationFilterSetting.html");
+                app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash: "notification-filter" }) : this.configWindow.loadURL("http://localhost:5173/#/notification-filter");
             }
             this.configWindow.hookWindowMessage(278, () => {
                 this.configWindow?.setEnabled(false);
@@ -517,7 +515,11 @@ class NotificationCore {
             });
         } else if (pkgName !== null && appName !== null) {
             logger.writeDebug(`Request change to target package notification setting:${pkgName}`, this.LOG_TAG);
-            this.configWindow.loadFile("./assets/html/notificationFilterSetting.html", { query: { pkgName: pkgName, appName: appName } });
+            app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash: "notification-filter", query: { pkgName, appName } }) : this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
+            if (this.configWindow.isMinimized()) {
+                this.configWindow.restore();
+            }
+            this.configWindow?.focus();
         } else {
             logger.writeDebug("Config window focused", this.LOG_TAG);
             //处理被最小化

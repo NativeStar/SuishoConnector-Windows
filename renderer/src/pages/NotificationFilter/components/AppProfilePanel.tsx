@@ -21,7 +21,7 @@ interface ProfileSettingPanelProps {
     dataPath: string | null,
     appName: string
 }
-interface SettingListItemWithSwitchProp {
+interface SettingListItemWithSwitchProps {
     title: string,
     desc?: string,
     icon: string,
@@ -29,18 +29,21 @@ interface SettingListItemWithSwitchProp {
     profileKey: keyof ApplicationNotificationProfile,
     onProfileEdit: (profileKey: keyof ApplicationNotificationProfile, value: boolean | ApplicationNotificationProfile["detailShowMode"]) => void
 }
-function SettingListItemWithSwitch({ icon, title, desc, profileKey, profile, onProfileEdit }: SettingListItemWithSwitchProp) {
+interface AppProfilePanelProps {
+    packageName: string | null,
+    appName: string | null,
+
+}
+function SettingListItemWithSwitch({ icon, title, desc, profileKey, profile, onProfileEdit }: SettingListItemWithSwitchProps) {
     // 开关设置项 点击列表本身可改变开关
     return (
         <mdui-list-item onClick={() => {
             onProfileEdit(profileKey, !profile ? true : !profile[profileKey]);
-            console.log(profile);
         }} icon={icon} headline={title} description={desc}>
             <mdui-switch onClick={(event) => {
                 event.preventDefault()
                 event.stopPropagation();
                 onProfileEdit(profileKey, !profile ? true : !profile[profileKey]);
-                console.log(profile);
             }} checked={profile ? profile[profileKey] as boolean : false} slot="end-icon" className="w-full" checked-icon="" />
         </mdui-list-item>
     )
@@ -109,15 +112,15 @@ function ProfileSettingPanel({ packageName, packageList, dataPath, appName }: Pr
                             <SettingListItemWithSwitch title="深层隐藏" desc="来自该应用的通知需右键点击解锁图标并验证通过后才显示 需开启通知转发记录保护才能生效" icon="private_connectivity" profile={profile} profileKey="enableDeepHidden" onProfileEdit={onProfileEdit} />
                             <SettingListItemWithSwitch title="不保存至推送记录" desc="来自该应用的通知将不会存储至通知历史记录中" icon="history_toggle_off" profile={profile} profileKey="disableRecord" onProfileEdit={onProfileEdit} />
                             {/* 推送模式选择 */}
-                            <mdui-select value={profile.detailShowMode} onChange={(event)=>{
-                                const value = (event.target as HTMLSelectElement).value as ApplicationNotificationProfile["detailShowMode"]|"";
-                                if (value==="") {
+                            <mdui-select value={profile.detailShowMode} onChange={(event) => {
+                                const value = (event.target as HTMLSelectElement).value as ApplicationNotificationProfile["detailShowMode"] | "";
+                                if (value === "") {
                                     event.preventDefault();
                                     (event.target as HTMLSelectElement).value = profile.detailShowMode;
                                     return
                                 }
                                 onProfileEdit("detailShowMode", value);
-                            }} className="w-[98%] ml-1" label="通知展示模式" icon="adjust" variant="outlined" onDragStart={e=>e.preventDefault()}>
+                            }} className="w-[98%] ml-1" label="通知展示模式" icon="adjust" variant="outlined" onDragStart={e => e.preventDefault()}>
                                 <mdui-menu-item value="all">全部显示</mdui-menu-item>
                                 <mdui-menu-item value="nameOnly">仅应用名</mdui-menu-item>
                                 <mdui-menu-item value="hide" end-text="不会显示通知标题内容等信息">全部隐藏</mdui-menu-item>
@@ -145,7 +148,7 @@ function ProfileSettingPanel({ packageName, packageList, dataPath, appName }: Pr
                 </div>
     )
 }
-export default function AppProfilePanel() {
+export default function AppProfilePanel({ packageName, appName }: AppProfilePanelProps) {
     const ipc = useNotificationFilterWindowIpc();
     const [dataPath, setDataPath] = useState<string | null>(null);
     const [packageList, setPackageList] = useState<ApplicationListData[] | null>(null);
@@ -155,8 +158,14 @@ export default function AppProfilePanel() {
     useEffect(() => {
         ipc.getPackageList(false).then(value => {
             setPackageList(value.data);
-        })
+        });
     }, []);
+    useEffect(() => {
+        if (packageName && appName) {
+            setCurrentAppName(appName);
+            setCurrentAppPackageName(packageName);
+        }
+    }, [packageName, appName]);
     ipc.getDeviceDataPath().then(value => setDataPath(value));
     return (
         <mdui-tab-panel slot="panel" value="appProfile" className="flex">

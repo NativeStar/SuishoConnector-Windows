@@ -236,7 +236,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
                     defaultItemHeight={67.2}
                     itemContent={(_index, item) => (
                         <div className="py-0.5">
-                            <NotificationItem dataPath={dataPath} notification={item} createRightClickMenu={ipc.createRightClickMenu} db={db} notificationDispatch={notificationDispatch} />
+                            <NotificationItem dataPath={dataPath} notification={item} createRightClickMenu={ipc.createRightClickMenu} db={db} notificationDispatch={notificationDispatch} openNotificationForwardConfigWindow={ipc.openNotificationForwardConfigWindow}/>
                         </div>
                     )}
                 />}
