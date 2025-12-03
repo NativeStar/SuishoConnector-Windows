@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsc&&electron ./",
     "start": "electron-forge start",
-    "package": "tsc && cd ./renderer && npm run build && (if exist ..\\dist\\renderer rmdir /s /q ..\\dist\\renderer) && robocopy ./dist ../dist/renderer /E && cd ../ || electron-forge package",
+    "package": "npm run build --workspace shared && tsc && cd ./renderer && npm run build && (if exist ..\\dist\\renderer rmdir /s /q ..\\dist\\renderer) && robocopy ./dist ../dist/renderer /E && cd ../ || electron-forge package",
     "make": "electron-forge make"
   },
   "author": "suisho",
@@ -47,7 +47,8 @@
     "typescript": "^5.4.5",
     "uuid": "^10.0.0",
     "windows-notification-state": "^2.0.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "shared": "file:shared"
   },
   "interactive-notifications": {
     "toast-activator-clsid": "171807FD-769F-4129-A8C2-C603F8F125C8",
