@@ -23,6 +23,7 @@ export default function Home() {
   const [page, setPage] = useState<PageRouteProps["page"]>("home");
   const [androidId, setAndroidId] = useState<string>("");
   const [hasNewTransmitMessage, setHasNewTransmitMessage] = useState<boolean>(false);
+  const [hasNewNotification, setHasNewNotification]=useState<boolean>(false);
   const routeRef=useRef<PageRouteRef>(null);
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
     if (action.type === "add") {
@@ -143,8 +144,8 @@ export default function Home() {
     <>
       <AppBar paddingLeft="3%" />
       <AndroidIdContext.Provider value={{ androidId, setAndroidId }}>
-        {androidId !== "" && <NavigationRail value={page} onChange={setPageHandle} hasNewTransmitMessage={hasNewTransmitMessage} />}
-        {androidId !== "" ? <PageRoute ref={routeRef} page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} /> : <LoadingScreen />}
+        {androidId !== "" && <NavigationRail value={page} onChange={setPageHandle} hasNewTransmitMessage={hasNewTransmitMessage} hasNewNotification={hasNewNotification}/>}
+        {androidId !== "" ? <PageRoute ref={routeRef} page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} setHasNewNotification={setHasNewNotification}/> : <LoadingScreen />}
       </AndroidIdContext.Provider>
     </>
   )

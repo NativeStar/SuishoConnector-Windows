@@ -17,7 +17,8 @@ interface ButtonGroupProf {
     notificationListDispatch: React.ActionDispatch<NotificationListDispatch>
 }
 interface NotificationPageProps {
-    hidden: boolean
+    hidden: boolean,
+    setHasNewNotification: React.Dispatch<React.SetStateAction<boolean>>
 }
 export interface NotificationPageRef {
     scrollToBottom(): void
@@ -119,7 +120,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
         </div>
     )
 }
-const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(({ hidden }, ref) => {
+const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(({ hidden, setHasNewNotification }, ref) => {
     useImperativeHandle(ref, () => ({
         scrollToBottom() {
             listRef.current?.scrollToIndex({
@@ -137,9 +138,13 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
     const [searchIncludeAppName, setSearchIncludeAppName] = useState(false);
     const [currentProtectState, setCurrentProtectState] = useState<NotificationProtectInternalType>("disabled");
     const listRef = useRef<VirtuosoHandle>(null);
+    const isAtBottom = useRef(true);
     const [notificationList, notificationDispatch] = useReducer<NotificationItemType[], NotificationListDispatch>((state, action) => {
         switch (action.type) {
             case "add":
+                if (!isAtBottom.current) {
+                    setHasNewNotification(true);
+                }
                 return [...state, action.notification!];
             case "set":
                 return action.initNotificationList!;
@@ -234,9 +239,15 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
                     atBottomThreshold={150}
                     followOutput="smooth"
                     defaultItemHeight={67.2}
+                    atBottomStateChange={(atBottom) => {
+                        isAtBottom.current = atBottom;
+                        if (atBottom) {
+                            setHasNewNotification(false);
+                        }
+                    }}
                     itemContent={(_index, item) => (
                         <div className="py-0.5">
-                            <NotificationItem dataPath={dataPath} notification={item} createRightClickMenu={ipc.createRightClickMenu} db={db} notificationDispatch={notificationDispatch} openNotificationForwardConfigWindow={ipc.openNotificationForwardConfigWindow}/>
+                            <NotificationItem dataPath={dataPath} notification={item} createRightClickMenu={ipc.createRightClickMenu} db={db} notificationDispatch={notificationDispatch} openNotificationForwardConfigWindow={ipc.openNotificationForwardConfigWindow} />
                         </div>
                     )}
                 />}

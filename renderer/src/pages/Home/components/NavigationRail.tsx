@@ -8,13 +8,15 @@ import type { NavigationRail as MduiNavigationRail } from "mdui/components/navig
 interface NavigationRailProps {
     onChange: (value: PageRouteProps["page"]) => void,
     hasNewTransmitMessage:boolean,
+    hasNewNotification:boolean,
     value:PageRouteProps["page"]
 }
 
 export default function NavigationRail({
     onChange,
     hasNewTransmitMessage,
-    value
+    hasNewNotification,
+    value,
 }:NavigationRailProps) {
     return (
         <mdui-navigation-rail value={value} className="w-[10%] h-[91.5%] top-[8%]" onClick={event=>onChange((event.target as MduiNavigationRail)!.value as PageRouteProps["page"])}>
@@ -30,7 +32,7 @@ export default function NavigationRail({
             </mdui-navigation-rail-item>
             <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="notifications" value="notification">
                 通知转发
-                <mdui-badge slot="badge" variant="small"/>
+                {hasNewNotification&&<mdui-badge slot="badge" variant="small"/>}
             </mdui-navigation-rail-item>
             <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="folder_open" value="file">
                 文件浏览

@@ -9,12 +9,14 @@ export interface PageRouteProps {
     page: "home" | "transmit" | "notification" | "file" | "extension" | "setting",
     applicationStates: { [key in States]?: ApplicationState },
     applicationStatesDispatch: React.ActionDispatch<StateAction>,
-    setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>
+    setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>,
+    setHasNewNotification: React.Dispatch<React.SetStateAction<boolean>>
+
 }
 export interface PageRouteRef {
     onPageDoubleClick: (targetPage:PageRouteProps["page"]) => void
 }
-const PageRoute = forwardRef<PageRouteRef, PageRouteProps>(({ page, applicationStates, applicationStatesDispatch, setHasNewTransmitMessage }, ref) => {
+const PageRoute = forwardRef<PageRouteRef, PageRouteProps>(({ page, applicationStates, applicationStatesDispatch, setHasNewTransmitMessage ,setHasNewNotification}, ref) => {
     const transmitPageRef = useRef<TransmitPageRef>(null);
     const notificationPageRef = useRef<NotificationPageRef>(null);
     useImperativeHandle(ref,()=>({
@@ -30,7 +32,7 @@ const PageRoute = forwardRef<PageRouteRef, PageRouteProps>(({ page, applicationS
         <div className="fixed left-20 top-9.5 right-0 bottom-0">
             <HomePage hidden={page !== "home"} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} />
             <TransmitPage ref={transmitPageRef} hidden={page !== "transmit"} setHasNewTransmitMessage={setHasNewTransmitMessage} />
-            <NotificationPage ref={notificationPageRef} hidden={page !== "notification"} />
+            <NotificationPage ref={notificationPageRef} hidden={page !== "notification"} setHasNewNotification={setHasNewNotification}/>
             <div hidden={page !== "file"}>file</div>
             <div hidden={page !== "extension"}>extension</div>
             <div hidden={page !== "setting"}>setting</div>
