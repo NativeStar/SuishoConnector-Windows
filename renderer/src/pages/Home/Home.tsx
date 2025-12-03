@@ -95,11 +95,18 @@ export default function Home() {
         description: content,
       })
     });
+    const focusNotificationEventCleanup = ipc.on("focusNotification", () => {
+      // setHasNewTransmitMessage(true);
+      setPage("notification");
+      // 触发滚动
+      routeRef.current?.onPageDoubleClick("notification");
+    });
     return () => {
       rebootConfirmCleanup();
       closeConfirmCleanup();
       disconnectEventCleanup();
       showAlertCleanup();
+      focusNotificationEventCleanup();
     }
   }, []);
   // 普通初始化
@@ -130,14 +137,13 @@ export default function Home() {
       routeRef.current?.onPageDoubleClick(page);
       return
     }
-    // 重复点击
     setPage(targetPage);
   }
   return (
     <>
       <AppBar paddingLeft="3%" />
       <AndroidIdContext.Provider value={{ androidId, setAndroidId }}>
-        {androidId !== "" && <NavigationRail onChange={setPageHandle} hasNewTransmitMessage={hasNewTransmitMessage} />}
+        {androidId !== "" && <NavigationRail value={page} onChange={setPageHandle} hasNewTransmitMessage={hasNewTransmitMessage} />}
         {androidId !== "" ? <PageRoute ref={routeRef} page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} /> : <LoadingScreen />}
       </AndroidIdContext.Provider>
     </>

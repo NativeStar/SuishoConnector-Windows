@@ -452,7 +452,9 @@ class NotificationCore {
             logger.writeDebug("Show main window from notification click", this.LOG_TAG)
             this.window?.show();
         }
-        this.window?.webContents.send("webviewEvent", "focus_notification");
+        this.window?.focus();
+        this.window?.flashFrame(false)
+        this.window?.webContents.send("webviewEvent", "focusNotification");
     }
     private async saveConfig() {
         if (this.configSaving) return

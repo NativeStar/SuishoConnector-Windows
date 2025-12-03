@@ -15,7 +15,8 @@ interface IpcEvents {
     transmitFileTransmitFailed:{title:string,message:string}
     disconnect?:string,
     showAlert:{title:string,content:string},
-    notificationAppend:NotificationItem
+    notificationAppend:NotificationItem,
+    focusNotification:void
 }
 let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;
