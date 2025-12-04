@@ -821,7 +821,6 @@ ipcMain.handle("main_setAudioForward",async (event,enable:boolean)=>{
     }
 });
 ipcMain.on("sendMessageToMainWindow",(_event,type:string,message:{[key:string]:string|number|boolean})=>{
-    console.log(type,message);
     mainWindow?.webContents.send("webviewEvent",type,message)
 })
 //测试用 有些要保留
