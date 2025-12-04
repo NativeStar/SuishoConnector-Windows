@@ -66,6 +66,9 @@ export async function initHideNotificationCache(getProfile: typeof window.electr
         cachedPackageName.add(item.packageName);
     }
 }
+export function updateDeepHideNotificationCache(pkgName: string, value: boolean) {
+    deepHideNotificationCacheMap.set(pkgName, value);
+}
 export function needHideNotification(pkgName: string): boolean {
     return deepHideNotificationCacheMap.get(pkgName) ?? false;
 }

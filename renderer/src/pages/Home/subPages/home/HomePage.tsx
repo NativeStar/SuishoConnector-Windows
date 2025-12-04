@@ -4,13 +4,14 @@ import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
 import type { StateAction, StatesListObject } from "../../Home";
 import ApplicationStatesBar from "./components/ApplicationStatesBar";
 import ActiveNotifications from "./components/ActiveNotifications";
+import { confirm } from "mdui";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
     applicationStatesDispatch: React.ActionDispatch<StateAction>
 }
 export default function HomePage({ hidden ,applicationStates,applicationStatesDispatch}: HomePageProps) {
-    const mainWindowIpc = useMainWindowIpc();
+    const ipc = useMainWindowIpc();
     const [deviceName, setDeviceName] = useState<string>("");
     const [deviceState, setDeviceState] = useState<DeviceState>({
         memoryUsage: 0,
@@ -20,17 +21,17 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
         charging: false
     });
     useEffect(() => {
-        mainWindowIpc.getDeviceBaseInfo().then(value => {
+        ipc.getDeviceBaseInfo().then(value => {
             setDeviceName(value.model);
         });
-        mainWindowIpc.getDeviceDetailInfo().then(value => {
+        ipc.getDeviceDetailInfo().then(value => {
             setDeviceState(prevState => ({
                 ...prevState,
                 batteryLevel: value.batteryLevel,
                 memoryUsage: ((value.memoryInfo.total - value.memoryInfo.avail) / value.memoryInfo.total) * 100
             }))
         })
-        const updateDeviceStateCleanup=mainWindowIpc.on("updateDeviceState", (value) => {
+        const updateDeviceStateCleanup=ipc.on("updateDeviceState", (value) => {
             setDeviceState(prevState => ({
                 ...prevState,
                 charging: value.charging,
@@ -39,16 +40,16 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
                 memoryUsage: ((value.memInfo.total - value.memInfo.avail) / value.memInfo.total) * 100
             }))
         });
-        const updateNetworkLatencyCleanup=mainWindowIpc.on("updateNetworkLatency", value => {
+        const updateNetworkLatencyCleanup=ipc.on("updateNetworkLatency", value => {
             setDeviceState(prevState => ({ ...prevState, latency: value }))
         });
-        const trustModeChangeCleanup=mainWindowIpc.on("trustModeChange",(trusted)=>{
+        const trustModeChangeCleanup=ipc.on("trustModeChange",(trusted)=>{
             applicationStatesDispatch({
                 type:trusted?"remove":"add",
                 id:"info_device_not_trusted"
             });
         });
-        const editStateCleanup=mainWindowIpc.on("editState",value=>{
+        const editStateCleanup=ipc.on("editState",value=>{
             applicationStatesDispatch({type:value.type,id:value.id})
         });
         return ()=>{
@@ -65,6 +66,19 @@ export default function HomePage({ hidden ,applicationStates,applicationStatesDi
             <ApplicationStatesBar states={applicationStates}/>
             <br />
             <ActiveNotifications/>
+            <mdui-button className="mt-[35%]" onClick={()=>{
+                confirm({
+                        headline: "关闭程序",
+                        description: "确认关闭程序?",
+                        confirmText: "关闭",
+                        cancelText: "取消",
+                        onConfirm: () => {
+                          ipc.closeApplication();
+                        }
+                      }).catch(() => { })
+            }}>
+                关闭程序
+            </mdui-button>
         </div>
     )
 }

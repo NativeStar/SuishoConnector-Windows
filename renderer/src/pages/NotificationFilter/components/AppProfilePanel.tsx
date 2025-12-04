@@ -9,6 +9,7 @@ import "mdui/components/menu-item"
 import { useEffect, useState } from "react";
 import useNotificationFilterWindowIpc from "~/hooks/ipc/useNotificationFilterWindowIpc";
 import type { ApplicationListData, ApplicationNotificationProfile } from "~/types/ipc";
+import { snackbar } from "mdui";
 interface CollapseListItemProp {
     setSearchText: React.Dispatch<React.SetStateAction<string>>;
     searchText: string,
@@ -28,21 +29,24 @@ interface SettingListItemWithSwitchProps {
     profile: ApplicationNotificationProfile | null,
     profileKey: keyof ApplicationNotificationProfile,
     onProfileEdit: (profileKey: keyof ApplicationNotificationProfile, value: boolean | ApplicationNotificationProfile["detailShowMode"]) => void
+    extOnChangeHandle?:(value:boolean)=>void
 }
 interface AppProfilePanelProps {
     packageName: string | null,
     appName: string | null,
 
 }
-function SettingListItemWithSwitch({ icon, title, desc, profileKey, profile, onProfileEdit }: SettingListItemWithSwitchProps) {
+function SettingListItemWithSwitch({ icon, title, desc, profileKey, profile, onProfileEdit ,extOnChangeHandle}: SettingListItemWithSwitchProps) {
     // 开关设置项 点击列表本身可改变开关
     return (
         <mdui-list-item onClick={() => {
+            extOnChangeHandle?.(!profile ? true : !profile[profileKey]);
             onProfileEdit(profileKey, !profile ? true : !profile[profileKey]);
         }} icon={icon} headline={title} description={desc}>
             <mdui-switch onClick={(event) => {
-                event.preventDefault()
+                event.preventDefault();
                 event.stopPropagation();
+                extOnChangeHandle?.(!profile ? true : !profile[profileKey]);
                 onProfileEdit(profileKey, !profile ? true : !profile[profileKey]);
             }} checked={profile ? profile[profileKey] as boolean : false} slot="end-icon" className="w-full" checked-icon="" />
         </mdui-list-item>
@@ -109,7 +113,13 @@ function ProfileSettingPanel({ packageName, packageList, dataPath, appName }: Pr
                     {profile?.enableProfile && profile?.enableNotification ?
                         <>
                             <SettingListItemWithSwitch title="进行内容过滤" desc="关闭后将不再对其通知内容使用全局关键词过滤" icon="filter_vintage" profile={profile} profileKey="enableTextFilter" onProfileEdit={onProfileEdit} />
-                            <SettingListItemWithSwitch title="深层隐藏" desc="来自该应用的通知需右键点击解锁图标并验证通过后才显示 需开启通知转发记录保护才能生效" icon="private_connectivity" profile={profile} profileKey="enableDeepHidden" onProfileEdit={onProfileEdit} />
+                            <SettingListItemWithSwitch title="深层隐藏" desc="来自该应用的通知需右键点击解锁图标并验证通过后才显示 需开启通知转发记录保护才能生效" icon="private_connectivity" profile={profile} profileKey="enableDeepHidden" onProfileEdit={onProfileEdit} extOnChangeHandle={value=>{
+                                ipc.sendMessageToMainWindow("updateDeepHideNotificationCache",{packageName,value});
+                                snackbar({
+                                    autoCloseDelay:1250,
+                                    message:"重新解锁生效"
+                                })
+                            }}/>
                             <SettingListItemWithSwitch title="不保存至推送记录" desc="来自该应用的通知将不会存储至通知历史记录中" icon="history_toggle_off" profile={profile} profileKey="disableRecord" onProfileEdit={onProfileEdit} />
                             {/* 推送模式选择 */}
                             <mdui-select value={profile.detailShowMode} onChange={(event) => {

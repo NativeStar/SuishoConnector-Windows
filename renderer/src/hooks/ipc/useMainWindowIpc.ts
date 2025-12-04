@@ -16,7 +16,8 @@ interface IpcEvents {
     disconnect?:string,
     showAlert:{title:string,content:string},
     notificationAppend:NotificationItem,
-    focusNotification:void
+    focusNotification:void,
+    updateDeepHideNotificationCache:{packageName:string,value:boolean}
 }
 let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;

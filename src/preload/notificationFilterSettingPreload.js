@@ -18,4 +18,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     setNotificationProfile:(pkg,profile)=>{ipcRenderer.invoke("notificationForward_saveProfile",pkg,profile)},
     //获取应用列表
     getPackageList:(forceUpdate)=>{return ipcRenderer.invoke("notificationForward_getPackageList",forceUpdate)},
+    // 给主窗口发消息
+    sendMessageToMainWindow:(type,message)=>{ipcRenderer.send("sendMessageToMainWindow",type,message)},
 })

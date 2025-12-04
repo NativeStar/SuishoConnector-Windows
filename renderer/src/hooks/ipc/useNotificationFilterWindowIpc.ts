@@ -7,6 +7,7 @@ export default function useNotificationFilterWindowIpc() {
         getDeviceDataPath:window.electronMainProcess.getDeviceDataPath,
         getNotificationProfile:window.electronMainProcess.getNotificationProfile,
         setNotificationProfile:window.electronMainProcess.setNotificationProfile,
-        getPackageList:window.electronMainProcess.getPackageList
+        getPackageList:window.electronMainProcess.getPackageList,
+        sendMessageToMainWindow:window.electronMainProcess.sendMessageToMainWindow
     }
 }

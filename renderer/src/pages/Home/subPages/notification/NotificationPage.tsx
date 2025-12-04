@@ -8,7 +8,7 @@ import { useFuzzySearchList } from "@nozbe/microfuzz/react";
 import ItemFilterCard from "../../components/ItemFilterCard";
 import { confirm, snackbar } from "mdui";
 import AndroidIdContext from "~/context/AndroidIdContext";
-import { initHideNotificationCache, needHideNotification, openPasswordInputDialog } from "~/utils";
+import { initHideNotificationCache, needHideNotification, openPasswordInputDialog, updateDeepHideNotificationCache } from "~/utils";
 interface ButtonGroupProf {
     setShowFilterCard: React.Dispatch<React.SetStateAction<boolean>>,
     protectType: NotificationProtectInternalType,
@@ -226,6 +226,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
         }
     }, [currentProtectState]);
     ipc.getDeviceDataPath().then(value => setDataPath(value));
+    ipc.on("updateDeepHideNotificationCache",data=>updateDeepHideNotificationCache(data.packageName,data.value));
     return (
         <div style={{ display: hidden ? "none" : "block" }} className="flex flex-col">
             <ButtonGroup setShowFilterCard={setShowFilterCard} protectType={currentProtectState} setCurrentProtectState={setCurrentProtectState} db={db} notificationListDispatch={notificationDispatch} />

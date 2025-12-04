@@ -55,6 +55,7 @@ declare global {
         readonly editTextFilterRule:(action:"add"|"remove",value:string)=>Promise<void>;
         readonly getNotificationProfile:(packageName:string)=>Promise<ApplicationNotificationProfile>;
         readonly setNotificationProfile:(packageName:string,profile:ApplicationNotificationProfile)=>Promise<void>;
-        readonly getPackageList:(forceUpdate:boolean)=>Promise<{data:ApplicationListData[]}>
+        readonly getPackageList:(forceUpdate:boolean)=>Promise<{data:ApplicationListData[]}>,
+        readonly sendMessageToMainWindow:(type:string,message:{[key:string]:string|number|boolean})=>void
     }
 }
