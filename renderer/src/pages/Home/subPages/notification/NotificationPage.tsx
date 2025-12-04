@@ -8,7 +8,7 @@ import { useFuzzySearchList } from "@nozbe/microfuzz/react";
 import ItemFilterCard from "../../components/ItemFilterCard";
 import { confirm, snackbar } from "mdui";
 import AndroidIdContext from "~/context/AndroidIdContext";
-import { openPasswordInputDialog } from "~/utils";
+import { initHideNotificationCache, needHideNotification, openPasswordInputDialog } from "~/utils";
 interface ButtonGroupProf {
     setShowFilterCard: React.Dispatch<React.SetStateAction<boolean>>,
     protectType: NotificationProtectInternalType,
@@ -23,7 +23,7 @@ interface NotificationPageProps {
 export interface NotificationPageRef {
     scrollToBottom(): void
 }
-type NotificationProtectInternalType = "disabled" | "protected" | "unlocked";
+type NotificationProtectInternalType = "disabled" | "protected" | "unlocked" | "fullUnlocked";
 export type NotificationListDispatch = [{
     type: "add" | "remove" | "set" | "clear",
     time?: number,
@@ -34,11 +34,13 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
     const ipc = useMainWindowIpc();
     const [unlockButtonLoading, setUnlockButtonLoading] = useState(false);
     const { androidId } = useContext(AndroidIdContext);
-    async function onUnlockButtonClick() {
+    async function onUnlockButtonClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        if (event.button !== 0 && event.button !== 2) return
+        const fullUnlock=event.button === 2;
         const protectNotificationForwardPage = await ipc.getDeviceConfig("protectNotificationForwardPage") as boolean;
         //没开启功能
         if (!protectNotificationForwardPage) {
-            setCurrentProtectState("unlocked");
+            setCurrentProtectState("fullUnlocked");
             snackbar({
                 message: "未开启保护",
                 autoCloseDelay: 1000
@@ -46,8 +48,11 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
             return
         }
         //锁定
-        if (protectType === "unlocked") {
-            setCurrentProtectState("protected");
+        if (protectType === "unlocked"||protectType === "fullUnlocked") {
+            // 只有左键能锁定
+            if (event.button===0) {
+                setCurrentProtectState("protected");
+            }
             return
         }
         //解锁
@@ -55,7 +60,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
         if (protectMethod === "oauth") {
             setUnlockButtonLoading(true);
             ipc.startAuthorization().then(result => {
-                result && setCurrentProtectState("unlocked");
+                result && setCurrentProtectState(fullUnlock?"fullUnlocked":"unlocked");
                 snackbar({
                     message: result ? "已解锁" : "验证失败",
                     autoCloseDelay: 1250
@@ -67,7 +72,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
             });
         } else if (protectMethod === "password") {
             openPasswordInputDialog("请输入密码", androidId).then(result => {
-                result && setCurrentProtectState("unlocked");
+                result && setCurrentProtectState(fullUnlock?"fullUnlocked":"unlocked");
                 snackbar({
                     message: result ? "已解锁" : "验证失败",
                     autoCloseDelay: 1250
@@ -113,7 +118,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                 </mdui-button>
             </mdui-tooltip>
             <mdui-tooltip content="解锁" placement="bottom">
-                <mdui-button onClick={onUnlockButtonClick} loading={unlockButtonLoading} variant="text">
+                <mdui-button onMouseDown={onUnlockButtonClick} loading={unlockButtonLoading} variant="text">
                     <mdui-icon name="lock" />
                 </mdui-button>
             </mdui-tooltip>
@@ -155,7 +160,8 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
         }
     }, []);
     const filteredList = useFuzzySearchList({
-        list: notificationList,
+        // 深度隐藏
+        list: notificationList.filter((item) => currentProtectState==="fullUnlocked"?true:!needHideNotification(item.packageName)),
         strategy: "off",
         mapResultItem: ({ item }) => item,
         queryText: searchText,
@@ -181,7 +187,12 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
             db.addData(notificationData);
         });
         ipc.getDeviceConfig("protectNotificationForwardPage").then((value) => {
-            setCurrentProtectState((value as boolean) ? "protected" : "disabled")
+            setCurrentProtectState((value as boolean) ? "protected" : "disabled");
+            // 只在开启保护时初始化缓存 毕竟不是所有人都要开这个功能
+            if (value) {
+                // 避免在初始化之前执行导致拿到空数据
+                db.getAllData().then(data => initHideNotificationCache(ipc.getNotificationProfile, data))
+            }
         });
         return () => {
             notificationAppendListenerCleanup();
@@ -210,10 +221,8 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
         };
     }, [hidden]);
     useEffect(() => {
-        if (currentProtectState === "unlocked") {
-            // setTimeout(()=>{
+        if (currentProtectState === "unlocked" || currentProtectState === "fullUnlocked") {
             listRef.current?.scrollToIndex(memoNotificationList.length - 1);
-            // },300)
         }
     }, [currentProtectState]);
     ipc.getDeviceDataPath().then(value => setDataPath(value));

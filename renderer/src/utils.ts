@@ -1,7 +1,9 @@
 import { sha256 } from "js-sha256"
 import { prompt } from "mdui";
+import type { NotificationItem } from "./types/database";
 
 const urlRegexp = /^(?:https?:\/\/)?(?:(?:[\p{L}\p{N}-]+\.)+[A-Za-z\u00a1-\uffff]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:[/?#][^\s]*)?$/iu;
+const deepHideNotificationCacheMap = new Map<string, boolean>();
 export function parseFileSize(size: number): string {
     if (size < 1024) {
         return `${size} B`
@@ -26,7 +28,7 @@ export function checkUrl(text: string): boolean {
     }
     return urlRegexp.test(text);
 }
-export function openPasswordInputDialog(desc:string,androidId:string) {
+export function openPasswordInputDialog(desc: string, androidId: string) {
     return new Promise<boolean>((resolve) => {
         prompt({
             headline: "输入密码",
@@ -52,4 +54,18 @@ export function openPasswordInputDialog(desc:string,androidId:string) {
             //库本身有bug
         }).catch(() => { });
     });
+}
+export async function initHideNotificationCache(getProfile: typeof window.electronMainProcess.getNotificationProfile, list: NotificationItem[]) {
+    const cachedPackageName = new Set<string>();
+    for (const item of list) {
+        if (cachedPackageName.has(item.packageName)) {
+            continue
+        }
+        const profile = await getProfile(item.packageName)
+        deepHideNotificationCacheMap.set(item.packageName, profile.enableDeepHidden);
+        cachedPackageName.add(item.packageName);
+    }
+}
+export function needHideNotification(pkgName: string): boolean {
+    return deepHideNotificationCacheMap.get(pkgName) ?? false;
 }

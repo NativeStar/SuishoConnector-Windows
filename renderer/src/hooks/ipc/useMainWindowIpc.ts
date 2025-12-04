@@ -78,7 +78,8 @@ function useMainWindowIpc() {
         generateTransmitFileURL:window.electronMainProcess.generateTransmitFileURL,
         getDeviceConfig:window.electronMainProcess.getDeviceConfig,
         startAuthorization:window.electronMainProcess.startAuthorization,
-        openNotificationForwardConfigWindow:window.electronMainProcess.openNotificationForwardConfigWindow
+        openNotificationForwardConfigWindow:window.electronMainProcess.openNotificationForwardConfigWindow,
+        getNotificationProfile:window.electronMainProcess.getNotificationProfile
     }
 }
 export default useMainWindowIpc;
