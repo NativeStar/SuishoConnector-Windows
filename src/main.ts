@@ -119,9 +119,9 @@ app.on("ready", async (event, info) => {
                 const fileStat = await fs.stat(lastArg);
                 // console.log(lastArg);
                 if (fileStat.isFile()) {
-                    mainWindow?.webContents.send("webviewEvent", "transmit_upload_file", path.basename(lastArg), lastArg, fileStat.size);
+                    mainWindow?.webContents.send("webviewEvent", "transmitDragFile", {filename:path.basename(lastArg),filePath:lastArg, size:fileStat.size});
                 } else if (fileStat.isDirectory()) {
-                    mainWindow.webContents.send("webviewEvent", "showSnakeBar", "暂不支持上传文件夹");
+                    mainWindow.webContents.send("webviewEvent", "showAlert",{title:"上传文件失败",content:"暂不支持上传文件夹"});
                 }
             }
         } else if (connectPhoneWindow != null && !connectPhoneWindow.isDestroyed()) {

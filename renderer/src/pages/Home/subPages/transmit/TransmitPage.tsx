@@ -38,7 +38,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
         uploadTransmitFile(event.target.files![0]);
     }
-    function uploadTransmitFile(file: File) {
+    function uploadTransmitFile(file: File|{name:string,size:number,path:string}) {
         if (hasProgressingFile) {
             snackbar({
                 message: "请等待上一个上传任务完成",
@@ -63,7 +63,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             type: "add",
             messageInstance
         });
-        ipc.transmitUploadFile(file.name, ipc.getFilePath(file), file.size);
+        ipc.transmitUploadFile(file.name, file instanceof File?ipc.getFilePath(file):file.path, file.size);
         listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
     }
     function onMessageListContextMenu() {
@@ -208,11 +208,19 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 onConfirm: () => { },
             })
         });
+        const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", data => {
+            uploadTransmitFile({
+                name:data.filename,
+                size:data.size,
+                path:data.filePath
+            })
+        });
         return () => {
             appendTextCleanup();
             appendFileCleanup();
             uploadFileSuccessListenerCleanup();
             uploadFileFailListenerCleanup();
+            dragOpenFileListenerCleanup();
         }
     }, []);
     // 当搜索内容变化时拖到底部

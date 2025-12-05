@@ -17,6 +17,7 @@ interface IpcEvents {
     showAlert:{title:string,content:string},
     notificationAppend:NotificationItem,
     focusNotification:void,
+    transmitDragFile:{filename:string,filePath:string,size:number}
     updateDeepHideNotificationCache:{packageName:string,value:boolean}
 }
 let registeredEventListener = false;
