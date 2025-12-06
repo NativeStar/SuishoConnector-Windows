@@ -130,7 +130,7 @@ function ProfileSettingPanel({ packageName, packageList, dataPath, appName }: Pr
                                     return
                                 }
                                 onProfileEdit("detailShowMode", value);
-                            }} className="w-[98%] ml-1" label="通知展示模式" icon="adjust" variant="outlined" onDragStart={e => e.preventDefault()}>
+                            }} className="w-[98%] ml-1 fixMduiSelect" label="通知展示模式" icon="adjust" variant="outlined" onDragStart={e => e.preventDefault()}>
                                 <mdui-menu-item value="all">全部显示</mdui-menu-item>
                                 <mdui-menu-item value="nameOnly">仅应用名</mdui-menu-item>
                                 <mdui-menu-item value="hide" end-text="不会显示通知标题内容等信息">全部隐藏</mdui-menu-item>
