@@ -97,10 +97,12 @@ export default function Home() {
       })
     });
     const focusNotificationEventCleanup = ipc.on("focusNotification", () => {
-      // setHasNewTransmitMessage(true);
       setPage("notification");
       // 触发滚动
       routeRef.current?.onPageDoubleClick("notification");
+    });
+    const dragOpenFileListenerCleanup=ipc.on("transmitDragFile",()=>{
+      setPage("transmit");
     });
     return () => {
       rebootConfirmCleanup();
@@ -108,6 +110,7 @@ export default function Home() {
       disconnectEventCleanup();
       showAlertCleanup();
       focusNotificationEventCleanup();
+      dragOpenFileListenerCleanup();
     }
   }, []);
   // 普通初始化
