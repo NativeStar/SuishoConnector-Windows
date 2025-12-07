@@ -22,7 +22,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                 <SettingItemSwitch title="使用通知历史记录" icon="history" onChange={() => { }} value={true} />
                 <SettingItemSelect title="默认通知展示方式" icon="notifications_active" items={notificationShowMethodOptions} value="none" onChange={() => { }} />
                 <mdui-list-subheader className="ml-5 h-10 font-bold">隐私</mdui-list-subheader>
-                <SettingItemSelect title="验证方式" icon="key" items={authMethodOptions} value="none" onChange={() => { }} />
+                <SettingItemSelect title="验证方式" icon="key" items={authMethodOptions} value="none" onChange={(v) => console.log(v)} />
                 <SettingItemSwitch title="通知转发记录保护" icon="doorbell" onChange={() => { }} value={true} />
                 <SettingItemCommon title="更改密码" icon="link" />
                 <SettingItemSwitch title="截录屏保护" desc="阻止截图录屏获取软件内容保护隐私 适用于直播或屏幕共享等" icon="shield" onChange={() => { }} value={true} />

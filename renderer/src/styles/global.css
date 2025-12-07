@@ -40,7 +40,13 @@ mdui-select::part(text-field){
 ::-webkit-scrollbar-thumb:hover {
     background-color: rgb(99, 98, 98);
 }
+/* 原版组件用 */
 .fixMduiSelect::part(text-field__input){
+    user-select: none;
+    pointer-events: none;
+}
+/* 测试新组件用 */
+.fixedMduiSelect::part(input){
     user-select: none;
     pointer-events: none;
 }
