@@ -1,18 +1,33 @@
+import { useEffect, useRef } from "react";
 import { twMerge } from "tailwind-merge"
-import FixedMduiSelect from "~/components/FixedMduiSelect";
+import FixedMduiSelect, { type FixedMduiSelectRef } from "~/components/FixedMduiSelect";
 interface SettingItemSelectProps {
     icon: string
     title: string
     desc?: string
     className?: string
-    onChange: (value:string) => void|Promise<void>|boolean|Promise<boolean>
+    onChange?: (value:string) => void|Promise<void>|boolean|Promise<boolean>
     items: { value: string, text: string }[];
-    value: string
+    configs: { [key: string]: string | number | boolean; }
+    configKey: string,
+    setConfig: (key: string, value: string | number | boolean) => void
 }
-export default function SettingItemSelect({ icon, title, desc, className, onChange, items, value }: SettingItemSelectProps) {
+export default function SettingItemSelect({ icon, title, desc, className, onChange, items, configKey,configs,setConfig}: SettingItemSelectProps) {
+    const selectRef=useRef<FixedMduiSelectRef>(null)
+    useEffect(()=>{
+        selectRef.current?.setValue(configs[configKey] as string)
+    },[configs])
+    async function internalOnChange(value: string) {
+        if(await onChange?.(value)===false){
+            return false
+        }
+        //事件没被取消 执行更改
+        setConfig(configKey, value);
+        return true
+    }
     return (
         <mdui-list-item className={twMerge("", className)} headline={title} description={desc} icon={icon}>
-            <FixedMduiSelect slot="end-icon" menuItemTextClassName="-mt-0.5" value={value} items={items} menuItemClassName="w-52" onChange={onChange}/>
+            <FixedMduiSelect ref={selectRef} slot="end-icon" menuItemTextClassName="-mt-0.5" value={""} items={items} menuItemClassName="w-52" onChange={internalOnChange}/>
         </mdui-list-item>
     )
 };

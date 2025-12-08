@@ -131,17 +131,23 @@ export async function onChangePasswordItemClick(
 export function onDeleteLogsItemClick(
     ipc: ReturnType<typeof useMainWindowIpc>
 ) {
-        confirm({
-            headline: "清除日志确认",
-            description: "确认清除日志?\n(通常不会造成影响)",
-            confirmText: "确认",
-            cancelText: "取消",
-            onConfirm: async () => {
-                await ipc.deleteLogs();
-                snackbar({
-                    message: "日志清除完成",
-                    autoCloseDelay: 1750
-                })
-            },
-        }).catch(() => { });
-    }
+    confirm({
+        headline: "清除日志确认",
+        description: "确认清除日志?\n(通常不会造成影响)",
+        confirmText: "确认",
+        cancelText: "取消",
+        onConfirm: async () => {
+            await ipc.deleteLogs();
+            snackbar({
+                message: "日志清除完成",
+                autoCloseDelay: 1750
+            })
+        },
+    }).catch(() => { });
+}
+export function rebootSnackbar() {
+    snackbar({
+        message: "重启程序后生效",
+        autoCloseDelay: 2500
+    })
+}
