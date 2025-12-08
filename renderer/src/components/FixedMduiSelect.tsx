@@ -33,7 +33,7 @@ export default function FixedMduiSelect({ slot, className, label, items, value ,
     return (
         <div slot={slot}>
             <mdui-dropdown>
-                <mdui-text-field slot="trigger" variant={variant} icon={icon} className={twMerge("fixedMduiSelect", className)} label={label} readonly value={currentName} />
+                <mdui-text-field slot="trigger" variant={variant} icon={icon} className={twMerge("fixedMduiSelect cursor-pointer", className)} label={label} readonly value={currentName} />
                 <mdui-menu className={menuClassName}>
                     {
                         items.map(item => <mdui-menu-item onClick={()=>onItemClick(item)} className={twMerge(menuClassName,menuItemClassName)} icon={currentValue===item.value?"checked":""} key={item.value} value={item.value} end-text={item.desc}>
