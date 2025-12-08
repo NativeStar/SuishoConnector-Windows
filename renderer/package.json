@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@nozbe/microfuzz": "^1.0.0",
+    "crypto-random-string": "^5.0.0",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
     "js-sha256": "^0.11.1",

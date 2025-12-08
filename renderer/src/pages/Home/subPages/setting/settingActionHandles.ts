@@ -1,0 +1,147 @@
+import { snackbar, confirm, prompt } from "mdui";
+import { autoAuthorization, openPasswordInputDialog, type ProtectMethod } from "~/utils";
+import cryptRandomString from "crypto-random-string";
+import type useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
+import { sha256 } from "js-sha256";
+export async function onBoundDeviceItemClick(
+    androidId: string,
+    boundDeviceId: string | null,
+    setBoundDeviceId: React.Dispatch<React.SetStateAction<string | null>>,
+    deviceConfig: { [key: string]: string | number | boolean },
+    ipc: ReturnType<typeof useMainWindowIpc>
+) {
+    snackbar({
+        message: "此操作需要验证您是机主",
+        autoCloseDelay: 3500
+    });
+    const authResult = await autoAuthorization(deviceConfig.protectMethod as ProtectMethod, ipc.startAuthorization, androidId);
+    if (!authResult) {
+        snackbar({
+            message: "验证失败",
+            autoCloseDelay: 1000
+        });
+        return
+    }
+    if (boundDeviceId) {
+        const connectedBoundDevice = boundDeviceId === androidId;
+        // 解绑
+        confirm({
+            headline: connectedBoundDevice ? "解绑当前设备?" : "更换绑定设备?",
+            description: connectedBoundDevice ? "将不再自动连接到该设备" : "将不再与旧设备自动连接 改为连接当前设备",
+            confirmText: "确定",
+            cancelText: "取消",
+            onConfirm: async () => {
+                //写入配置
+                if (connectedBoundDevice) {
+                    await ipc.sendRequestPacket<void>({ packetType: "main_unbindDevice" });
+                    ipc.setConfig("boundDeviceId", null);
+                    ipc.setConfig("boundDeviceKey", null)
+                    setBoundDeviceId(null);
+                } else {
+                    const key = cryptRandomString({ length: 256 });
+                    await ipc.sendRequestPacket<void>({ packetType: "main_bindDevice", msg: key });
+                    ipc.setConfig("boundDeviceId", androidId);
+                    ipc.setConfig("boundDeviceKey", key);
+                    setBoundDeviceId(androidId);
+                }
+                snackbar({
+                    message: connectedBoundDevice ? "已解绑" : "已换绑",
+                    autoCloseDelay: 2000
+                });
+            }
+        }).catch(() => { });
+    } else {
+        // 无绑定设备
+        confirm({
+            headline: "绑定当前连接设备?",
+            description: "绑定后将在软件打开时自动扫描该设备并连接",
+            confirmText: "绑定",
+            cancelText: "取消",
+            onConfirm: async () => {
+                //发送绑定请求
+                const key = cryptRandomString({ length: 256 });
+                await ipc.sendRequestPacket<void>({ packetType: "main_bindDevice", msg: key });
+                ipc.setConfig("boundDeviceId", androidId);
+                ipc.setConfig("boundDeviceKey", key);
+                setBoundDeviceId(androidId);
+                snackbar({
+                    message: "绑定完成",
+                    autoCloseDelay: 2000
+                });
+            }
+        })
+    }
+}
+export async function onChangePasswordItemClick(
+    androidId: string,
+    deviceConfig: { [key: string]: string | number | boolean },
+    ipc: ReturnType<typeof useMainWindowIpc>
+) {
+    const pwdHash = localStorage.getItem(`pwdHash_${androidId}`);
+    if (pwdHash) {
+        // 有密码 验证密码
+        const verifyResult = await openPasswordInputDialog("验证密码", androidId)
+        if (!verifyResult) {
+            snackbar({
+                message: "验证失败",
+                autoCloseDelay: 1250
+            });
+            return
+        }
+    } else {
+        //无密码 检查oath是否开启
+        if (deviceConfig.protectMethod === "oauth") {
+            // oauth
+            snackbar({
+                message: "请先完成验证",
+                autoCloseDelay: 1250
+            });
+            const authResult = await autoAuthorization(deviceConfig.protectMethod as ProtectMethod, ipc.startAuthorization, androidId);
+            if (!authResult) {
+                snackbar({
+                    message: "验证失败",
+                    autoCloseDelay: 1250
+                });
+                return
+            }
+        }
+        //啥都没有 直接放行
+    }
+    prompt({
+        headline: "修改密码",
+        description: "请输入新密码",
+        confirmText: "确定",
+        cancelText: "取消",
+        textFieldOptions: {
+            type: "password"
+        },
+        onConfirm: async (value) => {
+            if (value.trim() === "") {
+                snackbar({ message: "密码不能为空" });
+                return
+            }
+            localStorage.setItem(`pwdHash_${androidId}`, sha256(value));
+            snackbar({
+                message: "修改成功",
+                autoCloseDelay: 1250
+            });
+        }
+    }).catch(() => { });
+}
+export function onDeleteLogsItemClick(
+    ipc: ReturnType<typeof useMainWindowIpc>
+) {
+        confirm({
+            headline: "清除日志确认",
+            description: "确认清除日志?\n(通常不会造成影响)",
+            confirmText: "确认",
+            cancelText: "取消",
+            onConfirm: async () => {
+                await ipc.deleteLogs();
+                snackbar({
+                    message: "日志清除完成",
+                    autoCloseDelay: 1750
+                })
+            },
+        }).catch(() => { });
+    }

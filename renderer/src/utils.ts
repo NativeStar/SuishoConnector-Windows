@@ -4,6 +4,7 @@ import type { NotificationItem } from "./types/database";
 
 const urlRegexp = /^(?:https?:\/\/)?(?:(?:[\p{L}\p{N}-]+\.)+[A-Za-z\u00a1-\uffff]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:[/?#][^\s]*)?$/iu;
 const deepHideNotificationCacheMap = new Map<string, boolean>();
+export type ProtectMethod = "oauth" | "password" | "none";
 export function parseFileSize(size: number): string {
     if (size < 1024) {
         return `${size} B`
@@ -54,6 +55,19 @@ export function openPasswordInputDialog(desc: string, androidId: string) {
             //库本身有bug
         }).catch(() => { });
     });
+}
+/**
+ * 根据设置进行验证
+ */
+export async function autoAuthorization(type:ProtectMethod,startAuthorization:typeof window.electronMainProcess.startAuthorization,androidId:string,passwordDialogTitle?:string) { 
+    switch (type) {
+        case "none":
+            return true;
+        case "oauth":
+            return await startAuthorization();
+        case "password":
+            return await openPasswordInputDialog(passwordDialogTitle??"请输入密码", androidId);
+    }
 }
 export async function initHideNotificationCache(getProfile: typeof window.electronMainProcess.getNotificationProfile, list: NotificationItem[]) {
     const cachedPackageName = new Set<string>();

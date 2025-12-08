@@ -32,7 +32,7 @@ declare global {
         readonly openNotificationForwardConfigWindow: (pkgName?: string, appName?: string) => Promise<void>;
         readonly getDeviceDataPath: () => Promise<string>;
         readonly getAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
-        readonly setConfig: (key: string, value: string | number | boolean) => Promise<void>;
+        readonly setConfig: (key: string, value: string | number | boolean|null) => Promise<void>;
         readonly getDeviceConfig: (key: string) => Promise<null | string | number | boolean>;
         readonly getDeviceAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
         readonly setDeviceConfig: (key: string, value: string | number | boolean) => Promise<void>;
