@@ -56,7 +56,7 @@ class rm {
         });
         //推入map
         this.responseMap.set(id, putObj);
-        logger.writeDebug(`Send request packet :${data.packetType}`)
+        logger.writeDebug(`Send request packet type"${data.packetType}" with id:${id}`)
         this.socket.send(JSON.stringify(data));
         //返回 用于await
         return <Promise<requestObject>>exec

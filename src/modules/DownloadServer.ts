@@ -25,10 +25,10 @@ class DownloadServer{
         };
         //小文件直接整个加载 避免某些问题
         if (this.fileSize<=10240) {
-            logger.writeDebug(`Download server:${this.label||"Not label"} working with blob mode:${this.filePath}`)
+            logger.writeInfo(`Download server:${this.label||"Not label"} working with blob mode:${this.filePath}`)
             this.fileData=fs.readFileSync(this.filePath);
         }else{
-            logger.writeDebug(`Download server:${this.label||"Not label"} working with stream mode:${this.filePath}`);
+            logger.writeInfo(`Download server:${this.label||"Not label"} working with stream mode:${this.filePath}`);
             this.fileStream=fs.createReadStream(this.filePath);
 
         }
@@ -46,27 +46,27 @@ class DownloadServer{
                 }else{
                     this.fileStream?.pipe(res);
                 }
-                logger.writeDebug(`Download server sent file:${this.filePath}`);
+                logger.writeInfo(`Download server sent file:${this.filePath}`);
                 return
             }
-            logger.writeDebug(`Download server received request from ${req.headers["user-agent"]}`);
+            logger.writeInfo(`Download server received request from ${req.headers["user-agent"]}`);
             res.destroy();
         });
         this.server.listen(this.port);
         if(this.label) {
-            logger.writeDebug(`Download server:${this.label} launched`);
+            logger.writeInfo(`Download server:${this.label} launched`);
             return
         };
-        logger.writeDebug("Download server launched");
+        logger.writeInfo("Download server launched");
     }
     close(){
         this.server?.close();
         this.fileStream?.close();
         if(this.label) {
-            logger.writeDebug(`Download server:${this.label} closed`);
+            logger.writeInfo(`Download server:${this.label} closed`);
             return
         };
-        logger.writeDebug("Download server closed");
+        logger.writeInfo("Download server closed");
     }
     get serverPost():number{
         return <number>this.port;

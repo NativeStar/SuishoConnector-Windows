@@ -150,7 +150,7 @@ class Server {
                 this.onSocketMessage(data, false, socket)
             });
             this.phoneAddress = connectRequest.socket.remoteAddress;
-            logger.writeDebug(`Receive connection from ${connectRequest.socket.remoteAddress}`);
+            logger.writeInfo(`Receive connection from ${connectRequest.socket.remoteAddress}`);
             //退出前收尾
             // app.once("before-quit",()=>{this.beforeApplicationQuit()});
             this.checkHeartBeat(socket);

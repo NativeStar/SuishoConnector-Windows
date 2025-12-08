@@ -189,7 +189,7 @@ class Util {
     static async updateConfig() {
         //配置格式版本
         if (global.config._cfgVersion === configTemp._cfgVersion) {
-            logger.writeDebug(`Config format version:${configTemp._cfgVersion}`);
+            logger.writeInfo(`Config format version:${configTemp._cfgVersion}`);
             return
         }
         for (const prop of Object.keys(configTemp)) {

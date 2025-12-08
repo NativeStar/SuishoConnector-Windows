@@ -84,7 +84,7 @@ class NotificationCore {
                 logger.writeInfo(`Notification config format version updated to:${this.config._cfgVersion}`);
             } else {
                 //无需更新
-                logger.writeDebug(`Notification config format version:${this.config._cfgVersion}`)
+                logger.writeInfo(`Notification config format version:${this.config._cfgVersion}`)
             }
         } else {
             fs.outputJson(this.configPath, jsonTemplate);

@@ -9,7 +9,7 @@ class DeviceConfig {
         this.configPath = configPath;
         if (fs.existsSync(configPath)) {
             try {
-                logger.writeDebug("Loading device config")
+                logger.writeInfo("Loading device config")
                 this.config = fs.readJsonSync(configPath);
                 //检查配置文件版本
                 if (deviceConfigTemplate._cfgVersion !== this.config._cfgVersion) {

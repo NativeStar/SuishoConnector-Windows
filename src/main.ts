@@ -93,7 +93,7 @@ app.on("ready", async (event, info) => {
     })
     connectPhoneWindow.on("ready-to-show", async () => {
         connectPhoneWindow.setMaximizable(false);
-        logger.writeDebug("Connect phone window created");
+        logger.writeInfo("Connect phone window created");
         connectPhoneWindow.show();
         //!需要打包测试
         app.setName("Suisho Connector");
@@ -472,7 +472,7 @@ ipcMain.handle("rebootServer", (event) => {
 //返回基础信息
 ipcMain.handle('main_getDeviceBaseInfo', event => {
     //调用两次不算bug 一次主页一次数据库
-    logger.writeInfo(`connected device base info:${global.clientMetadata}`);
+    logger.writeDebug(`connected device base info:${global.clientMetadata}`);
     return global.clientMetadata
 });
 //获取用户文件夹
