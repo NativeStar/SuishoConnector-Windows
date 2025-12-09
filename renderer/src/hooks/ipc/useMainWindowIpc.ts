@@ -87,6 +87,8 @@ function useMainWindowIpc() {
         setConfig:window.electronMainProcess.setConfig,
         setDeviceConfig:window.electronMainProcess.setDeviceConfig,
         deleteLogs:window.electronMainProcess.deleteLogs,
+        getConfig:window.electronMainProcess.getConfig,
+        createCredentials:window.electronMainProcess.createCredentials,
     }
 }
 export default useMainWindowIpc;

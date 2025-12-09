@@ -151,3 +151,68 @@ export function rebootSnackbar() {
         autoCloseDelay: 2500
     })
 }
+export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: ReturnType<typeof useMainWindowIpc>, androidId: string): Promise<boolean> {
+    const currentProtectMethod = await ipc.getDeviceConfig("protectMethod") as ProtectMethod;
+    const verifyResult = await autoAuthorization(currentProtectMethod, ipc.startAuthorization, androidId, "更改此设置前需要验证");
+    if (!verifyResult) {
+        snackbar({
+            message: "验证失败",
+            autoCloseDelay: 1250
+        });
+        return false;
+    }
+    if (targetValue === "oauth") {
+        // 无凭证则创建
+        if (!await ipc.getConfig("hasOAuthCredentials")) {
+            snackbar({
+                message: `请在弹出的Windows Hello窗口中确认以初始化凭证`,
+                autoCloseDelay: 4500
+            });
+            if (!await ipc.createCredentials()) {
+                snackbar({
+                    message: "凭证初始化失败",
+                    autoCloseDelay: 1500
+                });
+                return false;
+            };
+            await ipc.setConfig("hasOAuthCredentials", true);
+            snackbar({
+                message: `初始化成功`,
+                autoCloseDelay: 1500
+            });
+        }
+        await ipc.setDeviceConfig("protectMethod", targetValue);
+        return true
+    } else if (targetValue === "password") {
+        const pwdHash = localStorage.getItem(`pwdHash_${androidId}`);
+        // 无密码则创建
+        if (!pwdHash) {
+            try {
+                const inputPassword = await prompt({
+                    headline: "创建密码",
+                    description: "设置一个密码",
+                    confirmText: "确定",
+                    cancelText: "取消",
+                    textFieldOptions: {
+                        type: "password"
+                    }
+                });
+                if (inputPassword.trim() === "") {
+                    snackbar({ message: "密码不能为空" });
+                    return false
+                }
+                localStorage.setItem(`pwdHash_${androidId}`, sha256(inputPassword));
+            } catch (error) {
+                snackbar({
+                    message: "设置失败",
+                    autoCloseDelay: 1250
+                });
+                return false
+            }
+        }
+        await ipc.setDeviceConfig("protectMethod", targetValue);
+        return true
+    } else {
+        return true;
+    }
+}

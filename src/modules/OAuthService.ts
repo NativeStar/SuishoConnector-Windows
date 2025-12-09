@@ -11,7 +11,6 @@ class OAuthService {
     //创建凭证handle是否初始化完成
     private initdCreateCredentialsHandle:boolean=false;
     private initdAuthorizationHandle:boolean=false;
-    //离谱修复方法 不这么做回调时永远调用第一个promise 即使它已经resolve
     private tempPromise:{resolve:Function,reject:Function};
     constructor(port:number|null=null) {
         this.tempPromise={resolve:()=>{},reject:()=>{}};

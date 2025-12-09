@@ -6,7 +6,8 @@ import SettingItemSwitch from "./components/SettingItemSwitch"
 import { useContext, useEffect, useState } from "react"
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import AndroidIdContext from "~/context/AndroidIdContext"
-import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteLogsItemClick, rebootSnackbar } from "./settingActionHandles"
+import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteLogsItemClick, onProtectMethodChange, rebootSnackbar } from "./settingActionHandles"
+import type { ProtectMethod } from "~/utils"
 interface SettingPageProps {
     hidden: boolean
 }
@@ -40,7 +41,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                 <SettingItemSwitch title="使用通知历史记录" icon="history" configs={deviceConfig} configKey="enableNotificationLog" setConfig={ipc.setDeviceConfig} />
                 <SettingItemSelect title="默认通知展示方式" icon="notifications_active" items={notificationShowMethodOptions} configs={deviceConfig} configKey="defaultNotificationShowMode" setConfig={ipc.setDeviceConfig}/>
                 <mdui-list-subheader className="ml-5 h-10 font-bold">隐私</mdui-list-subheader>
-                <SettingItemSelect title="验证方式" icon="key" items={authMethodOptions} onChange={() => false} configKey="protectMethod" configs={deviceConfig} setConfig={ipc.setDeviceConfig}/>
+                <SettingItemSelect title="验证方式" icon="key" items={authMethodOptions} onChange={async (value) => onProtectMethodChange(value as ProtectMethod,ipc,androidId)} configKey="protectMethod" configs={deviceConfig} setConfig={ipc.setDeviceConfig}/>
                 <SettingItemSwitch title="通知转发记录保护" icon="doorbell" configs={deviceConfig} configKey="protectNotificationForwardPage" setConfig={ipc.setDeviceConfig} />
                 <SettingItemCommon title="更改密码" icon="link" onClick={()=>onChangePasswordItemClick(androidId,deviceConfig,ipc)} />
                 <SettingItemSwitch title="截录屏保护" desc="阻止截图录屏获取软件内容保护隐私 适用于直播或屏幕共享等" icon="shield" configs={applicationConfig} configKey="enableContentProtection" setConfig={ipc.setConfig} />

@@ -18,7 +18,12 @@ export default function SettingItemSelect({ icon, title, desc, className, onChan
         selectRef.current?.setValue(configs[configKey] as string)
     },[configs])
     async function internalOnChange(value: string) {
-        if(await onChange?.(value)===false){
+        const test=await onChange?.(value)
+        console.log(test);
+        // if(await onChange?.(value)===false){
+        //     return false
+        // }
+        if(test===false){
             return false
         }
         //事件没被取消 执行更改
