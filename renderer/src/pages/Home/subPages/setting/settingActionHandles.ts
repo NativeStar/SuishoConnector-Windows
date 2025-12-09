@@ -213,6 +213,7 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
         await ipc.setDeviceConfig("protectMethod", targetValue);
         return true
     } else {
+        await ipc.setDeviceConfig("protectMethod", targetValue);
         return true;
     }
 }
