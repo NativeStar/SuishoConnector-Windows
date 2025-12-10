@@ -2,7 +2,7 @@ import isPortAvailable from "is-port-available";
 import randomThing from "randomthing-js";
 import fs from "fs-extra";
 import crypto from "crypto";
-import { app, shell } from "electron";
+import { app, dialog, shell } from "electron";
 import path from "path";
 import child_process from 'child_process';
 import build from "../constant/build.prop.json";
@@ -99,13 +99,23 @@ class Util {
         const configFile = `${app.getPath("userData")}/programData/appCfg.json`;
         if (await fs.exists(configFile)) {
             //存在
-            logger.writeInfo("Config file loaded")
-            return await fs.readJSON(configFile, { encoding: "utf-8" });
+            logger.writeInfo("Config file loaded");
+            try {
+                return await fs.readJSON(configFile, { encoding: "utf-8" });
+            } catch (error) {
+                logger.writeError(`Load config file error:${error}`);
+                dialog.showErrorBox("配置文件损坏", "将会重置配置以尝试修复 请在之后重新进行部分设置\n带来不便深感抱歉\n如该情况频繁发生请发送反馈");
+                const baseConfig = structuredClone(configTemp);
+                baseConfig.deviceId = v4().replaceAll("-", "");
+                logger.writeInfo("Config file try recreate");
+                fs.writeJSON(configFile, baseConfig);
+                return baseConfig
+            }
         } else {
             const baseConfig = structuredClone(configTemp);
             //生成设备id(卸载丢失)
             baseConfig.deviceId = v4().replaceAll("-", "");
-            fs.writeFile(configFile, JSON.stringify(baseConfig));
+            fs.writeJson(configFile, baseConfig);
             logger.writeInfo("Config file created")
             return baseConfig;
         }
@@ -203,7 +213,7 @@ class Util {
         await this.saveConfig()
     }
     static async saveConfig() {
-        await fs.writeFile(`${app.getPath("userData")}/programData/appCfg.json`, JSON.stringify(global.config));
+        await fs.writeJSON(`${app.getPath("userData")}/programData/appCfg.json`, global.config);
     }
     /**
      * 检测url合规性
@@ -241,18 +251,18 @@ class Util {
             });
         });
     }
-    static async execTaskWithAutoRetry(func:()=>boolean,delay:number,maxRetryCount:number,taskName?:string) {
+    static async execTaskWithAutoRetry(func: () => boolean, delay: number, maxRetryCount: number, taskName?: string) {
         for (let index = 0; index < maxRetryCount; index++) {
             const result = func();
             if (!result) {
-                if(taskName) logger.writeInfo(`Task "${taskName}" failed.Retry count:${index}`,"Retry task");
+                if (taskName) logger.writeInfo(`Task "${taskName}" failed.Retry count:${index}`, "Retry task");
                 await this.delay(delay);
-            }else{
-                if(taskName) logger.writeDebug(`Task "${taskName}" success`,"Retry task");
+            } else {
+                if (taskName) logger.writeDebug(`Task "${taskName}" success`, "Retry task");
                 return
             }
         }
-        if(taskName) logger.writeError(`Task "${taskName}" full failed`,"Retry task");
+        if (taskName) logger.writeError(`Task "${taskName}" full failed`, "Retry task");
     }
 }
 export default Util;

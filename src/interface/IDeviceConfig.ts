@@ -14,7 +14,7 @@ export default interface IDeviceConfig{
     /**
      * 密码验证时的hash
      */
-    protectNotificationForwardPagePasswordHash:null|string,
+    // protectNotificationForwardPagePasswordHash:null|string,
     /**
      * 是否启用通知转发
      */

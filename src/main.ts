@@ -17,7 +17,7 @@ import ManualConnect from "./modules/ManualConnect";
 import OAuthService from "./modules/OAuthService";
 import DeviceConfig from "./modules/DeviceConfig";
 import Broadcaster from "./modules/Broadcaster";
-import {RightClickMenuItemId ,type RightClickMenuItem} from "shared/const/RightClickMenuItems"
+import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
 import RemoteMediaWindowSize from "./constant/remoteMediaWindowSize";
@@ -100,7 +100,7 @@ app.on("ready", async (event, info) => {
         app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     });
     connectPhoneWindow.setContentProtection(global.config.enableContentProtection);
-    app.isPackaged?connectPhoneWindow.loadFile("./dist/renderer/index.html",{hash:"connect-phone"}):connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone");
+    app.isPackaged ? connectPhoneWindow.loadFile("./dist/renderer/index.html", { hash: "connect-phone" }) : connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone");
     connectPhoneWindow.setMenu(null);
     //阻止多开
     app.on("second-instance", async (event, args, dir, data) => {
@@ -119,9 +119,9 @@ app.on("ready", async (event, info) => {
                 const fileStat = await fs.stat(lastArg);
                 // console.log(lastArg);
                 if (fileStat.isFile()) {
-                    mainWindow?.webContents.send("webviewEvent", "transmitDragFile", {filename:path.basename(lastArg),filePath:lastArg, size:fileStat.size});
+                    mainWindow?.webContents.send("webviewEvent", "transmitDragFile", { filename: path.basename(lastArg), filePath: lastArg, size: fileStat.size });
                 } else if (fileStat.isDirectory()) {
-                    mainWindow.webContents.send("webviewEvent", "showAlert",{title:"上传文件失败",content:"暂不支持上传文件夹"});
+                    mainWindow.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "暂不支持上传文件夹" });
                 }
             }
         } else if (connectPhoneWindow != null && !connectPhoneWindow.isDestroyed()) {
@@ -231,7 +231,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                 logger.writeInfo("Opened main window");
             });
             mainWindow.setMenu(null);
-            app.isPackaged?mainWindow.loadFile("./dist/renderer/index.html",{hash:"home"}):mainWindow.loadURL("http://localhost:5173/#/home");
+            app.isPackaged ? mainWindow.loadFile("./dist/renderer/index.html", { hash: "home" }) : mainWindow.loadURL("http://localhost:5173/#/home");
             mainWindow.setContentProtection(global.config.enableContentProtection);
             mainWindow.on("closed", () => {
                 mainWindow = null;
@@ -542,6 +542,13 @@ ipcMain.on("connectPhone_openProxySetting", (event) => {
 ipcMain.on("main_startAutoConnectBroadcast", () => {
     logger.writeInfo("Start auto connect broadcast")
     //开始广播
+    if (!global.config.boundDeviceKey) {
+        // 有设备id但找不到key
+        BrowserWindow.getAllWindows().forEach(window => {
+            window.webContents.send("main_autoConnectError");
+        });
+        return
+    }
     broadcaster = new Broadcaster(global.config.boundDeviceKey as any);
     broadcaster.start();
 });
@@ -775,13 +782,13 @@ ipcMain.on("main_downloadPhoneFile", async (event, downloadFilePath: string) => 
     };
     phoneFileDownloadWindow.loadURL(`https://${connectedDevice?.getPhoneAddress()}:${30767}?filePath=${downloadFilePath}`);
 });
-ipcMain.handle("main_deleteLogs",async ()=>{
-    const logPath=`${app.getPath("userData")}/programData/logs`;
-    const filesList=await fs.readdir(logPath);
-    const currentLogFileName=logger.getLogFileName();
+ipcMain.handle("main_deleteLogs", async () => {
+    const logPath = `${app.getPath("userData")}/programData/logs`;
+    const filesList = await fs.readdir(logPath);
+    const currentLogFileName = logger.getLogFileName();
     for (const file of filesList) {
         //跳过本次运行产生的日志文件
-        if (file!==currentLogFileName) {
+        if (file !== currentLogFileName) {
             //单个文件删除失败时不影响后面的
             try {
                 await fs.remove(`${app.getPath("userData")}/programData/logs/${file}`)
@@ -813,15 +820,15 @@ app.on("certificate-error", (event, webContents, url, error, cert, callback) => 
 //     apkDownloadServerInstance = null;
 // });
 
-ipcMain.handle("main_setAudioForward",async (event,enable:boolean)=>{
+ipcMain.handle("main_setAudioForward", async (event, enable: boolean) => {
     if (enable) {
         AudioForward.start(connectedDevice.getPhoneAddress())
-    }else{
+    } else {
         AudioForward.stop();
     }
 });
-ipcMain.on("sendMessageToMainWindow",(_event,type:string,message:{[key:string]:string|number|boolean})=>{
-    mainWindow?.webContents.send("webviewEvent",type,message)
+ipcMain.on("sendMessageToMainWindow", (_event, type: string, message: { [key: string]: string | number | boolean }) => {
+    mainWindow?.webContents.send("webviewEvent", type, message)
 })
 //测试用 有些要保留
 app.on("before-quit", () => {

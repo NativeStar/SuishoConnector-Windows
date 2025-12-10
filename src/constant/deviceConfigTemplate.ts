@@ -5,7 +5,7 @@ export default{
     //保护方式
     protectMethod:"none",
     //密码hash
-    protectNotificationForwardPagePasswordHash:null,
+    // protectNotificationForwardPagePasswordHash:null,
     //通知转发总开关
     enableNotificationForward:true,
     //锁屏时推送通知

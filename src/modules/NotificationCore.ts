@@ -5,7 +5,7 @@ type TextFilterEditCommand = [
     "add" | "remove",
     string
 ]
-import { app, Notification as ElectronNotification, BrowserWindow, ipcMain, nativeTheme } from "electron";
+import { app, Notification as ElectronNotification, BrowserWindow, ipcMain, nativeTheme, dialog } from "electron";
 import windowsNotificationState from "windows-notification-state";
 import windowsNotificationStateCode from "../constant/WindowsNotificationState";
 import path from "path";
@@ -95,7 +95,14 @@ class NotificationCore {
         //应用单独配置
         if (fs.existsSync(this.profilePath)) {
             logger.writeInfo(`Notification profile loaded`);
-            this.profile = new Map(Object.entries(fs.readJsonSync(this.profilePath)));
+            try {
+                this.profile = new Map(Object.entries(fs.readJsonSync(this.profilePath)));
+            } catch (error) {
+                logger.writeError(`recreate notification profile file because crash:${error}`);
+                dialog.showErrorBox("通知配置文件损坏", "将会重置配置以尝试修复 请在之后重新进行相关设置\n带来不便深感抱歉\n如该情况频繁发生请发送反馈");
+                this.profile = new Map();
+                fs.writeFile(this.profilePath, "{}");
+            }
         } else {
             logger.writeInfo("Created new notification profile file");
             this.profile = new Map();
@@ -414,7 +421,7 @@ class NotificationCore {
         });
         ipcMain.handle("notificationForward_saveProfile", async (event, pkg: string, newProfile: NotificationProfileType) => {
             this.profile.set(pkg, newProfile);
-            await fs.writeFile(this.profilePath, JSON.stringify(Object.fromEntries(this.profile)));
+            await fs.writeJson(this.profilePath, Object.fromEntries(this.profile));
             logger.writeDebug("Saved notification app profile")
         });
         ipcMain.handle("notificationProcessor_init", () => {
@@ -462,7 +469,7 @@ class NotificationCore {
             this.configSaving = true;
             clearTimeout(this.configSaverTimer as NodeJS.Timeout);
             await this.updateConfigObject();
-            await fs.writeFile(this.configPath, JSON.stringify(this.config));
+            await fs.writeJson(this.configPath, this.config);
             this.configSaving = false;
             logger.writeDebug("Notification forward config file saved", this.LOG_TAG)
         }, 300);
