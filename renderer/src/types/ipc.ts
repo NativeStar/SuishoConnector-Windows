@@ -15,7 +15,7 @@ export type DeviceBaseInfo = {
 export type ApplicationNotificationProfile = {
     enableProfile: boolean,
     enableNotification: boolean,
-    enableDeepHidden:boolean,
+    enableDeepHidden: boolean,
     detailShowMode: "all" | "nameOnly" | "hide" | "none",
     enableTextFilter: boolean
     disableRecord: boolean
@@ -33,4 +33,9 @@ export type ApplicationListData = {
     appName: string,
     packageName: string,
     isSystemApp: boolean
+}
+export type FileItem = {
+    type: "folder" | "file",
+    name: string,
+    size: number
 }

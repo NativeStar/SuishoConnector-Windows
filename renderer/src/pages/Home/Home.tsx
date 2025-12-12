@@ -23,8 +23,8 @@ export default function Home() {
   const [page, setPage] = useState<PageRouteProps["page"]>("home");
   const [androidId, setAndroidId] = useState<string>("");
   const [hasNewTransmitMessage, setHasNewTransmitMessage] = useState<boolean>(false);
-  const [hasNewNotification, setHasNewNotification]=useState<boolean>(false);
-  const routeRef=useRef<PageRouteRef>(null);
+  const [hasNewNotification, setHasNewNotification] = useState<boolean>(false);
+  const routeRef = useRef<PageRouteRef>(null);
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
     if (action.type === "add") {
       const stateInstance = getStateInstance(action.id, action.onClick);
@@ -101,7 +101,7 @@ export default function Home() {
       // 触发滚动
       routeRef.current?.onPageDoubleClick("notification");
     });
-    const dragOpenFileListenerCleanup=ipc.on("transmitDragFile",()=>{
+    const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", () => {
       setPage("transmit");
     });
     return () => {
@@ -128,6 +128,11 @@ export default function Home() {
           getSelection()?.removeAllRanges();
         }
       }
+      // 屏蔽tab键
+      if (event.key === "Tab") {
+        event.preventDefault();
+        event.stopPropagation();
+      }
     });
     // 阻止拖动文本
     document.addEventListener("dragstart", event => {
@@ -147,8 +152,8 @@ export default function Home() {
     <>
       <AppBar paddingLeft="3%" />
       <AndroidIdContext.Provider value={{ androidId, setAndroidId }}>
-        {androidId !== "" && <NavigationRail value={page} onChange={setPageHandle} hasNewTransmitMessage={hasNewTransmitMessage} hasNewNotification={hasNewNotification}/>}
-        {androidId !== "" ? <PageRoute ref={routeRef} page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} setHasNewNotification={setHasNewNotification}/> : <LoadingScreen />}
+        {androidId !== "" && <NavigationRail value={page} onChange={setPageHandle} hasNewTransmitMessage={hasNewTransmitMessage} hasNewNotification={hasNewNotification} />}
+        {androidId !== "" ? <PageRoute ref={routeRef} page={page} applicationStatesDispatch={applicationStatesDispatch} applicationStates={applicationStates} setHasNewTransmitMessage={setHasNewTransmitMessage} setHasNewNotification={setHasNewNotification} /> : <LoadingScreen />}
       </AndroidIdContext.Provider>
     </>
   )

@@ -89,6 +89,9 @@ function useMainWindowIpc() {
         deleteLogs:window.electronMainProcess.deleteLogs,
         getConfig:window.electronMainProcess.getConfig,
         createCredentials:window.electronMainProcess.createCredentials,
+        checkAndroidClientPermission:window.electronMainProcess.checkAndroidClientPermission,
+        getPhoneDirectoryFiles:window.electronMainProcess.getPhoneDirectoryFiles,
+        downloadPhoneFile:window.electronMainProcess.downloadPhoneFile,
     }
 }
 export default useMainWindowIpc;

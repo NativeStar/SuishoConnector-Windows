@@ -1,4 +1,4 @@
-import type { InitServerResult, DeviceBaseInfo ,ApplicationListData,ApplicationNotificationProfile,TextFilterConfig} from "~/types/ipc"
+import type { InitServerResult, DeviceBaseInfo ,ApplicationListData,ApplicationNotificationProfile,TextFilterConfig, FileItem} from "~/types/ipc"
 import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
 declare global {
     readonly var electronMainProcess: {
@@ -44,7 +44,7 @@ declare global {
         readonly openDebugPanel: () => Promise<void>;
         readonly getFilePath: (file: File) => string;
         readonly checkAndroidClientPermission: (permission: string) => Promise<{ result: boolean }>;
-        readonly getPhoneDirectoryFiles: (path: string) => Promise<{ code: number, data: { type: "folder" | "file", name: string, size: number }[] }>
+        readonly getPhoneDirectoryFiles: (path: string) => Promise<{code:number,files:FileItem[]}>
         readonly openRemoteMediaPlayerWindow: (type: "audio" | "video" | "image") => Promise<void>;
         readonly getPhoneIp: () => Promise<string>;
         readonly downloadPhoneFile: (path: string) => Promise<void>;

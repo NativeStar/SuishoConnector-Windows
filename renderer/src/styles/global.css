@@ -50,3 +50,7 @@ mdui-select::part(text-field){
     user-select: none;
     pointer-events: none;
 }
+.fileManagerDirectoryList::-webkit-scrollbar{
+    width: 3px;
+    height: 6px;
+}

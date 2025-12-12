@@ -82,3 +82,9 @@ export const NotificationItemNotSelectedText = [
         label: "删除"
     }
 ]
+export const FileManagerDownload=[
+    {
+        id:RightClickMenuItemId.Download,
+        label:"下载文件"
+    }
+]
