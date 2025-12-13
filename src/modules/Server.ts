@@ -127,7 +127,6 @@ class Server {
                 app.exit();
             })
         };
-        // this.websocket!.setMaxListeners(1);
         this.websocket!.on("connection", (socket, connectRequest) => {
             //返回值管理器
             this.responseManager = new RM(socket);
@@ -159,7 +158,6 @@ class Server {
                 logger.writeInfo("create app list cache on launch", this.LOG_TAG);
                 this.createAppListCache();
             }, 5000);
-            // this.notificationCore=new NotificationCore();
         });
 
     }
@@ -180,7 +178,6 @@ class Server {
      * @description 连接信息处理
      */
     private async onSocketMessage(data: Buffer | ArrayBuffer | Buffer[], isBinary: boolean, socket: ws) {
-        // console.log("message");
         let jsonObj;
         try {
             //二进制数据无法转换
@@ -254,7 +251,7 @@ class Server {
                 global.clientMetadata.androidId = jsonObj.androidId;
                 //检查时间 如果从首次握手到完成不足350ms就将延迟拉到350ms
                 //不然一下子闪过去太诡异了
-                /*虽然正常这点东西不会拖那么久的 除非你网废了*/
+                /*虽然正常这点东西不会拖那么久的*/
                 const connectTime = Date.now();
                 if ((connectTime - this.handshakeTime) < 350) {
                     logger.writeDebug("Device handshake success in 500ms");
@@ -702,7 +699,6 @@ class Server {
             logger.writeError(`Request packet data must an Object,but data type is ${typeof data}`);
             return null;
         });
-
         //互传pc上传文件
         ipcMain.handle("transmit_uploadFile", async (event, name, path, size, form) => {
             try {

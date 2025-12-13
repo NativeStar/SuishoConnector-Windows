@@ -92,6 +92,7 @@ function useMainWindowIpc() {
         checkAndroidClientPermission:window.electronMainProcess.checkAndroidClientPermission,
         getPhoneDirectoryFiles:window.electronMainProcess.getPhoneDirectoryFiles,
         downloadPhoneFile:window.electronMainProcess.downloadPhoneFile,
+        getPhoneIp:window.electronMainProcess.getPhoneIp
     }
 }
 export default useMainWindowIpc;

@@ -207,6 +207,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                     preload: path.join(__dirname, 'preload/mainPreload.js'),
                 }
             });
+            // 隐藏窗口右键菜单
             mainWindow.hookWindowMessage(278, () => {
                 mainWindow?.setEnabled(false);
                 setTimeout(() => {
@@ -227,9 +228,9 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                 setTimeout(() => {
                     connectedDevice.socket?.send(JSON.stringify({ packetType: "main_server_initialled" }));
                 }, 150);
-                // }, 200);
                 logger.writeInfo("Opened main window");
             });
+
             mainWindow.setMenu(null);
             app.isPackaged ? mainWindow.loadFile("./dist/renderer/index.html", { hash: "home" }) : mainWindow.loadURL("http://localhost:5173/#/home");
             mainWindow.setContentProtection(global.config.enableContentProtection);
@@ -246,22 +247,14 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                 event.preventDefault();
                 mainWindow?.hide();
             });
-            mainWindow.webContents.setWindowOpenHandler((detail) => {
-                if (detail.url.endsWith("assets/html/mediaProjection.html")) {
-                    return {
-                        action: "allow",
-                        overrideBrowserWindowOptions: {
-                            resizable: true,
-                            autoHideMenuBar: true,
-                            center: true,
-                            webPreferences: {
-                                preload: path.join(__dirname, "preload/mediaProjectionPreload.js")
-                            }
-                        }
-                    }
-                };
-                return { action: "deny" }
-            });
+            mainWindow.webContents.setWindowOpenHandler(() => { return { action: "deny" } });
+            // 鉴权sessionId 文件管理功能用
+            mainWindow.webContents.session.cookies.set({
+                name: "sessionId",
+                value: global.clientMetadata.sessionId,
+                url: `https://${connectedDevice.getPhoneAddress()}`,
+                sameSite: "no_restriction",
+            })
             //关闭和发起连接有关的服务
             certDownloadServer?.close();
             certDownloadServer = null;

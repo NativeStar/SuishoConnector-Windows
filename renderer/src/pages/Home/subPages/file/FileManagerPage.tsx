@@ -1,11 +1,13 @@
 import { alert, snackbar } from "mdui";
 import { useEffect, useRef, useState } from "react";
+import { PhotoProvider, /* PhotoView */ } from "react-photo-view";
 import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import useUpdateEffect from "~/hooks/useUpdateEffect";
 import { FileManagerDownload } from "~/types/contextMenus";
 import { FileManagerResultCode, FileManagerResultCodeMessage } from "~/types/fileManagerResultCodes";
 import type { FileItem } from "~/types/ipc";
+import PhotoView from "./components/PhotoView";
 
 interface FileManagerPageProps {
     hidden: boolean
@@ -16,7 +18,8 @@ interface FileListProps {
     setHasPermission: React.Dispatch<React.SetStateAction<boolean>>
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
     setCurrentPath: React.Dispatch<React.SetStateAction<string[] | null>>
-
+    imageUrl:React.RefObject<string>
+    setImageViewVisible:React.Dispatch<React.SetStateAction<boolean>>
 }
 interface DirectoryListProps {
     setCurrentPath: React.Dispatch<React.SetStateAction<string[] | null>>
@@ -38,7 +41,8 @@ function DirectoryList({ setCurrentPath }: DirectoryListProps) {
         </mdui-list>
     )
 }
-function FileList({ currentPath, hasPermission, setHasPermission, setLoading, setCurrentPath }: FileListProps) {
+function FileList({ currentPath, hasPermission, setHasPermission, setLoading, setCurrentPath ,imageUrl,setImageViewVisible}: FileListProps) {
+    let baseRemoteFileUrl="";
     const [fileList, setFileList] = useState<FileItem[]>([])
     const ipc = useMainWindowIpc();
     const listRef = useRef<HTMLElement>(null);
@@ -68,7 +72,7 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                 });
                 setLoading(false);
                 // 将添加的path弹出 否则目录会乱
-                setCurrentPath(currentPath!.slice(0, -1))
+                setCurrentPath(currentPath!.slice(0, -1));
                 return
             }
             setFileList(result.files);
@@ -88,7 +92,8 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
         return () => {
             listRef.current?.removeEventListener("mousedown", onMouseDown);
         }
-    }, [currentPath])
+    }, [currentPath]);
+    ipc.getPhoneIp().then(addr=>baseRemoteFileUrl=`https://${addr}:30767?filePath=`)
     function onContextMenu(name: string) {
         ipc.createRightClickMenu(FileManagerDownload).then(result => {
             if (result === RightClickMenuItemId.Download) {
@@ -118,7 +123,13 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                                 file.type === "file" && onContextMenu(file.name)
                             }} icon={file.type === "folder" ? "folder" : "insert_drive_file"} key={file.name} onClick={() => {
                                 if (file.type === "file") {
-                                    // TODO 根据类型选择下载或预览
+                                    //test
+                                    if (file.name.endsWith(".jpg")) {
+                                        imageUrl.current=baseRemoteFileUrl+encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`)
+                                        console.log(imageUrl.current);
+                                        setImageViewVisible(true)
+                                        return
+                                    }
                                     ipc.downloadPhoneFile(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`)
                                     return
                                 }
@@ -137,6 +148,8 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     const ipc = useMainWindowIpc();
     const [currentPath, setCurrentPath] = useState<string[] | null>(null);
     const [loading, setLoading] = useState(false);
+    const [visible, setVisible] = useState(false);
+    const imageUrl=useRef<string>("")
     useEffect(() => {
         ipc.checkAndroidClientPermission("android.permission.MANAGE_EXTERNAL_STORAGE").then(({ result }) => {
             setHasPermission(result);
@@ -144,11 +157,15 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     }, []);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
+            {/* <PhotoProvider>
+                <PhotoView src={imageUrl.current}/>
+            </PhotoProvider> */}
+            {visible&&<PhotoView setVisible={setVisible} visible={visible} imageUrl={imageUrl.current}/>}
             <DirectoryList setCurrentPath={setCurrentPath} />
             {loading && <div className="absolute top-0 w-full h-full opacity-75 bg-[gray] text-center pt-[37%] z-10">
                 <mdui-linear-progress className="w-[25%]"></mdui-linear-progress>
             </div>}
-            <FileList currentPath={currentPath} hasPermission={hasPermission} setHasPermission={setHasPermission} setLoading={setLoading} setCurrentPath={setCurrentPath} />
+            <FileList currentPath={currentPath} hasPermission={hasPermission} setHasPermission={setHasPermission} setLoading={setLoading} setCurrentPath={setCurrentPath} imageUrl={imageUrl} setImageViewVisible={setVisible}/>
         </div>
     )
 }

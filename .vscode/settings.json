@@ -36,5 +36,6 @@
         "undocked",
         "vethernet",
         "WLAN"
-    ]
+    ],
+    "chatgpt.commentCodeLensEnabled": false
 }
