@@ -7,13 +7,13 @@ interface PhotoViewProps {
 export default function PhotoView({ visible, setVisible, imageUrl }: PhotoViewProps) {
     return (
         <PhotoSlider
-            className="z-99999999 w-full h-full"
-            maskOpacity={1}
-            images={[{ key: "onlyOnce", src: imageUrl }]}
+            maskOpacity={0.8}
+            images={[{ key: imageUrl || "preview", src: imageUrl }]}
             visible={visible}
             onClose={() => setVisible(false)}
-            bannerVisible={false}
+            bannerVisible
             loop={false}
+            portalContainer={document.body}
         />
     )
 }

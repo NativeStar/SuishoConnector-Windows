@@ -1,6 +1,5 @@
 import { alert, snackbar } from "mdui";
 import { useEffect, useRef, useState } from "react";
-import { PhotoProvider, /* PhotoView */ } from "react-photo-view";
 import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import useUpdateEffect from "~/hooks/useUpdateEffect";
@@ -126,11 +125,14 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                                     //test
                                     if (file.name.endsWith(".jpg")) {
                                         imageUrl.current=baseRemoteFileUrl+encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`)
-                                        console.log(imageUrl.current);
                                         setImageViewVisible(true)
                                         return
                                     }
-                                    ipc.downloadPhoneFile(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`)
+                                    // 在这触发下载太容易误触
+                                    snackbar({
+                                        message: "如需下载请右键点击",
+                                        autoCloseDelay: 750
+                                    });
                                     return
                                 }
                                 setCurrentPath([...currentPath!, file.name])
@@ -157,10 +159,7 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     }, []);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
-            {/* <PhotoProvider>
-                <PhotoView src={imageUrl.current}/>
-            </PhotoProvider> */}
-            {visible&&<PhotoView setVisible={setVisible} visible={visible} imageUrl={imageUrl.current}/>}
+            <PhotoView setVisible={setVisible} visible={visible} imageUrl={imageUrl.current}/>
             <DirectoryList setCurrentPath={setCurrentPath} />
             {loading && <div className="absolute top-0 w-full h-full opacity-75 bg-[gray] text-center pt-[37%] z-10">
                 <mdui-linear-progress className="w-[25%]"></mdui-linear-progress>

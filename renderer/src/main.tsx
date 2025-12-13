@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import {createHashRouter, RouterProvider} from "react-router"
 import Routes from './routes';
+import "react-photo-view/dist/react-photo-view.css"
 import "./styles/global.css"
 import "./styles/blockWebAction.css"
 import "./styles/outline_icon.css"
