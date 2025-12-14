@@ -54,3 +54,10 @@ mdui-select::part(text-field){
     width: 3px;
     height: 6px;
 }
+/* 避免遮挡视频控件 */
+.navigationRailIndex{
+    --z-index: 0
+}
+.modalVideoIndex{
+    z-index:100
+}

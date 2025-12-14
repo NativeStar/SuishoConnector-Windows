@@ -49,7 +49,6 @@ export default function NotificationItem({ dataPath, notification, createRightCl
             }
         })
     }
-    // TODO 该hook与Virtuoso冲突 fix it
     const [defaultIsOverflow, contentRef] = useTextTruncated(0);
     const [spread, setSpread] = useState<boolean>(false);
     useEffect(() => {

@@ -4,9 +4,12 @@ import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import useUpdateEffect from "~/hooks/useUpdateEffect";
 import { FileManagerDownload } from "~/types/contextMenus";
+import "react-modal-video/css/modal-video.css"
 import { FileManagerResultCode, FileManagerResultCodeMessage } from "~/types/fileManagerResultCodes";
 import type { FileItem } from "~/types/ipc";
 import PhotoView from "./components/PhotoView";
+import ModalVideo from 'react-modal-video';
+import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constance";
 
 interface FileManagerPageProps {
     hidden: boolean
@@ -17,8 +20,9 @@ interface FileListProps {
     setHasPermission: React.Dispatch<React.SetStateAction<boolean>>
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
     setCurrentPath: React.Dispatch<React.SetStateAction<string[] | null>>
-    imageUrl:React.RefObject<string>
-    setImageViewVisible:React.Dispatch<React.SetStateAction<boolean>>
+    fileUrl: React.RefObject<string>
+    setImageViewVisible: React.Dispatch<React.SetStateAction<boolean>>
+    setVideoViewVisible: React.Dispatch<React.SetStateAction<boolean>>
 }
 interface DirectoryListProps {
     setCurrentPath: React.Dispatch<React.SetStateAction<string[] | null>>
@@ -40,8 +44,8 @@ function DirectoryList({ setCurrentPath }: DirectoryListProps) {
         </mdui-list>
     )
 }
-function FileList({ currentPath, hasPermission, setHasPermission, setLoading, setCurrentPath ,imageUrl,setImageViewVisible}: FileListProps) {
-    let baseRemoteFileUrl="";
+function FileList({ currentPath, hasPermission, setHasPermission, setLoading, setCurrentPath, fileUrl, setImageViewVisible, setVideoViewVisible }: FileListProps) {
+    let baseRemoteFileUrl = "";
     const [fileList, setFileList] = useState<FileItem[]>([])
     const ipc = useMainWindowIpc();
     const listRef = useRef<HTMLElement>(null);
@@ -84,7 +88,7 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
             if (event.button === 3) {
                 event.preventDefault();
                 event.stopPropagation();
-                setCurrentPath(currentPath!.slice(0, -1))
+                if (currentPath?.length !== 0) setCurrentPath(currentPath!.slice(0, -1))
             }
         }
         listRef.current?.addEventListener("mousedown", onMouseDown);
@@ -92,7 +96,7 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
             listRef.current?.removeEventListener("mousedown", onMouseDown);
         }
     }, [currentPath]);
-    ipc.getPhoneIp().then(addr=>baseRemoteFileUrl=`https://${addr}:30767?filePath=`)
+    ipc.getPhoneIp().then(addr => baseRemoteFileUrl = `https://${addr}:30767?filePath=`)
     function onContextMenu(name: string) {
         ipc.createRightClickMenu(FileManagerDownload).then(result => {
             if (result === RightClickMenuItemId.Download) {
@@ -107,7 +111,7 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                     {hasPermission ? "选择一个目录开始浏览文件" : "设备未开启相关权限"}
                 </div>
                 :
-                <mdui-list ref={listRef} className="w-[72%] h-[calc(100vh-2.5rem)] overflow-y-scroll absolute left-[28%] top-0">
+                <mdui-list ref={listRef} className="w-[72%] h-[calc(100vh-2.5rem)] overflow-y-scroll absolute left-[28%] top-0 overflow-x-hidden">
                     {currentPath.length !== 0 && <mdui-list-item icon="keyboard_backspace" onClick={() => {
                         setCurrentPath(currentPath!.slice(0, -1))
                     }}>..</mdui-list-item>}
@@ -120,13 +124,23 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                         }).map(file => (
                             <mdui-list-item onContextMenu={() => {
                                 file.type === "file" && onContextMenu(file.name)
-                            }} icon={file.type === "folder" ? "folder" : "insert_drive_file"} key={file.name} onClick={() => {
+                            }} icon={file.type === "folder" ? "folder" : getFileTypeIcon(file.name)} key={file.name} onClick={() => {
                                 if (file.type === "file") {
-                                    //test
-                                    if (file.name.endsWith(".jpg")) {
-                                        imageUrl.current=baseRemoteFileUrl+encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`)
-                                        setImageViewVisible(true)
-                                        return
+                                    switch (getSupportType(file.name)) {
+                                        case "audio":
+                                            // TODO
+                                            console.log("TODO");
+                                            return
+                                        case "image":
+                                            fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
+                                            setImageViewVisible(true)
+                                            return
+                                        case "video":
+                                            fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
+                                            setVideoViewVisible(true)
+                                            return
+                                        case "none":
+                                            break
                                     }
                                     // 在这触发下载太容易误触
                                     snackbar({
@@ -150,8 +164,9 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     const ipc = useMainWindowIpc();
     const [currentPath, setCurrentPath] = useState<string[] | null>(null);
     const [loading, setLoading] = useState(false);
-    const [visible, setVisible] = useState(false);
-    const imageUrl=useRef<string>("")
+    const [imageViewerVisible, setImageViewerVisible] = useState(false);
+    const [videoViewerVisible, setVideoViewerVisible] = useState(false)
+    const fileUrl = useRef<string>("");
     useEffect(() => {
         ipc.checkAndroidClientPermission("android.permission.MANAGE_EXTERNAL_STORAGE").then(({ result }) => {
             setHasPermission(result);
@@ -159,12 +174,13 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     }, []);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
-            <PhotoView setVisible={setVisible} visible={visible} imageUrl={imageUrl.current}/>
+            <ModalVideo classNames={ModalVideoClassNames} channel="custom" url={fileUrl.current} isOpen={videoViewerVisible} onClose={() => setVideoViewerVisible(false)} />
+            <PhotoView setVisible={setImageViewerVisible} visible={imageViewerVisible} imageUrl={fileUrl.current} />
             <DirectoryList setCurrentPath={setCurrentPath} />
             {loading && <div className="absolute top-0 w-full h-full opacity-75 bg-[gray] text-center pt-[37%] z-10">
                 <mdui-linear-progress className="w-[25%]"></mdui-linear-progress>
             </div>}
-            <FileList currentPath={currentPath} hasPermission={hasPermission} setHasPermission={setHasPermission} setLoading={setLoading} setCurrentPath={setCurrentPath} imageUrl={imageUrl} setImageViewVisible={setVisible}/>
+            <FileList currentPath={currentPath} hasPermission={hasPermission} setHasPermission={setHasPermission} setLoading={setLoading} setCurrentPath={setCurrentPath} fileUrl={fileUrl} setImageViewVisible={setImageViewerVisible} setVideoViewVisible={setVideoViewerVisible} />
         </div>
     )
 }

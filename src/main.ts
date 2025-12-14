@@ -214,12 +214,28 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                     mainWindow?.setEnabled(true);
                 }, 50);
             });
+            // 篡改iframe请求头 使ModalVideo库支持range请求
+            mainWindow.webContents.session.webRequest.onBeforeSendHeaders({
+                urls: [`https://${connectedDevice.getPhoneAddress()}:30767/*`],
+                types: ["subFrame"],
+            }, (detail, callback) => {
+                callback({
+                    requestHeaders: {
+                        ...detail.requestHeaders,
+                        "Range": "bytes=0-"
+                    }
+                })
+            });
+            // 阻止主窗口直接触发下载
+            mainWindow.webContents.session.on("will-download", (event) => {
+                event.preventDefault();
+                //提示
+                mainWindow?.webContents.send("webviewEvent", "showAlert", { title: "下载失败", content: "如需下载 请在文件管理页面右键目标文件" });
+            })
             mainWindow.on("ready-to-show", () => {
                 mainWindow?.setMaximizable(false);
-                // mainWindow?.show();
                 connectedDevice.setWindow(<BrowserWindow>mainWindow);
                 //尝试修复窗口不显示
-                // setTimeout(() => {
                 mainWindow?.show();
                 if (!trayInitd) {
                     initTray();
@@ -691,58 +707,6 @@ ipcMain.handle("main_startApkDownloadServer", () => {
         apkDownloadServerInstance.start();
     }
 });
-//打开远程媒体播放器
-ipcMain.handle("main_openRemoteMediaPlayer", async (event, type: "audio" | "video" | "image", remoteFilePath: string) => {
-    logger.writeInfo(`open remote media file:${remoteFilePath}`);
-    //只能存在一个视频窗口
-    for (const browserWindow of BrowserWindow.getAllWindows()) {
-        if (browserWindow.getTitle() === "视频播放器" && type === "video") {
-            if (!browserWindow.isDestroyed()) browserWindow.close();
-        }
-    }
-    const remoteMediaPlayerWindow = new BrowserWindow({
-        width: RemoteMediaWindowSize.width[type],
-        height: RemoteMediaWindowSize.height[type],
-        titleBarStyle: type !== "audio" ? "default" : "hidden",
-        center: true,
-        title: `Remote media player`,
-        autoHideMenuBar: true,
-        frame: type !== "audio",
-        titleBarOverlay: type === "audio" ? {
-            height: 40,
-            color: "#fdf7fe"
-        } : {},
-        show: false,
-        resizable: type !== "audio"
-    });
-    remoteMediaPlayerWindow.setMenu(null);
-    remoteMediaPlayerWindow.setContentProtection(global.config.enableContentProtection);
-    remoteMediaPlayerWindow.hookWindowMessage(278, () => {
-        remoteMediaPlayerWindow?.setEnabled(false);
-        setTimeout(() => {
-            remoteMediaPlayerWindow?.setEnabled(true);
-        }, 50);
-    });
-    await remoteMediaPlayerWindow.webContents.session.cookies.set({
-        name: "sessionId",
-        value: global.clientMetadata.sessionId,
-        url: `https://${connectedDevice.getPhoneAddress()}`,
-        sameSite: "no_restriction",
-    });
-    if (type === "audio") {
-        remoteMediaPlayerWindow.loadFile("./assets/html/audioPlayerWindow.html", { query: { filePath: remoteFilePath, remoteAddr: connectedDevice.getPhoneAddress() } });
-    } else if (type === "video") {
-        remoteMediaPlayerWindow.loadFile("./assets/html/videoPlayerWindow.html", { query: { filePath: remoteFilePath, remoteAddr: connectedDevice.getPhoneAddress() } });
-    } else if (type === "image") {
-        remoteMediaPlayerWindow.loadFile("./assets/html/imageViewerWindow.html", { query: { filePath: remoteFilePath, remoteAddr: connectedDevice.getPhoneAddress() } });
-    } else {
-        logger.writeError(`Invalid media type:${type}`);
-    }
-    remoteMediaPlayerWindow.on("ready-to-show", () => {
-        remoteMediaPlayerWindow.setMaximizable(false);
-        remoteMediaPlayerWindow.show();
-    });
-});
 ipcMain.handle("main_checkAndroidClientPermission", (event, permission: string) => {
     return connectedDevice?.checkAndroidClientPermission(permission);
 });
@@ -807,12 +771,6 @@ app.on("certificate-error", (event, webContents, url, error, cert, callback) => 
         callback(false);
     }
 });
-//关闭apk下载服务器
-// ipcMain.handle("main_closeApkDownloadServer", () => {
-//     apkDownloadServerInstance?.close();
-//     apkDownloadServerInstance = null;
-// });
-
 ipcMain.handle("main_setAudioForward", async (event, enable: boolean) => {
     if (enable) {
         AudioForward.start(connectedDevice.getPhoneAddress())

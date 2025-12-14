@@ -67,8 +67,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     checkAndroidClientPermission:(permission)=>{return ipcRenderer.invoke("main_checkAndroidClientPermission",permission)},
     //获取目录文件列表
     getPhoneDirectoryFiles:(path)=>{return ipcRenderer.invoke("file_listDir",path)},
-    //打开远程媒体播放窗口
-    openRemoteMediaPlayerWindow:(type,path)=>{ipcRenderer.invoke("main_openRemoteMediaPlayer",type,path)},
     //获取手机ip
     getPhoneIp:()=>{return ipcRenderer.invoke("main_getPhoneIp")},
     //下载手机文件

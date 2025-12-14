@@ -45,7 +45,6 @@ declare global {
         readonly getFilePath: (file: File) => string;
         readonly checkAndroidClientPermission: (permission: string) => Promise<{ result: boolean }>;
         readonly getPhoneDirectoryFiles: (path: string) => Promise<{code:number,files:FileItem[]}>
-        readonly openRemoteMediaPlayerWindow: (type: "audio" | "video" | "image") => Promise<void>;
         readonly getPhoneIp: () => Promise<string>;
         readonly downloadPhoneFile: (path: string) => Promise<void>;
         readonly deleteLogs: () => Promise<void>;
