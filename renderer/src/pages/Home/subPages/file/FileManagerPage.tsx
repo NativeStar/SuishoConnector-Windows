@@ -9,6 +9,7 @@ import { FileManagerResultCode, FileManagerResultCodeMessage } from "~/types/fil
 import type { FileItem } from "~/types/ipc";
 import PhotoView from "./components/PhotoView";
 import ModalVideo from 'react-modal-video';
+import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constance";
 
 interface FileManagerPageProps {
@@ -120,16 +121,29 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                         fileList.sort((a, b) => {
                             if (a.type === "folder" && b.type === "file") return -1;
                             if (a.type === "file" && b.type === "folder") return 1;
-                            return 0;
+                            const aHasCn = /[\u4e00-\u9fff]/.test(a.name);
+                            const bHasCn = /[\u4e00-\u9fff]/.test(b.name);
+                            if (aHasCn && !bHasCn) return 1;
+                            if (!aHasCn && bHasCn) return -1;
+                            return a.name.localeCompare(b.name, 'zh-CN', {
+                                usage: "sort",
+                                collation: "pinyin",
+                                caseFirst: "upper",
+                                numeric: true,
+                                sensitivity: 'base'
+                            });
                         }).map(file => (
                             <mdui-list-item onContextMenu={() => {
                                 file.type === "file" && onContextMenu(file.name)
-                            }} icon={file.type === "folder" ? "folder" : getFileTypeIcon(file.name)} key={file.name} onClick={() => {
+                            }} icon={file.type === "folder" ? "folder" : getFileTypeIcon(file.name)} key={file.name} onClick={async () => {
                                 if (file.type === "file") {
                                     switch (getSupportType(file.name)) {
                                         case "audio":
                                             // TODO
-                                            console.log("TODO");
+                                            const ffMpegInstance=await (new (await import("@ffmpeg/ffmpeg")).FFmpeg().load());
+                                            // const ffMpegInstance=new FFmpeg();
+                                            // await ffMpegInstance.load();
+                                            console.log(ffMpegInstance);
                                             return
                                         case "image":
                                             fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
@@ -144,7 +158,7 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                                     }
                                     // 在这触发下载太容易误触
                                     snackbar({
-                                        message: "如需下载请右键点击",
+                                        message: "不支持预览该文件 如需下载请右键点击",
                                         autoCloseDelay: 750
                                     });
                                     return
