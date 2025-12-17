@@ -3,14 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import useUpdateEffect from "~/hooks/useUpdateEffect";
-import { FileManagerDownload } from "~/types/contextMenus";
+import { FileManagerDownload, FileManagerStarDirectory, FileManagerUnStarDirectory } from "~/types/contextMenus";
 import "react-modal-video/css/modal-video.css"
 import { FileManagerResultCode, FileManagerResultCodeMessage } from "~/types/fileManagerResultCodes";
 import type { FileItem } from "~/types/ipc";
-import PhotoView from "./components/PhotoView";
 import ModalVideo from 'react-modal-video';
-import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constance";
+import { PhotoSlider } from "react-photo-view";
+import AudioModal from "./components/AudioModal";
 
 interface FileManagerPageProps {
     hidden: boolean
@@ -24,12 +24,33 @@ interface FileListProps {
     fileUrl: React.RefObject<string>
     setImageViewVisible: React.Dispatch<React.SetStateAction<boolean>>
     setVideoViewVisible: React.Dispatch<React.SetStateAction<boolean>>
+    setAudioPlayerVisible: React.Dispatch<React.SetStateAction<boolean>>
+    staredDirectories: string[]
+    setStaredDirectories: React.Dispatch<React.SetStateAction<string[]>>
 }
 interface DirectoryListProps {
     setCurrentPath: React.Dispatch<React.SetStateAction<string[] | null>>
+    staredDirectories: string[]
+    setStaredDirectories: React.Dispatch<React.SetStateAction<string[]>>
+    createRightClickMenu:typeof window.electronMainProcess.createRightClickMenu
 }
-function DirectoryList({ setCurrentPath }: DirectoryListProps) {
+function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories ,createRightClickMenu}: DirectoryListProps) {
     const [collapsed, setCollapsed] = useState(false);
+    useEffect(() => {
+        const rawStaredDir = localStorage.getItem("fileManagerStaredDirectory");
+        if (rawStaredDir !== null) {
+            const staredDir: string[] = JSON.parse(rawStaredDir);
+            setStaredDirectories(staredDir);
+        }
+    }, []);
+    function onContextMenu(path:string){
+        createRightClickMenu(FileManagerUnStarDirectory).then(result=>{
+            if (result===RightClickMenuItemId.Delete) {
+                localStorage.setItem("fileManagerStaredDirectory", JSON.stringify(staredDirectories.filter(value=>value!==path)));
+                setStaredDirectories(staredDirectories.filter(value=>value!==path));
+            }
+        })
+    }
     return (
         <mdui-list className="w-[28%]">
             <mdui-list-item icon="phone_android" onClick={() => setCurrentPath([])}>内部存储</mdui-list-item>
@@ -40,12 +61,29 @@ function DirectoryList({ setCurrentPath }: DirectoryListProps) {
                         收藏目录
                         <mdui-icon slot="end-icon" name={collapsed ? "keyboard_arrow_up" : "keyboard_arrow_down"}></mdui-icon>
                     </mdui-list-item>
+                    {
+                        staredDirectories.map(value => (
+                            <mdui-list-item icon="star_outline" key={value} onClick={() => setCurrentPath(value.split("/"))} onContextMenu={()=>onContextMenu(value)}>{value.slice(value.lastIndexOf("/") + 1)}</mdui-list-item>
+                        ))
+                    }
                 </mdui-collapse-item>
             </mdui-collapse>
         </mdui-list>
     )
 }
-function FileList({ currentPath, hasPermission, setHasPermission, setLoading, setCurrentPath, fileUrl, setImageViewVisible, setVideoViewVisible }: FileListProps) {
+function FileList({
+    currentPath,
+    hasPermission,
+    setHasPermission,
+    setLoading,
+    setCurrentPath,
+    fileUrl,
+    setImageViewVisible,
+    setVideoViewVisible,
+    setAudioPlayerVisible,
+    staredDirectories,
+    setStaredDirectories
+}: FileListProps) {
     let baseRemoteFileUrl = "";
     const [fileList, setFileList] = useState<FileItem[]>([])
     const ipc = useMainWindowIpc();
@@ -98,10 +136,16 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
         }
     }, [currentPath]);
     ipc.getPhoneIp().then(addr => baseRemoteFileUrl = `https://${addr}:30767?filePath=`)
-    function onContextMenu(name: string) {
-        ipc.createRightClickMenu(FileManagerDownload).then(result => {
+    function onContextMenu(file: FileItem) {
+        ipc.createRightClickMenu(file.type === "folder" ? FileManagerStarDirectory : FileManagerDownload).then(result => {
             if (result === RightClickMenuItemId.Download) {
-                ipc.downloadPhoneFile(`/storage/emulated/0/${currentPath!.join("/")}/${name}`)
+                ipc.downloadPhoneFile(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`)
+            } else if (result === RightClickMenuItemId.Star) {
+                const joinedPath = currentPath!.join("/");
+                const finalPath=`${joinedPath!==""?`${joinedPath}/`:""}${file.name}`;
+                // 避免重复
+                if (staredDirectories.includes(finalPath)) return;
+                setStaredDirectories([...staredDirectories, finalPath])
             }
         })
     }
@@ -133,17 +177,26 @@ function FileList({ currentPath, hasPermission, setHasPermission, setLoading, se
                                 sensitivity: 'base'
                             });
                         }).map(file => (
-                            <mdui-list-item onContextMenu={() => {
-                                file.type === "file" && onContextMenu(file.name)
-                            }} icon={file.type === "folder" ? "folder" : getFileTypeIcon(file.name)} key={file.name} onClick={async () => {
+                            <mdui-list-item onContextMenu={() => onContextMenu(file)} icon={file.type === "folder" ? "folder" : getFileTypeIcon(file.name)} key={file.name} onClick={async () => {
                                 if (file.type === "file") {
                                     switch (getSupportType(file.name)) {
                                         case "audio":
-                                            // TODO
-                                            const ffMpegInstance=await (new (await import("@ffmpeg/ffmpeg")).FFmpeg().load());
-                                            // const ffMpegInstance=new FFmpeg();
-                                            // await ffMpegInstance.load();
-                                            console.log(ffMpegInstance);
+                                            fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
+                                            setAudioPlayerVisible(true)
+                                            //test
+                                            // console.log("start");
+                                            // const ffMpegInstance = await ensureFfmpegLoaded();
+                                            // const fileData = await (await fetch(baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`))).arrayBuffer();
+                                            // await ffMpegInstance.writeFile(file.name, new Uint8Array(fileData));
+                                            // await ffMpegInstance.exec(["-i", file.name, "-f", "flac", "output.flac"]);
+                                            // const finalData = await ffMpegInstance.readFile("output.flac");
+                                            // console.log(finalData);
+                                            // const flacBytes = new Uint8Array(finalData as Uint8Array);
+                                            // const blob = URL.createObjectURL(new Blob([flacBytes], { type: "audio/flac" }));
+                                            // console.log(blob);
+                                            // const audio = new Audio(blob);
+                                            // audio.play();
+                                            // console.log(await ensureFfmpegLoaded());
                                             return
                                         case "image":
                                             fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
@@ -177,24 +230,51 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     const [hasPermission, setHasPermission] = useState(false);
     const ipc = useMainWindowIpc();
     const [currentPath, setCurrentPath] = useState<string[] | null>(null);
+    const [staredDirectories, setStaredDirectories] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
-    const [videoViewerVisible, setVideoViewerVisible] = useState(false)
+    const [videoViewerVisible, setVideoViewerVisible] = useState(false);
+    const [audioPlayerVisible, setAudioPlayerVisible] = useState(false);
     const fileUrl = useRef<string>("");
     useEffect(() => {
         ipc.checkAndroidClientPermission("android.permission.MANAGE_EXTERNAL_STORAGE").then(({ result }) => {
             setHasPermission(result);
         })
     }, []);
+    useUpdateEffect(()=>{
+        // 保存数据
+        const dataString = JSON.stringify(staredDirectories);
+        localStorage.setItem("fileManagerStaredDirectory", dataString);
+    },[staredDirectories]);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
+            {audioPlayerVisible && <AudioModal setVisible={setAudioPlayerVisible} src={fileUrl.current} />}
             <ModalVideo classNames={ModalVideoClassNames} channel="custom" url={fileUrl.current} isOpen={videoViewerVisible} onClose={() => setVideoViewerVisible(false)} />
-            <PhotoView setVisible={setImageViewerVisible} visible={imageViewerVisible} imageUrl={fileUrl.current} />
-            <DirectoryList setCurrentPath={setCurrentPath} />
+            <PhotoSlider
+                maskOpacity={0.8}
+                images={[{ key: fileUrl.current || "preview", src: fileUrl.current }]}
+                visible={imageViewerVisible}
+                onClose={() => setImageViewerVisible(false)}
+                bannerVisible
+                loop={false}
+                portalContainer={document.body}
+            />
+            <DirectoryList setCurrentPath={setCurrentPath} setStaredDirectories={setStaredDirectories} staredDirectories={staredDirectories} createRightClickMenu={ipc.createRightClickMenu}/>
             {loading && <div className="absolute top-0 w-full h-full opacity-75 bg-[gray] text-center pt-[37%] z-10">
                 <mdui-linear-progress className="w-[25%]"></mdui-linear-progress>
             </div>}
-            <FileList currentPath={currentPath} hasPermission={hasPermission} setHasPermission={setHasPermission} setLoading={setLoading} setCurrentPath={setCurrentPath} fileUrl={fileUrl} setImageViewVisible={setImageViewerVisible} setVideoViewVisible={setVideoViewerVisible} />
+            <FileList
+                currentPath={currentPath}
+                hasPermission={hasPermission}
+                setHasPermission={setHasPermission}
+                setLoading={setLoading}
+                setCurrentPath={setCurrentPath}
+                fileUrl={fileUrl}
+                setImageViewVisible={setImageViewerVisible}
+                setVideoViewVisible={setVideoViewerVisible}
+                setAudioPlayerVisible={setAudioPlayerVisible}
+                setStaredDirectories={setStaredDirectories}
+                staredDirectories={staredDirectories} />
         </div>
     )
 }

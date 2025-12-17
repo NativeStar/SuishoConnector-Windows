@@ -86,3 +86,50 @@ export function updateDeepHideNotificationCache(pkgName: string, value: boolean)
 export function needHideNotification(pkgName: string): boolean {
     return deepHideNotificationCacheMap.get(pkgName) ?? false;
 }
+
+type FFmpegInstance = import("@ffmpeg/ffmpeg").FFmpeg;
+
+let ffmpegInstance: FFmpegInstance | null = null;
+let ffmpegLoadPromise: Promise<FFmpegInstance> | null = null;
+
+function toRuntimeUrl(url: string) {
+    if (/^(https?:|file:|data:|blob:)/.test(url)) {
+        return url;
+    }
+    if (url.startsWith("/")) {
+        if (window.location.protocol === "file:") {
+            return url.slice(1);
+        }
+        return `${window.location.origin}${url}`;
+    }
+    return url;
+}
+
+export async function ensureFfmpegLoaded(): Promise<FFmpegInstance> {
+    if (!ffmpegLoadPromise) {
+        ffmpegLoadPromise = (async () => {
+            const [{ FFmpeg }, { default: ffmpegWorkerUrl }, { default: ffmpegCoreUrl }, { default: ffmpegWasmUrl }] = await Promise.all([
+                import("@ffmpeg/ffmpeg"),
+                import("~/workers/ffmpegWorker.ts?worker&url"),
+                import("@ffmpeg/core?url"),
+                import("@ffmpeg/core/wasm?url"),
+            ]);
+
+            if (!ffmpegInstance) {
+                ffmpegInstance = new FFmpeg();
+            }
+            if (!ffmpegInstance.loaded) {
+                await ffmpegInstance.load({
+                    classWorkerURL: toRuntimeUrl(ffmpegWorkerUrl),
+                    coreURL: toRuntimeUrl(ffmpegCoreUrl),
+                    wasmURL: toRuntimeUrl(ffmpegWasmUrl),
+                });
+            }
+            return ffmpegInstance;
+        })().catch((e) => {
+            ffmpegLoadPromise = null;
+            throw e;
+        });
+    }
+    return ffmpegLoadPromise;
+}

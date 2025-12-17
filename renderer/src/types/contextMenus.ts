@@ -88,3 +88,15 @@ export const FileManagerDownload=[
         label:"下载文件"
     }
 ]
+export const FileManagerStarDirectory=[
+    {
+        id:RightClickMenuItemId.Star,
+        label:"收藏目录"
+    }
+]
+export const FileManagerUnStarDirectory=[
+    {
+        id:RightClickMenuItemId.Delete,
+        label:"删除收藏"
+    }
+]
