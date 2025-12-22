@@ -30,6 +30,23 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
     const imageRef = useRef<HTMLImageElement | null>(null);
     // 防止进度条拖动时闪烁
     const userControllingSlider = useRef<boolean>(false);
+    let imageUrl: string;
+    function onAudioMetadataLoaded() {
+        setDuration(() => audioRef.current?.duration ?? 0);
+        audioRef.current?.removeEventListener("loadedmetadata", onAudioMetadataLoaded);
+    }
+    function onAudioTimeUpdate() {
+        setCurrentTime(() => audioRef.current?.currentTime ?? 0)
+        if (!userControllingSlider.current) {
+            setSliderValue(() => audioRef.current?.currentTime ?? 0)
+        }
+    }
+    function onAudioEnded() {
+        setPaused(true);
+        audioRef.current!.pause();
+        audioRef.current!.currentTime = 0;
+        setSliderValue(() => 0);
+    }
     useAsyncEffect(async (isMounted) => {
         let aniIndex = 0;
         const looper = setInterval(() => {
@@ -46,9 +63,11 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         }, 200);
         // ffmpeg
         ffmpegInstance = await ensureFfmpegLoaded();
-        const fileData = await (await fetch(src)).arrayBuffer();
+        const fileData = await (await fetch(src, { cache: "no-store" })).arrayBuffer();
         //解码 使用无损flac
-        if (!isMounted()) return
+        if (!isMounted()) return () => {
+            clearInterval(looper);
+        }
         //元数据
         const audioMetadata = await parseBuffer(new Uint8Array(fileData));
         setMetadata({
@@ -56,56 +75,53 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             artist: audioMetadata.common.artist ?? "未知歌手",
             album: audioMetadata.common.album ?? "未知专辑",
         });
-        setLyric(audioMetadata.common.lyrics?.[0].syncText??[]);
+        setLyric(audioMetadata.common.lyrics?.[0].syncText ?? []);
         if (audioMetadata.common.picture && audioMetadata.common.picture[0]) {
-            const imageData = audioMetadata.common.picture[0].data;
-            let base64String = "";
-            for (let i = 0; i < imageData.length; i++) {
-                base64String += String.fromCharCode(imageData[i]);
-            }
-            imageRef.current!.src = `data:${audioMetadata.common.picture[0].format};base64,${btoa(base64String)}`;
+            const picture = audioMetadata.common.picture[0];
+            const coverBlob = new Blob([picture.data as unknown as BlobPart], { type: picture.format });
+            imageUrl = URL.createObjectURL(coverBlob);
+            imageRef.current!.src = imageUrl
             clearInterval(looper);
-            setRotate(()=>0);
+            setRotate(() => 0);
         }
         await ffmpegInstance.writeFile("tmpAudioInput", new Uint8Array(fileData));
         await ffmpegInstance.exec(["-i", "tmpAudioInput", "-f", "flac", "tmpAudioOutput"]);
         // 释放原始输入 它的任务结束了
         await ffmpegInstance.deleteFile("tmpAudioInput");
         const finalAudioData = await ffmpegInstance.readFile("tmpAudioOutput");
-        const flacArrayBuffer = new Uint8Array(finalAudioData as Uint8Array);
-        const audioBlob = URL.createObjectURL(new Blob([flacArrayBuffer], { type: "audio/flac" }));
+        // 释放转码后的音频
+        await ffmpegInstance.deleteFile("tmpAudioOutput");
+        const audioBlob = URL.createObjectURL(new Blob([finalAudioData as unknown as BlobPart], { type: "audio/flac" }));
         audioRef.current!.src = audioBlob;
         // 解码很耗时 再次检查
-        if (!isMounted()) return
+        if (!isMounted()) return () => {
+            clearInterval(looper);
+            URL.revokeObjectURL(audioBlob);
+            imageUrl && URL.revokeObjectURL(imageUrl);
+            ffmpegInstance.deleteFile("tmpAudioOutput").catch(() => { });
+            ffmpegInstance.deleteFile("tmpAudioInput").catch(() => { });
+        }
         audioRef.current?.play();
-        audioRef.current?.addEventListener("loadedmetadata", () => {
-            setDuration(() => audioRef.current?.duration ?? 0)
-        });
-        audioRef.current?.addEventListener("timeupdate", () => {
-            setCurrentTime(() => audioRef.current?.currentTime ?? 0)
-            if (!userControllingSlider.current) {
-                setSliderValue(() => audioRef.current?.currentTime ?? 0)
-            }
-        });
-        audioRef.current?.addEventListener("ended", () => {
-            setPaused(true);
-            audioRef.current!.pause();
-            audioRef.current!.currentTime = 0;
-            setSliderValue(() => 0);
-        });
+        audioRef.current?.addEventListener("loadedmetadata", onAudioMetadataLoaded);
+        audioRef.current?.addEventListener("timeupdate", onAudioTimeUpdate);
+        audioRef.current?.addEventListener("ended", onAudioEnded);
         return () => {
             // 释放资源
             clearInterval(looper);
             audioRef.current?.pause();
+            audioRef.current?.removeAttribute("src");
+            audioRef.current?.load();
+            audioRef.current?.removeEventListener("loadedmetadata", onAudioMetadataLoaded);
+            audioRef.current?.removeEventListener("timeupdate", onAudioTimeUpdate);
+            audioRef.current?.removeEventListener("ended", onAudioEnded);
             audioRef.current = null;
+            imageUrl && URL.revokeObjectURL(imageUrl);
             URL.revokeObjectURL(audioBlob);
-            ffmpegInstance.deleteFile("tmpAudioOutput");
         }
     }, result => result?.(), []);
     function onSliderChange(event: React.ChangeEvent<HTMLInputElement>) {
         const newValue = parseInt(event.target.value);
         setSliderValue(newValue);
-        audioRef.current?.fastSeek
         audioRef.current!.currentTime = newValue;
     }
     return (
@@ -120,7 +136,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
                     {/* 专辑 */}
                     <small className="text-[gray] mt-0.5">{metadata?.album ?? "Loading..."}</small>
                     {/* 封面 */}
-                    <img ref={imageRef} style={{rotate:`${rotate}deg`}} src="./audioPlayerNotPicture.png" className="w-45 h-45 mt-2" />
+                    <img ref={imageRef} style={{ rotate: `${rotate}deg` }} src="./audioPlayerNotPicture.png" className="w-45 h-45 mt-2" />
                     {/* 时间显示 */}
                     <div className="flex justify-between w-full mt-1.5">
                         <small className="text-[gray] ml-3">{time2str(currentTime)}</small>
@@ -135,7 +151,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
                 </div>
                 {/* 右侧 歌词(如果有) */}
                 <div className="h-full flex-1">
-                    <AutoScrollLyric audioRef={audioRef} currentTime={currentTime*1000/* 转换为ms 和歌词数组对应*/} lyric={lyric} />
+                    <AutoScrollLyric audioRef={audioRef} currentTime={currentTime * 1000/* 转换为ms 和歌词数组对应*/} lyric={lyric} />
                 </div>
             </div>
         </div>

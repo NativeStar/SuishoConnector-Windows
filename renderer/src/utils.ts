@@ -133,6 +133,13 @@ export async function ensureFfmpegLoaded(): Promise<FFmpegInstance> {
     }
     return ffmpegLoadPromise;
 }
+export async function releaseFfmpeg() {
+    if (ffmpegInstance&&ffmpegInstance.loaded) {
+        ffmpegInstance.terminate();
+        ffmpegInstance = null;
+        ffmpegLoadPromise = null;
+    }
+}
 export function time2str(time:number) {
     const second=Math.floor(time);
     return `${Math.floor(second / 60)}:${second % 60 < 10 ? "0" + second % 60 : second % 60}`;

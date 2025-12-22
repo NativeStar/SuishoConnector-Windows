@@ -11,6 +11,7 @@ import ModalVideo from 'react-modal-video';
 import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constance";
 import { PhotoSlider } from "react-photo-view";
 import AudioModal from "./components/AudioModal";
+import { releaseFfmpeg } from "~/utils";
 
 interface FileManagerPageProps {
     hidden: boolean
@@ -106,6 +107,8 @@ function FileList({
             return
         }
         setLoading(true);
+        // 更改目录趁机释放ffmpeg
+        releaseFfmpeg();
         ipc.getPhoneDirectoryFiles(`/storage/emulated/0/${currentPath.join("/")}/`).then(result => {
             if (result.code !== FileManagerResultCode.CODE_NORMAL) {
                 snackbar({
@@ -183,20 +186,6 @@ function FileList({
                                         case "audio":
                                             fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
                                             setAudioPlayerVisible(true)
-                                            //test
-                                            // console.log("start");
-                                            // const ffMpegInstance = await ensureFfmpegLoaded();
-                                            // const fileData = await (await fetch(baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`))).arrayBuffer();
-                                            // await ffMpegInstance.writeFile(file.name, new Uint8Array(fileData));
-                                            // await ffMpegInstance.exec(["-i", file.name, "-f", "flac", "output.flac"]);
-                                            // const finalData = await ffMpegInstance.readFile("output.flac");
-                                            // console.log(finalData);
-                                            // const flacBytes = new Uint8Array(finalData as Uint8Array);
-                                            // const blob = URL.createObjectURL(new Blob([flacBytes], { type: "audio/flac" }));
-                                            // console.log(blob);
-                                            // const audio = new Audio(blob);
-                                            // audio.play();
-                                            // console.log(await ensureFfmpegLoaded());
                                             return
                                         case "image":
                                             fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
@@ -248,7 +237,7 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     },[staredDirectories]);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
-            {audioPlayerVisible && <AudioModal setVisible={setAudioPlayerVisible} src={fileUrl.current} />}
+            {audioPlayerVisible && <AudioModal setVisible={setAudioPlayerVisible} src={fileUrl.current}/>}
             <ModalVideo classNames={ModalVideoClassNames} channel="custom" url={fileUrl.current} isOpen={videoViewerVisible} onClose={() => setVideoViewerVisible(false)} />
             <PhotoSlider
                 maskOpacity={0.8}

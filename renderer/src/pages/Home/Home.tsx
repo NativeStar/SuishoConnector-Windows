@@ -10,6 +10,7 @@ import { getStateInstance, type ApplicationState, type States } from "~/types/ap
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import LoadingScreen from "./subPages/home/components/LoadingScreen";
 import { setColorScheme } from "mdui";
+import { releaseFfmpeg } from "~/utils";
 export type StatesListObject = { [key in States]?: ApplicationState };
 export type StateAction = [{
   type: "add" | "remove",
@@ -147,6 +148,7 @@ export default function Home() {
       return
     }
     setPage(targetPage);
+    releaseFfmpeg();
   }
   return (
     <>

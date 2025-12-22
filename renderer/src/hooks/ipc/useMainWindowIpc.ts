@@ -9,16 +9,16 @@ interface IpcEvents {
     currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean }
     rebootConfirm: void,
     closeConfirm: void,
-    transmitAppendPlainText:string,
-    transmitAppendFile:{displayName:string,size:number,fileName:string},
-    transmitFileUploadSuccess:void,//那几个数据应该是用不上了
-    transmitFileTransmitFailed:{title:string,message:string}
-    disconnect?:string,
-    showAlert:{title:string,content:string},
-    notificationAppend:NotificationItem,
-    focusNotification:void,
-    transmitDragFile:{filename:string,filePath:string,size:number}
-    updateDeepHideNotificationCache:{packageName:string,value:boolean}
+    transmitAppendPlainText: string,
+    transmitAppendFile: { displayName: string, size: number, fileName: string },
+    transmitFileUploadSuccess: void,//那几个数据应该是用不上了
+    transmitFileTransmitFailed: { title: string, message: string }
+    disconnect?: string,
+    showAlert: { title: string, content: string },
+    notificationAppend: NotificationItem,
+    focusNotification: void,
+    transmitDragFile: { filename: string, filePath: string, size: number }
+    updateDeepHideNotificationCache: { packageName: string, value: boolean }
 }
 let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;
@@ -69,30 +69,30 @@ function useMainWindowIpc() {
         sendPacket: window.electronMainProcess.sendPacket,
         sendRequestPacket: window.electronMainProcess.sendRequestPacket,
         getDeviceDataPath: window.electronMainProcess.getDeviceDataPath,
-        registerFileUploadProgressListener:window.electronMainProcess.registerFileUploadProgressListener,
-        unregisterFileUploadProgressListener:window.electronMainProcess.unregisterFileUploadProgressListener,
-        openFile:window.electronMainProcess.openFile,
-        openInExplorer:window.electronMainProcess.openInExplorer,
-        getFilePath:window.electronMainProcess.getFilePath,
-        transmitUploadFile:window.electronMainProcess.transmitUploadFile,
-        createRightClickMenu:window.electronMainProcess.createRightClickMenu,
-        openUrl:window.electronMainProcess.openUrl,
-        generateTransmitFileURL:window.electronMainProcess.generateTransmitFileURL,
-        getDeviceConfig:window.electronMainProcess.getDeviceConfig,
-        startAuthorization:window.electronMainProcess.startAuthorization,
-        openNotificationForwardConfigWindow:window.electronMainProcess.openNotificationForwardConfigWindow,
-        getNotificationProfile:window.electronMainProcess.getNotificationProfile,
-        getDeviceAllConfig:window.electronMainProcess.getDeviceAllConfig,
-        getAllConfig:window.electronMainProcess.getAllConfig,
-        setConfig:window.electronMainProcess.setConfig,
-        setDeviceConfig:window.electronMainProcess.setDeviceConfig,
-        deleteLogs:window.electronMainProcess.deleteLogs,
-        getConfig:window.electronMainProcess.getConfig,
-        createCredentials:window.electronMainProcess.createCredentials,
-        checkAndroidClientPermission:window.electronMainProcess.checkAndroidClientPermission,
-        getPhoneDirectoryFiles:window.electronMainProcess.getPhoneDirectoryFiles,
-        downloadPhoneFile:window.electronMainProcess.downloadPhoneFile,
-        getPhoneIp:window.electronMainProcess.getPhoneIp
+        registerFileUploadProgressListener: window.electronMainProcess.registerFileUploadProgressListener,
+        unregisterFileUploadProgressListener: window.electronMainProcess.unregisterFileUploadProgressListener,
+        openFile: window.electronMainProcess.openFile,
+        openInExplorer: window.electronMainProcess.openInExplorer,
+        getFilePath: window.electronMainProcess.getFilePath,
+        transmitUploadFile: window.electronMainProcess.transmitUploadFile,
+        createRightClickMenu: window.electronMainProcess.createRightClickMenu,
+        openUrl: window.electronMainProcess.openUrl,
+        generateTransmitFileURL: window.electronMainProcess.generateTransmitFileURL,
+        getDeviceConfig: window.electronMainProcess.getDeviceConfig,
+        startAuthorization: window.electronMainProcess.startAuthorization,
+        openNotificationForwardConfigWindow: window.electronMainProcess.openNotificationForwardConfigWindow,
+        getNotificationProfile: window.electronMainProcess.getNotificationProfile,
+        getDeviceAllConfig: window.electronMainProcess.getDeviceAllConfig,
+        getAllConfig: window.electronMainProcess.getAllConfig,
+        setConfig: window.electronMainProcess.setConfig,
+        setDeviceConfig: window.electronMainProcess.setDeviceConfig,
+        deleteLogs: window.electronMainProcess.deleteLogs,
+        getConfig: window.electronMainProcess.getConfig,
+        createCredentials: window.electronMainProcess.createCredentials,
+        checkAndroidClientPermission: window.electronMainProcess.checkAndroidClientPermission,
+        getPhoneDirectoryFiles: window.electronMainProcess.getPhoneDirectoryFiles,
+        downloadPhoneFile: window.electronMainProcess.downloadPhoneFile,
+        getPhoneIp: window.electronMainProcess.getPhoneIp
     }
 }
 export default useMainWindowIpc;
