@@ -3,7 +3,12 @@
 .title-bar {
   -webkit-app-region: drag;
 }
-
+.noScrollBar::-webkit-scrollbar {
+    display: none;
+}
+.noScrollBar::-webkit-scrollbar-thumb{
+    display: none;
+}
 .activeNotificationsList::-webkit-scrollbar {
   width: 4px;
   height: 6px;
