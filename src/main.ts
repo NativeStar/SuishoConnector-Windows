@@ -718,6 +718,9 @@ ipcMain.on("main_downloadPhoneFile", async (event, downloadFilePath: string) => 
     phoneFileDownloadPathTemp = downloadFilePath;
     if (!phoneFileDownloadWindow) {
         phoneFileDownloadWindow = new BrowserWindow({
+            webPreferences:{
+                partition:"DownloadWindow"
+            },
             show: false,
             focusable: false,
             movable: false
@@ -729,7 +732,7 @@ ipcMain.on("main_downloadPhoneFile", async (event, downloadFilePath: string) => 
             url: `https://${connectedDevice.getPhoneAddress()}`,
             sameSite: "no_restriction",
         });
-        phoneFileDownloadWindow.webContents.session.on("will-download", (event, item, webContents) => {
+        phoneFileDownloadWindow.webContents.session.on("will-download", (event, item) => {
             item.setSaveDialogOptions({
                 title: "下载手机上的文件",
                 buttonLabel: "下载到此",
