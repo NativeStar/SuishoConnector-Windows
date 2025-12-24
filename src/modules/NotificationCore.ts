@@ -12,7 +12,6 @@ import path from "path";
 import fs from "fs-extra";
 import Util from "./Util";
 import NotificationProfileType from "../interface/INotificationProfile";
-import NotificationProcessorExtension from "./extensions/NotificationProcessor";
 declare global {
     var clientMetadata: {
         androidId: string | "failed",
@@ -24,13 +23,6 @@ declare global {
         sessionId: string
     }
 }
-//允许插件取消推送时启用 延迟显示通知
-const delayNotificationMap = new Map<number, NodeJS.Timeout>();
-//插件设置指定包名用
-const notificationExtensionTargetPackageName = new Set<string>();
-//插件启用包名检测
-let notificationExtensionEnablePackageNameFilter = false;
-let notificationExtensionWindow: BrowserWindow | null = null;
 class NotificationCore {
     private window: BrowserWindow | null;
     private configPath: string;
@@ -43,11 +35,7 @@ class NotificationCore {
     configWindow: BrowserWindow | null
     private LOG_TAG: string = "NotificationCore";
     private profilePath: string;
-    private enableExtensionCancelNotificationShow: boolean;
-    profile: Map<string, NotificationProfileType>;
-    private notificationProcessorExtension: NotificationProcessorExtension | null = null;
-    //插件取消通知显示用
-    private notificationId = 0;
+    private profile: Map<string, NotificationProfileType>;
     // enableOngoing: boolean;
     constructor() {
         /**
@@ -115,45 +103,6 @@ class NotificationCore {
         this.#hasXmlPermission = this.checkXmlPermission();
         this.ipcInit();
         logger.writeInfo("Notification manager init success");
-        this.enableExtensionCancelNotificationShow = global.config.extension_notificationProcessorAllowCancelNotificationShow;
-        if (global.config.extension_notificationProcessorEnable) {
-            //插件初始化
-            this.notificationProcessorExtension = new NotificationProcessorExtension(global.config.extension_notificationProcessorPort, {
-                onPortInUse() {
-                    notificationExtensionWindow?.webContents.send("webviewEvent", "editState", { type: "add", id: "error_notification_processor_port_in_use" });
-                },
-                onConnectStateChange(state) {
-                    switch (state) {
-                        case "close":
-                            notificationExtensionWindow?.webContents.send("webviewEvent", "setElementText", "extension_notificationProcessorStateText", "未开启");
-                            break;
-                        case "idle":
-                            notificationExtensionWindow?.webContents.send("webviewEvent", "setElementText", "extension_notificationProcessorStateText", "等待连接");
-                            break
-                        case "connected":
-                            notificationExtensionWindow?.webContents.send("webviewEvent", "setElementText", "extension_notificationProcessorStateText", "已连接");
-                            break
-                        case "shutdown":
-                            notificationExtensionWindow?.webContents.send("webviewEvent", "setElementText", "extension_notificationProcessorStateText", "已关闭");
-                            break
-                    }
-                },
-                requestCancelNotification(id) {
-                    const timer = delayNotificationMap.get(id);
-                    if (timer) {
-                        clearTimeout(timer);
-                        delayNotificationMap.delete(id);
-                    }
-                },
-                onSetTargetPackageName(packageName) {
-                    notificationExtensionTargetPackageName.clear();
-                    for (const pkgName of packageName) {
-                        notificationExtensionTargetPackageName.add(pkgName);
-                    }
-                    notificationExtensionEnablePackageNameFilter = notificationExtensionTargetPackageName.size !== 0
-                },
-            });
-        }
     }
     /**
      * 
@@ -168,17 +117,6 @@ class NotificationCore {
      * @returns 
      */
     onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
-        //插件功能
-        if (this.notificationProcessorExtension !== null && (!notificationExtensionEnablePackageNameFilter || notificationExtensionTargetPackageName.has(packageName))) {
-            this.notificationProcessorExtension.send({
-                packageName,
-                timestamp: time,
-                title,
-                content,
-                appName,
-                id: ++this.notificationId,
-            });
-        }
         //检测
         //单配置检测(优先级最高 强制绕检测等)
         //返回缓存 用于推送时显示处理
@@ -315,25 +253,9 @@ class NotificationCore {
         if (!result.show) return
         //弹窗 根据配置进行过滤
         if (!this.#hasXmlPermission) {
-            if (this.notificationProcessorExtension !== null && this.enableExtensionCancelNotificationShow && (!notificationExtensionEnablePackageNameFilter || notificationExtensionTargetPackageName.has(packageName))) {
-                delayNotificationMap.set(this.notificationId, setTimeout(() => {
-                    const tmpId = this.notificationId
-                    this.showCommonNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
-                    delayNotificationMap.delete(tmpId);
-                }, 500))
-            } else {
-                this.showCommonNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
-            }
+            this.showCommonNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
         } else {
-            if (this.notificationProcessorExtension !== null && this.enableExtensionCancelNotificationShow && (!notificationExtensionEnablePackageNameFilter || notificationExtensionTargetPackageName.has(packageName))) {
-                delayNotificationMap.set(this.notificationId, setTimeout(() => {
-                    const tmpId = this.notificationId
-                    this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
-                    delayNotificationMap.delete(tmpId);
-                }, 500))
-            } else {
-                this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName)
-            }
+            this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName)
         }
     }
     /**
@@ -424,19 +346,9 @@ class NotificationCore {
             await fs.writeJson(this.profilePath, Object.fromEntries(this.profile));
             logger.writeDebug("Saved notification app profile")
         });
-        ipcMain.handle("notificationProcessor_init", () => {
-            if (global.config.extension_notificationProcessorEnable) {
-                return this.notificationProcessorExtension?.init();
-            }
-            return null;
-        });
-        ipcMain.on("notificationProcessor_shutdown", () => {
-            this.notificationProcessorExtension?.close();
-        })
     };
     setWindow(window: BrowserWindow): void {
         this.window = window;
-        notificationExtensionWindow = window;
         //拿到窗口对象 检测通知权限
         //xml格式通知
         if (!this.#hasXmlPermission) {

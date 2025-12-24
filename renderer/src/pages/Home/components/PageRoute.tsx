@@ -8,7 +8,7 @@ import SettingPage from "../subPages/setting/SettingPage"
 import FileManagerPage from "../subPages/file/FileManagerPage"
 
 export interface PageRouteProps {
-    page: "home" | "transmit" | "notification" | "file" | "extension" | "setting",
+    page: "home" | "transmit" | "notification" | "file" | "setting",
     applicationStates: { [key in States]?: ApplicationState },
     applicationStatesDispatch: React.ActionDispatch<StateAction>,
     setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>,
@@ -36,7 +36,6 @@ const PageRoute = forwardRef<PageRouteRef, PageRouteProps>(({ page, applicationS
             <TransmitPage ref={transmitPageRef} hidden={page !== "transmit"} setHasNewTransmitMessage={setHasNewTransmitMessage} />
             <NotificationPage ref={notificationPageRef} hidden={page !== "notification"} setHasNewNotification={setHasNewNotification}/>
             <FileManagerPage hidden={page !== "file"} />
-            <div hidden={page !== "extension"}>extension</div>
             <SettingPage hidden={page !== "setting"}/>
         </div>
     )

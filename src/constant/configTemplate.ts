@@ -7,7 +7,4 @@ export default {
     heartBeatDelay:"MEDIUM",
     logLevel:"INFO",
     enableContentProtection:false,
-    extension_notificationProcessorEnable:false,
-    extension_notificationProcessorAllowCancelNotificationShow:false,
-    extension_notificationProcessorPort:10240
 }

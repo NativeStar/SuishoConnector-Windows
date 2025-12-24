@@ -36,12 +36,6 @@ const States = {
         title:"文件浏览初始化异常",
         content:"部分相关功能可能无法工作\n请尝试清理数据重启软件",
         clickable:false
-    },
-    error_notification_processor_port_in_use:{
-        level:ApplicationStateLevel.Error,
-        title:"通知处理扩展端口被占用",
-        content:"请尝试关闭占用端口的程序或更改端口号后重启软件",
-        clickable:false
     }
 } satisfies Record<string,ApplicationState>;
 export type States=keyof typeof States;

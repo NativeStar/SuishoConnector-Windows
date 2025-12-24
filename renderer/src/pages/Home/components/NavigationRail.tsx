@@ -37,9 +37,6 @@ export default function NavigationRail({
             <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="folder_open" value="file">
                 文件浏览
             </mdui-navigation-rail-item>
-            <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="extension" value="extension">
-                扩展
-            </mdui-navigation-rail-item>
             <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="settings" value="setting">
                 设置
             </mdui-navigation-rail-item>

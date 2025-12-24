@@ -20,7 +20,6 @@ import Broadcaster from "./modules/Broadcaster";
 import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
-import RemoteMediaWindowSize from "./constant/remoteMediaWindowSize";
 import AudioForward from "./modules/AudioForward";
 //随机端口号 超过60000的正则不好搞哦
 let serverPort;

@@ -2,7 +2,7 @@ import { type ClassNames } from 'react-modal-video';
 const audioFileExtensions = [".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".amr", ".mid"];
 const videoFileExtensions = [".mp4", ".webm", ".mkv", ".mov", ".flv", ".wmv"];
 const imageFileExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".ico", ".tiff", ".psd"];
-const supportAudioFileExtensions = [".mp3", ".ogg", ".flac"];
+const supportAudioFileExtensions = [".mp3", ".ogg", ".flac","aac","wav","wma"];
 const supportVideoFileExtensions = [".mp4", ".webm"];
 const supportImageFileExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 const fileExtIcon: Record<string, string> = {

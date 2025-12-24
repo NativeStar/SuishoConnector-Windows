@@ -71,10 +71,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     getPhoneIp:()=>{return ipcRenderer.invoke("main_getPhoneIp")},
     //下载手机文件
     downloadPhoneFile:(downloadPath)=>{return ipcRenderer.send("main_downloadPhoneFile",downloadPath)},
-    //通知处理插件初始化
-    extension_notificationProcessorInit:()=>{return ipcRenderer.invoke("notificationProcessor_init")},
-    //关闭通知处理插件
-    extension_notificationProcessorShutdown:()=>{ipcRenderer.send("notificationProcessor_shutdown")},
     //控制音频转发开关
     setAudioForwardEnable:(enabled)=>{return ipcRenderer.invoke("main_setAudioForward",enabled)},
     //清除日志
