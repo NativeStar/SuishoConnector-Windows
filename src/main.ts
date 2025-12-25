@@ -89,7 +89,7 @@ app.on("ready", async (event, info) => {
         setTimeout(() => {
             connectPhoneWindow.setEnabled(true);
         }, 50);
-    })
+    });
     connectPhoneWindow.on("ready-to-show", async () => {
         connectPhoneWindow.setMaximizable(false);
         logger.writeInfo("Connect phone window created");
@@ -325,7 +325,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
 });
 function initTray() {
     //创建托盘图标
-    const trayImage: Electron.NativeImage = nativeImage.createFromPath("./res/tray.png");
+    const trayImage: Electron.NativeImage = nativeImage.createFromPath("./res/icon.ico");
     trayInstance = new Tray(trayImage);
     trayInstance.setTitle("Suisho Connector");
     trayInstance.setToolTip("Suisho Connector");
@@ -717,8 +717,8 @@ ipcMain.on("main_downloadPhoneFile", async (event, downloadFilePath: string) => 
     phoneFileDownloadPathTemp = downloadFilePath;
     if (!phoneFileDownloadWindow) {
         phoneFileDownloadWindow = new BrowserWindow({
-            webPreferences:{
-                partition:"DownloadWindow"
+            webPreferences: {
+                partition: "DownloadWindow"
             },
             show: false,
             focusable: false,

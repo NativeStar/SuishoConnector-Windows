@@ -1,11 +1,15 @@
+const path = require('path');
+
 module.exports = {
   packagerConfig: {
     name: 'Suisho Connector',
+    // 使用绝对路径，避免在不同工作目录下打包时找不到图标而被静默跳过
+    icon: path.resolve(__dirname, 'res', 'icon.ico'),
     win32metadata: {
       CompanyName: 'Suisho Apps',
       ProductName: 'Suisho Connector',
       FileDescription: 'Suisho Connector',
-      OriginalFilename: 'Suisho Connector.exe'
+      OriginalFilename: 'Suisho Connector.exe',
     },
     win:{
       "publisherName": "Suisho Apps",
@@ -38,6 +42,10 @@ module.exports = {
     {
       name: '@electron-forge/maker-wix',
       platforms:["win32"],
+      config: {
+        // WiX installer 侧使用的应用/卸载显示图标
+        icon: path.resolve(__dirname, 'res', 'icon.ico'),
+      },
     },
     // {
     //   name: '@electron-forge/maker-squirrel',
