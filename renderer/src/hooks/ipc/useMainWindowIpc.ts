@@ -6,7 +6,7 @@ interface IpcEvents {
     updateNetworkLatency: number,
     editState: { type: "add" | "remove", id: States },
     trustModeChange: boolean,
-    currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean }
+    currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean,progress: number }
     rebootConfirm: void,
     closeConfirm: void,
     transmitAppendPlainText: string,

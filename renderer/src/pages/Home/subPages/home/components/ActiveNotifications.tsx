@@ -14,7 +14,8 @@ interface ActiveNotification {
     content: string,
     appName: string,
     key: string,
-    isOngoing: boolean
+    isOngoing: boolean,
+    progress:number
 }
 type ActiveNotificationReducerAction = [{
     type: "add" | "remove" | "set" | "clear",
@@ -38,11 +39,12 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
                 <small className="block ml-0.5 mt-0.5 max-w-[99.6%] text-xs">{notification.appName}</small>
                 <b className="block ml-0.5 truncate max-w-[99.6%]">{notification.title}</b>
                 <div ref={contentRef} className={twMerge("block ml-0.5 text-sm max-w-[99.6%] truncate")}>{notification.content}</div>
+                {notification.progress>0&&<mdui-linear-progress max={100} value={notification.progress} className="mt-2 w-11/12" />}
             </div>
             {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} onClick={() => {
                 setSpread(!spread)
             }} />}
-            {!notification.isOngoing && <mdui-icon name="close" onClick={() => onClose(notification.key)} />}
+            {!notification.isOngoing && <mdui-icon name="close" className="absolute right-0" onClick={() => onClose(notification.key)} />}
         </mdui-card>
     )
 }
@@ -85,6 +87,10 @@ export default function ActiveNotifications() {
             updateNotification();
         }, 750);
         const updateNotificationCleanup=ipc.on("currentNotificationUpdate", data => {
+            // console.log(data);
+            if (!data.title&&!data.content) {
+                return
+            }
             activeNotificationDispatch({
                 type: data.type,
                 key: data.key,
@@ -94,7 +100,8 @@ export default function ActiveNotifications() {
                     isOngoing: data.ongoing,
                     key: data.key,
                     packageName: data.packageName,
-                    title: data.title
+                    title: data.title,
+                    progress:data.progress
                 }
             })
         });

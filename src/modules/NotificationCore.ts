@@ -116,7 +116,7 @@ class NotificationCore {
  
      * @returns 
      */
-    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
+    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress:number,ongoing: boolean, forwardToRendererProcess: boolean = true): void {
         //检测
         //单配置检测(优先级最高 强制绕检测等)
         //返回缓存 用于推送时显示处理
@@ -133,7 +133,7 @@ class NotificationCore {
             show: true
         };
         //实时通知显示 暂定不进行处理 直接推
-        this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing });
+        this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing ,progress});
         //熄屏检测
         if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen") && windowsNotificationStateCode.isLockedScreen(windowsNotificationState.shQueryUserNotificationState())) {
             result.show = false;
