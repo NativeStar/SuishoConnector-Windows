@@ -66,3 +66,10 @@ mdui-select::part(text-field){
 .modalVideoIndex{
     z-index:100
 }
+.easterEggText{
+  opacity: 0;
+  transition: opacity .55s ease-in-out;
+}
+.easterEggText:hover{
+  opacity: 1;
+}

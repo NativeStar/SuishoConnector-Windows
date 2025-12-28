@@ -1,7 +1,8 @@
 import fs from "fs-extra";
 import os from "os";
 import randomthing from "randomthing-js";
-import build from "../constant/build.prop.json"
+import ApplicationVersion from "shared/const/ApplicationVersion";
+// import build from "../constant/build.prop.json"
 import textArray from "../constant/LogEasterEggs.json"
 enum LogLevel {
     NONE,//禁用
@@ -115,8 +116,8 @@ Platform:${os.platform()}
 Arch:${os.arch()}
 Execute Path:${process.execPath}
 Current working directory:${process.cwd()}
-Application Version:${build.APPLICATION_VERSION_CODE}
-Application Version Name:${build.APPLICATION_VERSION_NAME}
+Application Version:${ApplicationVersion.APPLICATION_VERSION_CODE}
+Application Version Name:${ApplicationVersion.APPLICATION_VERSION_NAME}
 ()=>     ${this.getRandomEasterEggText()}     <=()
 ------------------------LOG HEADER END ------------------------\n`;
     }

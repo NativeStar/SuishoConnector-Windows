@@ -225,12 +225,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (event) => {
                     }
                 })
             });
-            // 阻止主窗口直接触发下载
-            mainWindow.webContents.session.on("will-download", (event) => {
-                event.preventDefault();
-                //提示
-                mainWindow?.webContents.send("webviewEvent", "showAlert", { title: "下载失败", content: "如需下载 请在文件管理页面右键目标文件" });
-            })
             mainWindow.on("ready-to-show", () => {
                 mainWindow?.setMaximizable(false);
                 connectedDevice.setWindow(<BrowserWindow>mainWindow);

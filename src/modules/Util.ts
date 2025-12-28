@@ -8,7 +8,6 @@ import child_process from 'child_process';
 import build from "../constant/build.prop.json";
 import configTemp from "../constant/configTemplate";
 import os from "os";
-import nodeStreamZip from "node-stream-zip"
 type Config = typeof configTemp;
 class Util {
     static #DEVELOPING = true;
