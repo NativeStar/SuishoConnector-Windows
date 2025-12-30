@@ -159,7 +159,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
                         <small className="text-[gray] mr-3">{time2str(duration)}</small>
                     </div>
                     {/* 进度条 */}
-                    <mdui-slider onMouseDown={() => userControllingSlider.current = true} onMouseUp={() => userControllingSlider.current = false} onChange={onSliderChange} max={duration} value={sliderValue} nolabel className="w-11/12 mt-1"></mdui-slider>
+                    <mdui-slider onPointerDown={() => userControllingSlider.current = true} onPointerUp={() => userControllingSlider.current = false} onChange={onSliderChange} max={duration} value={sliderValue} nolabel className="w-11/12 mt-1"></mdui-slider>
                     {/* 控制 */}
                     <div className="flex justify-center items-center gap-2.5">
                         <mdui-tooltip content={paused ? "播放" : "暂停"} placement="left">

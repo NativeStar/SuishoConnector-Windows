@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { States } from "~/types/applicationState";
 import type { NotificationItem } from "~/types/database";
+import type { MediaSessionMetadata, MediaSessionState } from "~/types/ipc";
 interface IpcEvents {
     updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean };
     updateNetworkLatency: number,
@@ -19,6 +20,8 @@ interface IpcEvents {
     focusNotification: void,
     transmitDragFile: { filename: string, filePath: string, size: number }
     updateDeepHideNotificationCache: { packageName: string, value: boolean }
+    updateMediaSessionMetadata:MediaSessionMetadata
+    updateMediaSessionPlaybackState:MediaSessionState
 }
 let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;
@@ -92,7 +95,8 @@ function useMainWindowIpc() {
         checkAndroidClientPermission: window.electronMainProcess.checkAndroidClientPermission,
         getPhoneDirectoryFiles: window.electronMainProcess.getPhoneDirectoryFiles,
         downloadPhoneFile: window.electronMainProcess.downloadPhoneFile,
-        getPhoneIp: window.electronMainProcess.getPhoneIp
+        getPhoneIp: window.electronMainProcess.getPhoneIp,
+        appendMediaSessionControl: window.electronMainProcess.appendMediaSessionControl,
     }
 }
 export default useMainWindowIpc;

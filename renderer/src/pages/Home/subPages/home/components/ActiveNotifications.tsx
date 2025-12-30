@@ -87,7 +87,6 @@ export default function ActiveNotifications() {
             updateNotification();
         }, 750);
         const updateNotificationCleanup=ipc.on("currentNotificationUpdate", data => {
-            // console.log(data);
             if (!data.title&&!data.content) {
                 return
             }

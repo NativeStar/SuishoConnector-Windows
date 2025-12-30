@@ -4,7 +4,8 @@ import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
 import type { StateAction, StatesListObject } from "../../Home";
 import ApplicationStatesBar from "./components/ApplicationStatesBar";
 import ActiveNotifications from "./components/ActiveNotifications";
-import { confirm } from "mdui";
+// import { confirm } from "mdui";
+import MediaControl from "./components/MediaControl";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
@@ -78,7 +79,8 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             <ApplicationStatesBar states={applicationStates} />
             <br />
             <ActiveNotifications />
-            <mdui-button className="mt-[35%]" onClick={() => {
+            <MediaControl />
+            {/* <mdui-button className="mt-[35%]" onClick={() => {
                 confirm({
                     headline: "关闭程序",
                     description: "确认关闭程序?",
@@ -90,7 +92,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 }).catch(() => { })
             }}>
                 关闭程序
-            </mdui-button>
+            </mdui-button> */}
         </div>
     )
 }

@@ -39,3 +39,15 @@ export type FileItem = {
     name: string,
     size: number
 }
+export type MediaSessionMetadata={
+    title: string
+    artist: string
+    album: string
+    image: string
+    duration:number
+}
+export type MediaSessionState={
+    hasSession:boolean
+    playing:boolean
+    position:number
+}

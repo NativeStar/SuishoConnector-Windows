@@ -75,4 +75,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     setAudioForwardEnable:(enabled)=>{return ipcRenderer.invoke("main_setAudioForward",enabled)},
     //清除日志
     deleteLogs:()=>{return ipcRenderer.invoke("main_deleteLogs")},
+    //发送媒体会话控制
+    appendMediaSessionControl:(action,time)=>{return ipcRenderer.invoke("mediaSession_appendAction",action,time)},
 })

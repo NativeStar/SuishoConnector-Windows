@@ -145,7 +145,7 @@ class Server {
             }, 8000);
             socket.on("message", (data, isBinary) => this.onSocketMessage(data, isBinary, socket));
             socket.on("close", (code, reason) => { this.onSocketClose(code, reason) });
-            ipcMain.handle("debug_fakeMessage", (event, data: Buffer | Buffer | ArrayBuffer) => {
+            ipcMain.handle("debug_fakeMessage", (_event, data: Buffer | Buffer | ArrayBuffer) => {
                 this.onSocketMessage(data, false, socket)
             });
             this.phoneAddress = connectRequest.socket.remoteAddress;
@@ -489,11 +489,16 @@ class Server {
             case "removeActiveNotification":
                 this.appWindow.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "remove", key: jsonObj.key });
                 break
+            case "updateMediaSessionMetadata":
+                this.appWindow.webContents.send("webviewEvent", "updateMediaSessionMetadata", jsonObj);
+                break
+            case "updateMediaSessionPlaybackState":
+                this.appWindow.webContents.send("webviewEvent", "updateMediaSessionPlaybackState", jsonObj);
+                break
             case undefined:
             case null:
                 //无packetType属性
                 logger.writeWarn("Missing packet type");
-                // console.log(jsonObj);
                 break
             default:
                 //检查协议版本
@@ -544,7 +549,7 @@ class Server {
                     window.close();
                 }
             });
-            notification.on("click", event => {
+            notification.on("click", _event => {
                 if (this.appWindow !== null && !this.appWindow.isDestroyed()) {
                     this.appWindow.show();
                     if (this.appWindow.isMinimized()) {
@@ -634,7 +639,7 @@ class Server {
             }
         }
     }
-    createFileSocket(target: string, filePath: string, size?: number, hash?: string): SocketFileWriter | ReferenceError {
+    createFileSocket(target: string, filePath: string, size?: number, _hash?: string): SocketFileWriter | ReferenceError {
         try {
             return new SocketFileWriter(randomThing.number(1, 65535), target, filePath, size || null);
         } catch (error: any) {
@@ -669,19 +674,19 @@ class Server {
      * @memberof server
      */
     async initWebviewHandles(socket: ws) {
-        ipcMain.handle("main_getDeviceDetailInfo", async (event) => {
+        ipcMain.handle("main_getDeviceDetailInfo", async (_event) => {
             try {
                 return await this.responseManager?.send({ packetType: "main_getDeviceDetailInfo" });
             } catch (error) {
                 // console.log(error);
                 logger.writeError(`Failed init webview handle:${error}`)
-                return new Promise((resolve, reject) => {
+                return new Promise((_resolve, reject) => {
                     reject(error);
                 })
             }
         });
         //发包 无响应
-        ipcMain.handle("main_sendPacket", (event, data: string | Object) => {
+        ipcMain.handle("main_sendPacket", (_event, data: string | Object) => {
             //允许直接发送对象
             logger.writeDebug("Renderer send a packet");
             if (data instanceof Object) {
@@ -690,7 +695,7 @@ class Server {
             }
             socket.send(data)
         });
-        ipcMain.handle("main_sendRequestPacket", async (event, data: Object): Promise<any> => {
+        ipcMain.handle("main_sendRequestPacket", async (_event, data: Object): Promise<any> => {
             logger.writeDebug("Renderer send a request packet");
             if (data instanceof Object) {
                 return await this.responseManager?.send(data as any);
@@ -700,7 +705,7 @@ class Server {
             return null;
         });
         //互传pc上传文件
-        ipcMain.handle("transmit_uploadFile", async (event, name, path, size, form) => {
+        ipcMain.handle("transmit_uploadFile", async (_event, name, path, size, form) => {
             try {
                 let uploader: TransmitFileUploader | null = new TransmitFileUploader(path, name, {
                     //发生问题 取消请求并释放资源
@@ -728,16 +733,19 @@ class Server {
                 this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message });
             }
         });
-        ipcMain.handle("file_listDir", async (event, dirPath) => {
+        ipcMain.handle("file_listDir", async (_event, dirPath) => {
             return await this.responseManager?.send({ packetType: "file_getFilesList", msg: dirPath });
         });
-        ipcMain.handle("notificationForward_getPackageList", async (event, forceRefresh: boolean = false) => {
+        ipcMain.handle("notificationForward_getPackageList", async (_event, forceRefresh: boolean = false) => {
             if (!forceRefresh && this.appListCache) {
                 logger.writeDebug("Load package list from cache")
                 return this.appListCache;
             }
             await this.createAppListCache();
             return this.appListCache;
+        });
+        ipcMain.handle("mediaSession_appendAction",(_event,action,time)=>{
+            socket.send(JSON.stringify({packetType:"appendMediaSessionControl",msg:action,time}))
         })
     }
     async checkAndroidClientPermission(permission: string) {
