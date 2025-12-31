@@ -8,5 +8,4 @@ class RequestId{
         this.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE="const0000000001";
     }
 }
-// module.exports=RequestId;
 export default RequestId;

@@ -30,5 +30,4 @@ class WindowsNotificationState {
         return stateCode===this.QUNS_NOT_PRESENT;
     }
 }
-// module.exports = WindowsNotificationState;
 export default WindowsNotificationState

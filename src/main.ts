@@ -24,7 +24,7 @@ import ApkDownloadServer from "./modules/ApkServer";
 import AudioForward from "./modules/AudioForward";
 import configTemplate from "./constant/configTemplate";
 //随机端口号 超过60000的正则不好搞哦
-let serverPort;
+// let serverPort;
 /** @type {PhoneServer} */
 let connectedDevice: PhoneServer;
 /**
@@ -161,17 +161,17 @@ app.on("ready", async (_event, _info) => {
 //ipc
 ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     let trayInitd = false;
-    {
-        const portInfo = await Util.findUsablePort();
-        if (portInfo.state) {
-            serverPort = portInfo.port;
-            logger.writeInfo(`Use port ${portInfo.port}`)
-        } else {
-            //找不到端口
-            logger.writeError(`Cannot find port`);
-            return new Error("找不到可用端口");
-        }
-    }
+    // {
+    //     const portInfo = await Util.findUsablePort();
+    //     if (portInfo.state) {
+    //         serverPort = portInfo.port;
+    //         logger.writeInfo(`Use port ${portInfo.port}`)
+    //     } else {
+    //         //找不到端口
+    //         logger.writeError(`Cannot find port`);
+    //         return new Error("找不到可用端口");
+    //     }
+    // }
     await Util.ensureCert();
     //检测Clash 这玩意会导致拿不到真实ip
     const networkInterfaces = os.networkInterfaces();
@@ -180,7 +180,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
         logger.writeWarn('Found working "Clash" virtual network device');
         return new Error("Clash");
     }
-    connectedDevice = new PhoneServer(<number>serverPort, connectPhoneWindow, {
+    connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
             logger.writeDebug("Invoke open main window");
             //初始化设备配置管理器
@@ -310,8 +310,9 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     global.serverAddress = Util.getIPAdress(os.networkInterfaces());
     //将服务器地址打进全局
     logger.writeInfo(`Local address is ${global.serverAddress}`);
+    const serverPort=await connectedDevice.getPortAsync();
     //手动连接服务
-    manualConnectRedirectServer = new ManualConnect(<number>serverPort, certDownloadServer.serverPost, global.config.deviceId);
+    manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId);
     manualConnectRedirectServer.init();
     return {
         address: global.serverAddress,
@@ -468,11 +469,6 @@ process.on("uncaughtException", (error, _origin) => {
 //是否开发模式
 ipcMain.handle("isDeveloping", _event => {
     return Util.isDeveloping;
-})
-//关闭服务器
-ipcMain.handle("rebootServer", (_event) => {
-    serverPort = randomThing.number(1, 60000);
-    connectedDevice.close();
 });
 //返回基础信息
 ipcMain.handle('main_getDeviceBaseInfo', _event => {

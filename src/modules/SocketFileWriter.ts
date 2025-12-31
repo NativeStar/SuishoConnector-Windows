@@ -1,9 +1,9 @@
-import net from "net";
+import net, { AddressInfo } from "net";
 import { app } from 'electron';
 import fs from "fs-extra";
 import Util from "./Util";
 class SocketFileWriter {
-    port: number;
+    // port: number;
     target: string;
     fileSize: number | null;
     isVerified: boolean;
@@ -11,8 +11,7 @@ class SocketFileWriter {
     writeStream: fs.WriteStream | undefined;
     eventHandle?: FileWriterEventHandle;
     filePath: string;
-    constructor(socketPort: number, writeDir: string, filePath: string, fileSize: number | null) {
-        this.port = socketPort;
+    constructor(writeDir: string, filePath: string, fileSize: number | null) {
         this.target = writeDir;
         this.fileSize = fileSize;
         this.isVerified = false;
@@ -29,13 +28,13 @@ class SocketFileWriter {
         //退出前
         app.addListener("before-quit", this.beforeQuit);
         return new Promise<void>((resolve, reject) => {
-            logger.writeDebug(`Socket file writer listening port:${this.port}`);
-            this.fileSocket.on("error", (err) => { 
+            this.fileSocket.on("error", (err) => {
                 reject(err);
             });
-            this.fileSocket.listen(this.port, () => {
+            this.fileSocket.listen(0, () => {
                 // fs创流
                 try {
+                    logger.writeDebug(`Socket file writer listening port:${this.port}`);
                     fs.ensureDirSync(this.filePath);
                     this.writeStream = fs.createWriteStream(this.target);
                     this.writeStream.on("open", () => resolve());
@@ -108,7 +107,7 @@ class SocketFileWriter {
             }
             logger.writeInfo(`Success download file:${this.target}`);
             this.fileSocket.close();
-            this.writeStream?.close(()=>{
+            this.writeStream?.close(() => {
                 setTimeout(() => {
                     this.eventHandle?.onSuccess(this.target);
                 }, 150);
@@ -125,12 +124,14 @@ class SocketFileWriter {
     setEventHandle(handle: FileWriterEventHandle): void {
         this.eventHandle = handle
     }
+    get port(){
+        return (this.fileSocket.address() as AddressInfo).port
+    }
 }
 interface FileWriterEventHandle {
     onSuccess(file: string): void
     onError(err: Error): void
 }
-export default SocketFileWriter;
 export {
     FileWriterEventHandle,
     SocketFileWriter

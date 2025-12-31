@@ -5,7 +5,6 @@ declare global {
         readonly electronMainProcess: {
             readonly isDeveloping: () => Promise<boolean>;
             readonly devtools: () => Promise<void>;
-            readonly rebootServer: () => Promise<void>;
             readonly rebootApplication: () => Promise<void>;
             readonly closeApplication: () => Promise<void>;
             readonly initServer: () => Promise<Error | InitServerResult>;

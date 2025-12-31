@@ -154,5 +154,4 @@ class TransmitFileUploader {
         })
     }
 }
-// module.exports = TransmitFileUploader;
 export default TransmitFileUploader;

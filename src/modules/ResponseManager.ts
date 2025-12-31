@@ -14,7 +14,7 @@ interface requestObject {
     time: number;
     id: string;
 }
-class rm {
+class ResponseManager {
     private socket: ws;
     private responseMap: Map<string, requestObject>;
     /**
@@ -113,5 +113,4 @@ class rm {
         }, 30 * 1000);
     }
 }
-// module.exports = rm;
-export default rm;
+export default ResponseManager;

@@ -25,7 +25,6 @@ class ManualConnect{
     async init(){
         this.server=createServer(async (req,res)=>{
             if(req.headers["user-agent"]==="Shamiko"){
-                // res.setHeader("Content-Type","application/octet-stream");
                 res.setHeader("Content-Length",this.responseObject.length);
                 res.writeHead(200);
                 res.end(this.responseObject);

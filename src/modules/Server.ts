@@ -1,11 +1,11 @@
 import { BrowserWindow, dialog, app, ipcMain, Notification, Tray } from "electron";
 import { IncomingMessage } from "http";
 import https from "https";
-import ws from "ws";
+import ws, { AddressInfo } from "ws";
 import randomThing from "randomthing-js";
 import fs from "fs-extra";
 import Util from "./Util";
-import RM from "./ResponseManager";
+import ResponseManager from "./ResponseManager";
 import TransmitFileWriter from "./TransmitFileWriter";
 import TransmitFileUploader from "./TransmitFileUploader";
 import NotificationCore from "./NotificationCore";
@@ -38,19 +38,12 @@ class Server {
     socket: ws | null;
     heartBeatDelay: { VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number; REALTIME: number; };
     websocket: ws.Server<typeof ws, typeof IncomingMessage> | null = null;
-    responseManager: RM | null = null;
+    responseManager: ResponseManager | null = null;
     connectTimestamp: number = -1;
     connectTimeoutTimer: NodeJS.Timeout | number | null = null;
     handshakeTime: number = 0;
     private appListCache: Object | null = null;
-    /**
-     * Creates an instance of server.
-     * @param {number} port
-     * @param {BrowserWindow} window
-     * @param {Function} onMessageMainCallbacks 回调
-     * @memberof server
-     */
-    constructor(port: number, window: BrowserWindow, onMessageMainCallbacks: MainHandle) {
+    constructor(window: BrowserWindow, onMessageMainCallbacks: MainHandle) {
         // 是否通过验证 协议版本等
         this.isConnectVerified = false;
         //客户端协议版本
@@ -111,7 +104,7 @@ class Server {
             const server = https.createServer({
                 key: fs.readFileSync(path.resolve(`${certPath}/cert.key`)),
                 cert: fs.readFileSync(path.resolve(`${certPath}/cert.crt`))
-            }).listen(port, "0.0.0.0");
+            }).listen(0, "0.0.0.0");
             this.websocket = new ws.Server({ server });
             logger.writeInfo("Server launched");
         } catch (error: any) {
@@ -129,7 +122,7 @@ class Server {
         };
         this.websocket!.on("connection", (socket, connectRequest) => {
             //返回值管理器
-            this.responseManager = new RM(socket);
+            this.responseManager = new ResponseManager(socket);
             //设置变量
             this.socket = socket;
             //已连接调用
@@ -292,7 +285,7 @@ class Server {
                         //检查是否有文件重名
                         const dirFileList = await fs.readdir(fileDirPath);
                         // 防止路径穿越
-                        jsonObj.name=path.basename(jsonObj.name);
+                        jsonObj.name = path.basename(jsonObj.name);
                         //先正常赋值 之后检查重名
                         jsonObj.displayName = jsonObj.name;
                         for (const dirFileName of dirFileList) {
@@ -330,26 +323,17 @@ class Server {
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug" }));
                             return
                         }
-                        const fileSocket=new TransmitFileWriter(jsonObj.name, `${fileDirPath}${jsonObj.name}`, jsonObj.size, this.appWindow, jsonObj.displayName, jsonObj.encryptKey, jsonObj.encryptIv);
-                        // const fileSocket = this.createTransmitFileSocket(jsonObj.name, `${fileDirPath}${jsonObj.name}`, jsonObj.size, this.appWindow, jsonObj.displayName, jsonObj.encryptKey, jsonObj.encryptIv);
-                        //如果返回值是错误对象
-                        if (fileSocket instanceof ReferenceError) {
-                            logger.writeError(`Transmit failed to create file socket:${fileSocket}`);
-                            this.appWindow.webContents.send("webviewEvent", "showAlert", { title: "接收文件异常", content: fileSocket.stack });
-                            //通知安卓端
-                            socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: `PC端发生异常\n${fileSocket.stack}` }));
-                            return
-                        }
-                        //等待初始化完成
                         try {
+                            const fileSocket = new TransmitFileWriter(jsonObj.name, `${fileDirPath}${jsonObj.name}`, jsonObj.size, this.appWindow, jsonObj.displayName, jsonObj.encryptKey, jsonObj.encryptIv);
+                            //等待初始化完成
                             await fileSocket.init();
                             logger.writeDebug("Transmit file init success");
+                            socket.send(JSON.stringify({ _responseId: jsonObj._requestId, port: fileSocket.port, _result: "SUCCESS" }));
                         } catch (error: any) {
                             logger.writeError(`Init transmit file socket failed:${error}`);
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: `内部异常:创建文件输出流失败\n${error.stack}` }));
                             return
                         }
-                        socket.send(JSON.stringify({ _responseId: jsonObj._requestId, port: fileSocket.port, _result: "SUCCESS" }));
                         break
                     default:
                         logger.writeWarn(`Unknown transmit message type:${jsonObj.messageType}`);
@@ -372,7 +356,7 @@ class Server {
                             return
                         }
                         try {
-                            jsonObj.name=path.basename(jsonObj.name);
+                            jsonObj.name = path.basename(jsonObj.name);
                             await fs.createFile(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${jsonObj.name}`);
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, state: true }));
                             logger.writeInfo(`Transmit success create file:${jsonObj.name}`)
@@ -389,7 +373,7 @@ class Server {
                 break
             case "action_notificationForward":
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key,jsonObj.progress ,jsonObj.ongoing);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing);
                 break
             case "syncIconPack"://同步应用图标资源包
                 const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconArchive`;
@@ -408,13 +392,7 @@ class Server {
                     }
                 }
                 logger.writeDebug("Starting download icon pack");
-                const fileSocket = this.createFileSocket(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`);
-                if (fileSocket instanceof ReferenceError) {
-                    logger.writeError(`Failed to create file socket:${fileSocket}`);
-                    //通知安卓端
-                    socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR" }));
-                    return
-                }
+                const fileSocket = new SocketFileWriter(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`, null);
                 try {
                     await fileSocket.init();
                     //不放在这发送事件时窗口更替还没完成 会崩溃
@@ -428,7 +406,7 @@ class Server {
                         } catch (error) {
                             return false;
                         }
-                    }, 300, 5,"addIconPackReceivingState");
+                    }, 300, 5, "addIconPackReceivingState");
                     fileSocket.setEventHandle({
                         onError: (err) => {
                             logger.writeWarn(`Failed to download application icons pack\n${err}`);
@@ -463,7 +441,7 @@ class Server {
                                 } catch (error) {
                                     return false;
                                 }
-                            },300,5,"removeIconPackReceivingState")
+                            }, 300, 5, "removeIconPackReceivingState")
                         }
                     })
                     logger.writeDebug("File init success");
@@ -618,44 +596,6 @@ class Server {
         logger.writeDebug("first heartbeat polling start");
         socket.ping();
     }
-    /**
-     * @param {String} fileName 文件名
-     * @param {String} writeDir 文件路径
-     * @param {number} fileSize 文件大小
-     * @param {BrowserWindow} webContent 浏览器窗口 发信号用
-     * @param {String} displayName
-     * @memberof server
-     * @returns {TransmitFileWriter | ReferenceError}
-     */
-    // createTransmitFileSocket(fileName: string, writeDir: string, fileSize: number, webContent: BrowserWindow, displayName: string, encryptionKeyBase64: string, encryptIvBase64: string): TransmitFileWriter | ReferenceError {
-    //     //有端口检测了 虽然比较奇葩
-    //     try {
-    //         return new TransmitFileWriter(randomThing.number(1, 65535), fileName, writeDir, fileSize, webContent, displayName, encryptionKeyBase64, encryptIvBase64);
-    //     } catch (error: any) {
-    //         if (error.code === "EADDRINUSE") {
-    //             //端口号重复 重新调用
-    //             return this.createTransmitFileSocket(fileName, writeDir, fileSize, webContent, displayName, encryptionKeyBase64, encryptIvBase64);
-    //         } else {
-    //             //上面处理了 不用日志
-    //             //其他异常
-    //             return new ReferenceError(error.stack);
-    //         }
-    //     }
-    // }
-    createFileSocket(target: string, filePath: string, size?: number, _hash?: string): SocketFileWriter | ReferenceError {
-        try {
-            return new SocketFileWriter(randomThing.number(1, 65535), target, filePath, size || null);
-        } catch (error: any) {
-            if (error.code === "EADDRINUSE") {
-                //端口号重复 重新调用
-                return this.createFileSocket(target, filePath, size || undefined);
-            } else {
-                //上面处理了 不用日志
-                //其他异常
-                return new ReferenceError(error.stack);
-            }
-        }
-    };
 
     /**
      * @description 设置BrowserWindow对象
@@ -747,8 +687,8 @@ class Server {
             await this.createAppListCache();
             return this.appListCache;
         });
-        ipcMain.handle("mediaSession_appendAction",(_event,action,time)=>{
-            socket.send(JSON.stringify({packetType:"appendMediaSessionControl",msg:action,time}))
+        ipcMain.handle("mediaSession_appendAction", (_event, action, time) => {
+            socket.send(JSON.stringify({ packetType: "appendMediaSessionControl", msg: action, time }))
         })
     }
     async checkAndroidClientPermission(permission: string) {
@@ -756,6 +696,29 @@ class Server {
     }
     get clients() {
         return this.websocket?.clients
+    }
+    private getAddressInfo(): AddressInfo | null {
+        const addr = this.websocket?.address() ?? null;
+        if (!addr || typeof addr === "string") return null;
+        return addr;
+    }
+    async getPortAsync(): Promise<number> {
+        const info = this.getAddressInfo();
+        if (info) return info.port;
+        await new Promise<void>((resolve, reject) => {
+            if (!this.websocket) return reject(new Error("WebSocketServer not initialized"));
+            const cleanup = () => {
+                this.websocket?.off("listening", onListening);
+                this.websocket?.off("error", onError);
+            };
+            const onListening = () => { cleanup(); resolve(); };
+            const onError = (err: Error) => { cleanup(); reject(err); };
+            this.websocket.once("listening", onListening);
+            this.websocket.once("error", onError);
+        });
+        const newInfo = this.getAddressInfo();
+        if (!newInfo) throw new Error("Server listening but address unavailable");
+        return newInfo.port;
     }
     getPhoneAddress(): string {
         return this.phoneAddress as string;

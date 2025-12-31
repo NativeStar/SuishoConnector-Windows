@@ -2,8 +2,6 @@ const {contextBridge,ipcRenderer}=require("electron");
 contextBridge.exposeInMainWorld("electronMainProcess",{
     isDeveloping:()=>{return ipcRenderer.invoke("isDeveloping")},
     devtools:()=>ipcRenderer.invoke("openConsole"),
-    //重启服务器 防止端口冲突
-    rebootServer:()=>ipcRenderer.invoke("rebootServer"),
     //重启软件
     rebootApplication:()=>{ipcRenderer.send("reboot_application")},
     //退出

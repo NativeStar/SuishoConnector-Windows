@@ -460,5 +460,4 @@ class NotificationCore {
         logger.writeInfo(`Recheck xml notification permission result: ${this.#hasXmlPermission}`, this.LOG_TAG)
     }
 }
-// module.exports = NotificationCore;
 export default NotificationCore;
