@@ -504,22 +504,23 @@ ipcMain.handle("main_openInExplorer", (_event, type, filePath) => {
             logger.writeInfo(`Open folder in exploder:${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`)
             break
         case "transmitFile":
-            if (!fs.existsSync(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${filePath}`)) {
-                logger.writeInfo(`Request open in Exploder file not found:${filePath}`);
+            const basePathName=path.basename(filePath);
+            if (!fs.existsSync(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${basePathName}`)) {
+                logger.writeInfo(`Request open in Exploder file not found:${basePathName}`);
                 return false;
             }
-            shell.showItemInFolder(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${filePath}`.replaceAll("/", "\\"));
-            logger.writeDebug(`Show file in exploder:{app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${filePath}`);
+            shell.showItemInFolder(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${basePathName}`.replaceAll("/", "\\"));
+            logger.writeDebug(`Show file in exploder:{app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${basePathName}`);
             return true;
     }
 });
 //获取互传文件路径
 ipcMain.handle("transmit_generateTransmitFileURL", (_event, file) => {
     logger.writeDebug(`Generate file URL:file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`);
-    return `file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`.replaceAll("\\", "/");
+    return `file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`.replaceAll("\\", "/");
 });
 ipcMain.handle("main_shellOpenFile", async (_event, file) => {
-    const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`.replaceAll("/", "\\");
+    const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`.replaceAll("/", "\\");
     //检查文件存在
     if (await fs.exists(filePath)) {
         //存在
@@ -733,7 +734,7 @@ ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) =>
             });
         });
     };
-    phoneFileDownloadWindow.loadURL(`https://${connectedDevice?.getPhoneAddress()}:${30767}?filePath=${downloadFilePath}`);
+    phoneFileDownloadWindow.loadURL(`https://${connectedDevice?.getPhoneAddress()}:${30767}?filePath=${encodeURIComponent(downloadFilePath)}`);
 });
 ipcMain.handle("main_deleteLogs", async () => {
     const logPath = `${app.getPath("userData")}/programData/logs`;

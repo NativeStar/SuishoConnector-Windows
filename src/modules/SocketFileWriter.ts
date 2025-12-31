@@ -17,6 +17,7 @@ class SocketFileWriter {
         this.fileSize = fileSize;
         this.isVerified = false;
         this.filePath = filePath;
+        this.beforeQuit = this.beforeQuit.bind(this)
         this.fileSocket = net.createServer(socket => this.onConnection(socket));
         logger.writeDebug("Socket file writer created");
     }
@@ -29,6 +30,9 @@ class SocketFileWriter {
         app.addListener("before-quit", this.beforeQuit);
         return new Promise<void>((resolve, reject) => {
             logger.writeDebug(`Socket file writer listening port:${this.port}`);
+            this.fileSocket.on("error", (err) => { 
+                reject(err);
+            });
             this.fileSocket.listen(this.port, () => {
                 // fs创流
                 try {

@@ -287,8 +287,12 @@ class Server {
                     case "file":
                         //文件存储路径
                         const fileDirPath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`;
+                        //确保目录存在 
+                        await fs.ensureDir(fileDirPath);
                         //检查是否有文件重名
                         const dirFileList = await fs.readdir(fileDirPath);
+                        // 防止路径穿越
+                        jsonObj.name=path.basename(jsonObj.name);
                         //先正常赋值 之后检查重名
                         jsonObj.displayName = jsonObj.name;
                         for (const dirFileName of dirFileList) {
@@ -326,8 +330,8 @@ class Server {
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug" }));
                             return
                         }
-                        await fs.ensureDir(fileDirPath);
-                        const fileSocket = this.createTransmitFileSocket(jsonObj.name, `${fileDirPath}${jsonObj.name}`, jsonObj.size, this.appWindow, jsonObj.displayName, jsonObj.encryptKey, jsonObj.encryptIv);
+                        const fileSocket=new TransmitFileWriter(jsonObj.name, `${fileDirPath}${jsonObj.name}`, jsonObj.size, this.appWindow, jsonObj.displayName, jsonObj.encryptKey, jsonObj.encryptIv);
+                        // const fileSocket = this.createTransmitFileSocket(jsonObj.name, `${fileDirPath}${jsonObj.name}`, jsonObj.size, this.appWindow, jsonObj.displayName, jsonObj.encryptKey, jsonObj.encryptIv);
                         //如果返回值是错误对象
                         if (fileSocket instanceof ReferenceError) {
                             logger.writeError(`Transmit failed to create file socket:${fileSocket}`);
@@ -357,6 +361,7 @@ class Server {
                 //互传创建
                 if (jsonObj.createType === "transmit") {
                     (async () => {
+                        await fs.ensureDir(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`);
                         //检查重名
                         const fileList = await fs.readdir(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`);
                         if (fileList.some((value) => {
@@ -367,6 +372,7 @@ class Server {
                             return
                         }
                         try {
+                            jsonObj.name=path.basename(jsonObj.name);
                             await fs.createFile(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${jsonObj.name}`);
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, state: true }));
                             logger.writeInfo(`Transmit success create file:${jsonObj.name}`)
@@ -621,21 +627,21 @@ class Server {
      * @memberof server
      * @returns {TransmitFileWriter | ReferenceError}
      */
-    createTransmitFileSocket(fileName: string, writeDir: string, fileSize: number, webContent: BrowserWindow, displayName: string, encryptionKeyBase64: string, encryptIvBase64: string): TransmitFileWriter | ReferenceError {
-        //有端口检测了 虽然比较奇葩
-        try {
-            return new TransmitFileWriter(randomThing.number(1, 65535), fileName, writeDir, fileSize, webContent, displayName, encryptionKeyBase64, encryptIvBase64);
-        } catch (error: any) {
-            if (error.code === "EADDRINUSE") {
-                //端口号重复 重新调用
-                return this.createTransmitFileSocket(fileName, writeDir, fileSize, webContent, displayName, encryptionKeyBase64, encryptIvBase64);
-            } else {
-                //上面处理了 不用日志
-                //其他异常
-                return new ReferenceError(error.stack);
-            }
-        }
-    }
+    // createTransmitFileSocket(fileName: string, writeDir: string, fileSize: number, webContent: BrowserWindow, displayName: string, encryptionKeyBase64: string, encryptIvBase64: string): TransmitFileWriter | ReferenceError {
+    //     //有端口检测了 虽然比较奇葩
+    //     try {
+    //         return new TransmitFileWriter(randomThing.number(1, 65535), fileName, writeDir, fileSize, webContent, displayName, encryptionKeyBase64, encryptIvBase64);
+    //     } catch (error: any) {
+    //         if (error.code === "EADDRINUSE") {
+    //             //端口号重复 重新调用
+    //             return this.createTransmitFileSocket(fileName, writeDir, fileSize, webContent, displayName, encryptionKeyBase64, encryptIvBase64);
+    //         } else {
+    //             //上面处理了 不用日志
+    //             //其他异常
+    //             return new ReferenceError(error.stack);
+    //         }
+    //     }
+    // }
     createFileSocket(target: string, filePath: string, size?: number, _hash?: string): SocketFileWriter | ReferenceError {
         try {
             return new SocketFileWriter(randomThing.number(1, 65535), target, filePath, size || null);

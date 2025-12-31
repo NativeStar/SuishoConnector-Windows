@@ -19,7 +19,9 @@ class DownloadServer{
         if(label) this.label=label;
     }
     async init(){
-        if(this.port===null) (await Util.findUsablePort()).port;
+        if(this.port===null){
+            this.port=(await Util.findUsablePort()).port;
+        }
         if(!fs.existsSync(this.filePath)){
             throw new ReferenceError("File not found:"+this.filePath);
         };
@@ -30,7 +32,6 @@ class DownloadServer{
         }else{
             logger.writeInfo(`Download server:${this.label||"Not label"} working with stream mode:${this.filePath}`);
             this.fileStream=fs.createReadStream(this.filePath);
-
         }
         this.server=createServer({
             key: fs.readFileSync("./res/cert/default.key"),

@@ -10,6 +10,7 @@ import windowsNotificationState from "windows-notification-state";
 import windowsNotificationStateCode from "../constant/WindowsNotificationState";
 import path from "path";
 import fs from "fs-extra";
+import xmlEscape from "xml-escape";
 import Util from "./Util";
 import NotificationProfileType from "../interface/INotificationProfile";
 declare global {
@@ -66,7 +67,7 @@ class NotificationCore {
                     hasUpdate = true;
                 }
             }
-            hasUpdate&&this.saveConfig();
+            hasUpdate && this.saveConfig();
             logger.writeInfo("Notification config sync success");
         } else {
             fs.outputJson(this.configPath, jsonTemplate);
@@ -83,12 +84,12 @@ class NotificationCore {
                 logger.writeError(`recreate notification profile file because crash:${error}`);
                 dialog.showErrorBox("通知配置文件损坏", "将会重置配置以尝试修复 请在之后重新进行相关设置\n带来不便深感抱歉\n如该情况频繁发生请发送反馈");
                 this.profile = new Map();
-                fs.writeFile(this.profilePath, "{}");
+                fs.outputFileSync(this.profilePath, "{}");
             }
         } else {
             logger.writeInfo("Created new notification profile file");
             this.profile = new Map();
-            fs.writeFile(this.profilePath, "{}");
+            fs.outputFileSync(this.profilePath, "{}");
         }
         //初始化过滤
         this.filterText = new Set<string>(this.config.filterText);
@@ -295,9 +296,9 @@ class NotificationCore {
             <toast activationType="protocol" launch="suisho:clickNotification">
                 <visual>
                     <binding template="ToastGeneric">
-                        <text>${title}</text>
-                        <text>${content}</text>
-                        <text placement="attribution">${appName}</text>
+                        <text>${xmlEscape(title)}</text>
+                        <text>${xmlEscape(content)}</text>
+                        <text placement="attribution">${xmlEscape(appName)}</text>
                     </binding>
                 </visual>
             </toast>
@@ -455,7 +456,7 @@ class NotificationCore {
         logger.writeDebug("Config object update success")
     }
     recheckXmlPermission(): void {
-        this.#hasXmlPermission = this.checkNotificationPermission();
+        this.#hasXmlPermission = this.checkXmlPermission();
         logger.writeInfo(`Recheck xml notification permission result: ${this.#hasXmlPermission}`, this.LOG_TAG)
     }
 }

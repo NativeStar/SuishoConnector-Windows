@@ -1,4 +1,4 @@
-import net from "net";
+import net, { AddressInfo } from "net";
 import fs from "fs-extra";
 import { BrowserWindow, app } from "electron";
 import Util from "./Util";
@@ -12,7 +12,6 @@ class TransmitFileWriter {
     displayName: string;
     writeStream: null | fs.WriteStream;
     isVerified: boolean;
-    port: number;
     fileSocket: net.Server;
     // decryptionKey:Buffer;
     decipher: crypto.Decipher;
@@ -27,7 +26,7 @@ class TransmitFileWriter {
      * @param {String} displayName 外显名称 
      * @memberof TransmitFileWriter
      */
-    constructor(socketPort: number, fileName: string, writeDir: string, fileSize: number, webContent: BrowserWindow, displayName: string, encryptKeyBase64: string, encryptIvBase64: string) {
+    constructor(fileName: string, writeDir: string, fileSize: number, webContent: BrowserWindow, displayName: string, encryptKeyBase64: string, encryptIvBase64: string) {
         this.fileName = fileName;
         this.outputPath = writeDir;
         this.fileSize = fileSize;
@@ -38,10 +37,9 @@ class TransmitFileWriter {
          * @type {fs.WriteStream|null}
          */
         this.writeStream = null;
+        this.beforeQuit = this.beforeQuit.bind(this);
         //是否已通过验证
         this.isVerified = false;
-        this.port = socketPort;
-        //@ts-ignore
         this.decipher = crypto.createDecipheriv("aes-128-cbc", Buffer.from(encryptKeyBase64, "base64"), Buffer.from(encryptIvBase64, "base64"));
         this.decipher.setAutoPadding(true)
         this.fileSocket = net.createServer(socket => this.onConnectListener(socket));
@@ -54,8 +52,12 @@ class TransmitFileWriter {
         //结束前关闭流
         app.once("before-quit", this.beforeQuit)
         return new Promise<void>((resolve, reject) => {
+            this.fileSocket.on("error", (err) => {
+                logger.writeError(`Transmit file writer error:${err}`);
+                reject(err);
+            });
             //打开成功时回调
-            this.fileSocket.listen(this.port, () => {
+            this.fileSocket.listen(0, () => {
                 //fs创流
                 try {
                     this.writeStream = fs.createWriteStream(this.outputPath);
@@ -79,7 +81,7 @@ class TransmitFileWriter {
         const verifyTimer = setTimeout(() => {
             logger.writeWarn(`Transmit file writer connect timeout. file:${this.outputPath}`);
             socket.end();
-            this.window.webContents.send("webviewEvent", "showAlert", {title:"上传文件失败",content:"客户端响应验证超时"});
+            this.window.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "客户端响应验证超时" });
             this.writeStream?.close();
             fs.remove(this.outputPath);
         }, 8000);
@@ -95,7 +97,7 @@ class TransmitFileWriter {
                     this.isVerified = true;
                     logger.writeInfo(`Transmit file writer device verify success:${data.toString()}`);
                     //通知ui创建文件项和进度条
-                    this.window.webContents.send("webviewEvent", "transmitAppendFile", {displayName:this.displayName, size:this.fileSize, fileName:this.fileName});
+                    this.window.webContents.send("webviewEvent", "transmitAppendFile", { displayName: this.displayName, size: this.fileSize, fileName: this.fileName });
                     //发送开始信号
                     //\r用于掐断readLine
                     if (!socket.destroyed) socket.write("START\r");
@@ -105,7 +107,7 @@ class TransmitFileWriter {
                     //不通过 关闭socket
                     if (!socket.destroyed) socket.end("VERIFY_FAILED\r");
                     //给前端信号显示消息
-                    this.window.webContents.send("webviewEvent", "showAlert", {title:"上传文件失败",content:"设备ID验证失败"});
+                    this.window.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "设备ID验证失败" });
                     return
                 }
             }
@@ -138,7 +140,7 @@ class TransmitFileWriter {
                 this.writeStream?.close();
                 fs.remove(this.outputPath);
                 logger.writeWarn(`Transmit file download failed: file"${this.outputPath}" raw size is ${this.fileSize} but downloaded size is ${this.writeStream?.bytesWritten}`)
-                this.window.webContents.send("webviewEvent", "transmitFileTransmitFailed", {title:"接收失败", message:`文件"${this.fileName}"完整性校验失败`})
+                this.window.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "接收失败", message: `文件"${this.fileName}"完整性校验失败` })
             }
             this.window.setProgressBar(-1)
             this.fileSocket.close();
@@ -151,6 +153,8 @@ class TransmitFileWriter {
             fs.remove(this.outputPath);
         }
     }
+    get port(){
+        return (this.fileSocket.address() as AddressInfo).port
+    }
 }
-// module.exports = TransmitFileWriter;
 export default TransmitFileWriter;
