@@ -62,23 +62,24 @@ class Util {
      * @static
      * @memberof Util
      */
-    static async findUsablePort(): Promise<{ state: boolean, port: number | null }> {
-        let port: number;
-        let loopCount = 0;
-        while (true) {
-            port = randomThing.number(1, 60000);
-            if (await isPortAvailable(port)) {
-                return { state: true, port: port }
-            }
-            loopCount++;
-            //超过次数报找不到端口
-            if (loopCount >= 60000) {
-                return { state: false, port: null }
-            }
-        }
-    }
+    // TODO 删掉涉及的库
+    // static async findUsablePort(): Promise<{ state: boolean, port: number | null }> {
+    //     let port: number;
+    //     let loopCount = 0;
+    //     while (true) {
+    //         port = randomThing.number(1, 60000);
+    //         if (await isPortAvailable(port)) {
+    //             return { state: true, port: port }
+    //         }
+    //         loopCount++;
+    //         //超过次数报找不到端口
+    //         if (loopCount >= 60000) {
+    //             return { state: false, port: null }
+    //         }
+    //     }
+    // }
     /**
-     * @description 是否正在开发 getter
+     * @description 是否处于开发模式
      *
      * @readonly
      * @static

@@ -1,12 +1,11 @@
 import fs from "fs-extra";
-import Util from "./Util";
 import { app } from "electron";
 import ws from "ws";
 import path from "path";
 import { createServer } from "https";
+import { AddressInfo } from "net";
 class TransmitFileUploader {
     filePath: string;
-    port: number | null;
     fileName: string;
     fileSize: number;
     handle: { onCancel: Function; onSuccess: Function; onError: Function; onProgress: Function; };
@@ -22,7 +21,6 @@ class TransmitFileUploader {
      */
     constructor(path: string, name: string, handle: { onCancel: Function; onSuccess: Function; onError: Function; onProgress: Function; }) {
         this.filePath = path;
-        this.port = 0;
         this.fileName = name;
         this.handle = handle;
         this.fileSize = fs.statSync(path).size;
@@ -99,7 +97,7 @@ class TransmitFileUploader {
             logger.writeDebug("Transmit file uploader socket closed because application was quit");
             this.#close();
         });
-        return new Promise(async (resolve, reject) => {
+        return new Promise<number>(async (resolve, reject) => {
             try {
                 if (!await fs.exists(this.filePath)) {
                     logger.writeError(`Transmit upload file not found:${this.filePath}`);
@@ -111,21 +109,13 @@ class TransmitFileUploader {
                 this.fileStream.once("readable", async () => {
                     //清除超时检测
                     clearTimeout(timer);
-                    const findPort = await Util.findUsablePort();
-                    //没端口
-                    if (!findPort.state) {
-                        logger.writeError("Transmit upload file cannot find usable port");
-                        reject(new Error("找不到可用端口"));
-                        this.handle.onCancel();
-                        return
-                    }
                     //开服
-                    this.port = findPort.port;
+                    // this.port = findPort.port;
                     const certPath = path.resolve(`${app.getPath("userData")}/programData/cert/`)
                     const server = createServer({
                         key: fs.readFileSync(path.resolve(`${certPath}/cert.key`)),
                         cert: fs.readFileSync(path.resolve(`${certPath}/cert.crt`))
-                    }).listen(this.port);
+                    }).listen(0);
                     this.uploadSocket = new ws.Server({ server });
                     this.uploadSocket.on("connection", (socket) => this.#onConnection(socket));
                     this.uploadSocket.once("error", () => this.#close());
@@ -137,8 +127,10 @@ class TransmitFileUploader {
                         reject(new Error("手机端超时未响应"));
                         this.handle.onError(new Error("手机端超时未响应"));
                     }, 5000);
+                    server.once("listening", () => {
+                        resolve((server.address() as AddressInfo).port);
+                    });
                     //返回
-                    resolve({ port: findPort });
                 });
                 //超时检测
                 const timer = setTimeout(() => {

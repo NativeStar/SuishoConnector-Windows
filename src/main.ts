@@ -161,17 +161,6 @@ app.on("ready", async (_event, _info) => {
 //ipc
 ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     let trayInitd = false;
-    // {
-    //     const portInfo = await Util.findUsablePort();
-    //     if (portInfo.state) {
-    //         serverPort = portInfo.port;
-    //         logger.writeInfo(`Use port ${portInfo.port}`)
-    //     } else {
-    //         //找不到端口
-    //         logger.writeError(`Cannot find port`);
-    //         return new Error("找不到可用端口");
-    //     }
-    // }
     await Util.ensureCert();
     //检测Clash 这玩意会导致拿不到真实ip
     const networkInterfaces = os.networkInterfaces();
