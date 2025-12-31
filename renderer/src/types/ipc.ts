@@ -21,7 +21,6 @@ export type ApplicationNotificationProfile = {
     disableRecord: boolean
 }
 export type TextFilterConfig = {
-    _cfgVersion: number,
     enable: boolean,
     enableOngoing: boolean,
     filterMode: "blacklist" | "whitelist",

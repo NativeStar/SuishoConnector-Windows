@@ -1,9 +1,5 @@
 export default interface IDeviceConfig{
     /**
-     * 配置版本
-     */
-    _cfgVersion:number;
-    /**
      * 通知转发历史记录保护
      */
     protectNotificationForwardPage:boolean,

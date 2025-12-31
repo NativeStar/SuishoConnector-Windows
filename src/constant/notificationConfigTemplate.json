@@ -1,5 +1,4 @@
 {
-    "_cfgVersion":1,
     "enable":true,
     "enableOngoing":true,
     "filterMode":"blacklist",

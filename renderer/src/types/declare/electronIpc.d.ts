@@ -13,7 +13,7 @@ declare global {
             readonly onPhoneConnectFailed: (callback: Function) => Promise<void>;
             readonly detectProxy: () => Promise<boolean>;
             readonly openProxySetting: () => Promise<void>;
-            readonly getConfig: (key: string) => Promise<null | string | number | boolean>;
+            readonly getConfig: (key: string,defaultValue?:null|string|number|boolean) => Promise<null | string | number | boolean>;
             readonly startAutoConnectBroadcast: () => Promise<void>;
             readonly startApkDownloadServer: () => Promise<void>;
             readonly autoConnectError: (callback: Function) => Promise<void>;
@@ -34,7 +34,7 @@ declare global {
             readonly getDeviceDataPath: () => Promise<string>;
             readonly getAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
             readonly setConfig: (key: string, value: string | number | boolean|null) => Promise<void>;
-            readonly getDeviceConfig: (key: string) => Promise<null | string | number | boolean>;
+            readonly getDeviceConfig: (key: string,defaultValue?:string|boolean|number) => Promise<null | string | number | boolean>;
             readonly getDeviceAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
             readonly setDeviceConfig: (key: string, value: string | number | boolean) => Promise<void>;
             readonly createCredentials: () => Promise<boolean>;

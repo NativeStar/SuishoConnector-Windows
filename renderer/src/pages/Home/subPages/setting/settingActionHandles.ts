@@ -152,7 +152,7 @@ export function rebootSnackbar() {
     })
 }
 export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: ReturnType<typeof useMainWindowIpc>, androidId: string): Promise<boolean> {
-    const currentProtectMethod = await ipc.getDeviceConfig("protectMethod") as ProtectMethod;
+    const currentProtectMethod = await ipc.getDeviceConfig("protectMethod","none") as ProtectMethod;
     const verifyResult = await autoAuthorization(currentProtectMethod, ipc.startAuthorization, androidId, "更改此设置前需要验证");
     if (!verifyResult) {
         snackbar({
@@ -163,7 +163,7 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
     }
     if (targetValue === "oauth") {
         // 无凭证则创建
-        if (!await ipc.getConfig("hasOAuthCredentials")) {
+        if (!await ipc.getConfig("hasOAuthCredentials",false)) {
             snackbar({
                 message: `请在弹出的Windows Hello窗口中确认以初始化凭证`,
                 autoCloseDelay: 4500

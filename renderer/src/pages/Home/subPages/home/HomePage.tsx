@@ -35,7 +35,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
         })
         const updateDeviceStateCleanup = ipc.on("updateDeviceState", async (value) => {
             if (value.charging && value.batteryLevel === 100) {
-                if (batteryFullState.current === false && await ipc.getDeviceConfig("enableBatteryFullNotification")) {
+                if (batteryFullState.current === false && await ipc.getDeviceConfig("enableBatteryFullNotification",false)) {
                     batteryFullState.current = true;
                     //直接用web自带足矣
                     new Notification("手机满电提醒", {

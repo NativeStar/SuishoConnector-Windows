@@ -44,7 +44,7 @@ class NotificationCore {
         this.window = null;
         this.configWindow = null;
         //模板
-        const jsonTemplate = require("../constant/notificationConfigTemplate.json");
+        const jsonTemplate = structuredClone(require("../constant/notificationConfigTemplate.json"));
         //主配置路径
         this.configPath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/notification.json`;
         //应用配置文件路径
@@ -59,21 +59,15 @@ class NotificationCore {
                 logger.writeInfo("Created new notification config file because load old config file failed");
                 this.config = jsonTemplate;
             }
-            //更新配置文件
-            if (this.config._cfgVersion !== jsonTemplate._cfgVersion) {
-                for (const prop of Object.keys(jsonTemplate)) {
-                    if (!Reflect.has(this.config, prop)) {
-                        Reflect.set(this.config, prop, jsonTemplate[prop]);
-                    }
+            let hasUpdate = false;
+            for (const prop of Object.keys(jsonTemplate)) {
+                if (!Reflect.has(this.config, prop)) {
+                    Reflect.set(this.config, prop, jsonTemplate[prop]);
+                    hasUpdate = true;
                 }
-                //更新版本号
-                this.config._cfgVersion = jsonTemplate._cfgVersion;
-                this.saveConfig();
-                logger.writeInfo(`Notification config format version updated to:${this.config._cfgVersion}`);
-            } else {
-                //无需更新
-                logger.writeInfo(`Notification config format version:${this.config._cfgVersion}`)
             }
+            hasUpdate&&this.saveConfig();
+            logger.writeInfo("Notification config sync success");
         } else {
             fs.outputJson(this.configPath, jsonTemplate);
             //TODO 加入key检测模块 处理配置文件更新
@@ -116,7 +110,7 @@ class NotificationCore {
  
      * @returns 
      */
-    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress:number,ongoing: boolean, forwardToRendererProcess: boolean = true): void {
+    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
         //检测
         //单配置检测(优先级最高 强制绕检测等)
         //返回缓存 用于推送时显示处理
@@ -133,13 +127,13 @@ class NotificationCore {
             show: true
         };
         //实时通知显示 暂定不进行处理 直接推
-        this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing ,progress});
+        this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing, progress });
         //熄屏检测
-        if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen") && windowsNotificationStateCode.isLockedScreen(windowsNotificationState.shQueryUserNotificationState())) {
+        if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen", false) && windowsNotificationStateCode.isLockedScreen(windowsNotificationState.shQueryUserNotificationState())) {
             result.show = false;
         };
         //全屏检测
-        if (!global.deviceConfig.getConfigProp("pushNotificationOnFullScreen") && windowsNotificationStateCode.isFullscreen(windowsNotificationState.shQueryUserNotificationState())) {
+        if (!global.deviceConfig.getConfigProp("pushNotificationOnFullScreen", true) && windowsNotificationStateCode.isFullscreen(windowsNotificationState.shQueryUserNotificationState())) {
             result.show = false;
         };
         //是否存在单独配置
@@ -189,7 +183,7 @@ class NotificationCore {
         }
         //无配置文件
         if (!result.useProfile) {
-            switch (global.deviceConfig.getConfigProp("defaultNotificationShowMode")) {
+            switch (global.deviceConfig.getConfigProp("defaultNotificationShowMode", "all")) {
                 case "all":
                     //正常
                     break;
@@ -246,7 +240,7 @@ class NotificationCore {
             }
         }
         //转发给渲染进程 数据原封不动
-        if (global.deviceConfig.getConfigProp("enableNotificationLog") && this.window !== null && forwardToRendererProcess) {
+        if (global.deviceConfig.getConfigProp("enableNotificationLog", true) && this.window !== null && forwardToRendererProcess) {
             this.window.webContents.send("webviewEvent", "notificationAppend", { packageName, appName, title, content, timestamp: time });
         }
         //是否推送

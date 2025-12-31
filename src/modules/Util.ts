@@ -196,20 +196,16 @@ class Util {
         logger.writeInfo("Created start menu shortcut");
     }
     static async updateConfig() {
-        //配置格式版本
-        if (global.config._cfgVersion === configTemp._cfgVersion) {
-            logger.writeInfo(`Config format version:${configTemp._cfgVersion}`);
-            return
-        }
+        let hasUpdate = false;
         for (const prop of Object.keys(configTemp)) {
             if (!Reflect.has(global.config, prop)) {
                 Reflect.set(global.config, prop, configTemp[prop as keyof typeof configTemp]);
-                // global.config[prop as keyof typeof config] = configTemp[prop];
+                (global.config as any)[prop] = configTemp[prop as keyof typeof configTemp];
+                hasUpdate = true;
             }
         }
-        global.config._cfgVersion = configTemp._cfgVersion;
-        logger.writeInfo(`Config format version updated to:${configTemp._cfgVersion}`);
-        await this.saveConfig()
+        hasUpdate && await this.saveConfig()
+        logger.writeInfo("Config format sync success");
     }
     static async saveConfig() {
         await fs.writeJSON(`${app.getPath("userData")}/programData/appCfg.json`, global.config);

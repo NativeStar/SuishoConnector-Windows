@@ -22,6 +22,7 @@ import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/Righ
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
 import AudioForward from "./modules/AudioForward";
+import configTemplate from "./constant/configTemplate";
 //随机端口号 超过60000的正则不好搞哦
 let serverPort;
 /** @type {PhoneServer} */
@@ -63,7 +64,9 @@ if (!app.requestSingleInstanceLock()) {
 }
 app.on("ready", async (_event, _info) => {
     global.logger = new Logger(`${app.getPath("userData")}/programData/logs`);
+    //检查并获取配置文件
     global.config = await Util.loadConfig();
+    await Util.updateConfig();
     global.logger.setLevel(Reflect.get(LogLevel, config.logLevel));
     app.setAsDefaultProtocolClient("suisho", process.execPath, [app.getAppPath()]);
     connectPhoneWindow = new BrowserWindow({
@@ -158,8 +161,6 @@ app.on("ready", async (_event, _info) => {
 //ipc
 ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     let trayInitd = false;
-    //检查并获取配置文件
-    await Util.updateConfig();
     {
         const portInfo = await Util.findUsablePort();
         if (portInfo.state) {
@@ -571,16 +572,16 @@ ipcMain.handle("connectPhone_detectProxy", async () => {
     return await getProxyWindows() !== null
 })
 //获取主配置
-ipcMain.handle("main_getConfig", (_event, prop: string) => {
-    return Reflect.get(global.config, prop) ?? null;
+ipcMain.handle("main_getConfig", (_event, prop: string, defaultValue?: null | string | boolean | number) => {
+    return Reflect.get(global.config, prop) ?? defaultValue ?? null;
 });
 //获取所有配置 方便点
 ipcMain.handle("main_getAllConfig", (_event) => {
     return global.config;
 });
 //获取设备配置 加密啥的
-ipcMain.handle("main_getDeviceConfig", (_event, prop: string) => {
-    return global.deviceConfig.getConfigProp(prop);
+ipcMain.handle("main_getDeviceConfig", (_event, prop: string, defaultValue?: string | boolean | number | null) => {
+    return global.deviceConfig.getConfigProp(prop, defaultValue);
 });
 //获取设备所有配置
 ipcMain.handle("main_getDeviceAllConfig", () => {
@@ -588,21 +589,21 @@ ipcMain.handle("main_getDeviceAllConfig", () => {
 });
 //写入配置
 ipcMain.handle("main_setConfig", (_event, prop: string, value: string | number | boolean | null) => {
-    if (Reflect.has(global.config, prop)) {
-        Reflect.set(global.config, prop, value);
-        //保存配置
-        Util.saveConfig();
-        logger.writeDebug(`Set config ${prop} to ${value}`);
-        //对防录屏配置的处理 即时生效
-        //如果未来需要即时生效的配置增加则独立出去
-        if (prop === "enableContentProtection") {
-            for (const browserWindow of BrowserWindow.getAllWindows()) {
-                browserWindow.setContentProtection(value as boolean);
-            }
-            logger.writeInfo(`${value ? "enabled" : "disabled"} content protection`);
-        }
-    } else {
+    if (!Object.hasOwn(configTemplate, prop)) {
         logger.writeWarn(`Set config ${prop} not found`);
+        return
+    }
+    Reflect.set(global.config, prop, value);
+    //保存配置
+    Util.saveConfig();
+    logger.writeDebug(`Set config ${prop} to ${value}`);
+    //对防录屏配置的处理 即时生效
+    //如果未来需要即时生效的配置增加则独立出去
+    if (prop === "enableContentProtection") {
+        for (const browserWindow of BrowserWindow.getAllWindows()) {
+            browserWindow.setContentProtection(value as boolean);
+        }
+        logger.writeInfo(`${value ? "enabled" : "disabled"} content protection`);
     }
 });
 //写入设备配置

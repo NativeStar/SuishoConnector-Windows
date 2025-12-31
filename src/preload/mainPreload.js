@@ -36,13 +36,13 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     //获取设备数据路径
     getDeviceDataPath:()=>{return ipcRenderer.invoke("main_getDeviceDataPath")},
     //获取配置信息
-    getConfig:(prop)=>{return ipcRenderer.invoke("main_getConfig",prop)},
+    getConfig:(prop,defaultValue)=>{return ipcRenderer.invoke("main_getConfig",prop,defaultValue)},
     //获取所有配置
     getAllConfig:()=>{return ipcRenderer.invoke("main_getAllConfig")},
     //写入配置
     setConfig:(prop,value)=>{return ipcRenderer.invoke("main_setConfig",prop,value)},
     //获取设备设置
-    getDeviceConfig:(prop)=>{return ipcRenderer.invoke("main_getDeviceConfig",prop)},
+    getDeviceConfig:(prop,defaultValue)=>{return ipcRenderer.invoke("main_getDeviceConfig",prop,defaultValue)},
     //获取设备所有配置
     getDeviceAllConfig:()=>{return ipcRenderer.invoke("main_getDeviceAllConfig")},
     //写入设备配置

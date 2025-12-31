@@ -37,7 +37,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
     async function onUnlockButtonClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         if (event.button !== 0 && event.button !== 2) return
         const fullUnlock=event.button === 2;
-        const protectNotificationForwardPage = await ipc.getDeviceConfig("protectNotificationForwardPage") as boolean;
+        const protectNotificationForwardPage = await ipc.getDeviceConfig("protectNotificationForwardPage",false) as boolean;
         //没开启功能
         if (!protectNotificationForwardPage) {
             setCurrentProtectState("fullUnlocked");
@@ -56,7 +56,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
             return
         }
         //解锁
-        const protectMethod: string | null = await ipc.getDeviceConfig("protectMethod") as string | null;
+        const protectMethod: string | null = await ipc.getDeviceConfig("protectMethod","none") as string | null;
         if (protectMethod === "oauth") {
             setUnlockButtonLoading(true);
             ipc.startAuthorization().then(result => {
@@ -186,7 +186,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
             });
             db.addData(notificationData);
         });
-        ipc.getDeviceConfig("protectNotificationForwardPage").then((value) => {
+        ipc.getDeviceConfig("protectNotificationForwardPage",false).then((value) => {
             setCurrentProtectState((value as boolean) ? "protected" : "disabled");
             // 只在开启保护时初始化缓存 毕竟不是所有人都要开这个功能
             if (value) {

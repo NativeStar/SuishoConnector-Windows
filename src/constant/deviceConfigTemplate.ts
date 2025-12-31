@@ -1,5 +1,4 @@
 export default{
-    _cfgVersion:1,
     //保护通知转发页
     protectNotificationForwardPage:false,
     //保护方式

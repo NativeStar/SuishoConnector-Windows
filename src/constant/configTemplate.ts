@@ -1,5 +1,4 @@
 export default {
-    _cfgVersion:1,
     deviceId:"null",
     hasOAuthCredentials:false,
     boundDeviceId:null,

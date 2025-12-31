@@ -19,7 +19,7 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     //打开代理设置
     openProxySetting:()=>{ipcRenderer.send("connectPhone_openProxySetting")},
     //获取配置信息
-    getConfig:(prop)=>{return ipcRenderer.invoke("main_getConfig",prop)},
+    getConfig:(prop,defaultValue)=>{return ipcRenderer.invoke("main_getConfig",prop,defaultValue)},
     //开始自动连接广播
     startAutoConnectBroadcast:()=>{ipcRenderer.send("main_startAutoConnectBroadcast")},
     //开启apk下载服务器

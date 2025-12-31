@@ -23,6 +23,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
         ipc.getDeviceAllConfig().then(res => {
             setDeviceConfig(res);
         });
+        // TODO 等后面更新到东西再改了
         ipc.getAllConfig().then(res => {
             setBoundDeviceId(res.boundDeviceId as string);
             setApplicationConfig(res);
