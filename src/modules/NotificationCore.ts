@@ -15,7 +15,7 @@ import NotificationProfileType from "../interface/INotificationProfile";
 declare global {
     var clientMetadata: {
         androidId: string | "failed",
-        android: number,
+        androidSdkVersion: number,
         model: "UnknownModel" | string,
         oem: "UnknownOEM" | string,
         protocolVersion: number,

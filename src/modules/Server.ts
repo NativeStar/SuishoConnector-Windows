@@ -76,7 +76,7 @@ class Server {
         this.socket = null;
         //设备数据
         global.clientMetadata = {
-            android: 0,
+            androidSdkVersion: 0,
             protocolVersion: 0,
             model: "UnknownModel",
             oem: "UnknownOEM",
@@ -243,8 +243,7 @@ class Server {
                 clearTimeout(<number>this.connectTimeoutTimer);
                 //握手返回的数据
                 //设置全局
-                //TODO 改用TargetAPI识别 这直接读字符串未免离谱了点
-                global.clientMetadata.android = parseFloat(jsonObj.androidVersion);
+                global.clientMetadata.androidSdkVersion = jsonObj.androidVersion
                 global.clientMetadata.protocolVersion = jsonObj.protocolVersion
                 global.clientMetadata.model = jsonObj.modelName;
                 global.clientMetadata.oem = jsonObj.oem;
@@ -519,7 +518,6 @@ class Server {
      * @memberof server
      */
     onSocketClose(code: number, reason: Buffer) {
-        //TODO updateDeviceState包加上时间戳
         if (this.isClosed) return
         this.isClosed = true;
         const reasonString = reason.toString("utf-8");
@@ -561,7 +559,6 @@ class Server {
             })
             notification.show();
         }
-
         //关闭窗口时会触发 但窗口已经关闭了 所以会报错
         //判断窗口
         if (this.isInMainWindow) {

@@ -4,6 +4,7 @@ import path from "path";
 process.chdir(app.getAppPath());
 import { exec } from "child_process";
 import os from "os";
+import { X509Certificate } from "crypto"
 import randomThing from "randomthing-js";
 import fs from "fs-extra";
 //自己的模块
@@ -47,6 +48,7 @@ let phoneFileDownloadWindow: BrowserWindow | null = null;
 */
 let phoneFileDownloadPathTemp: string = "";
 let trayInstance: Tray | null = null;
+let localCertFingerprint256: string | null = null;
 //设备配置管理
 // let deviceConfig:DeviceConfig|null=null;
 declare global {
@@ -59,7 +61,7 @@ if (!app.requestSingleInstanceLock()) {
     //还没初始化日志模块 没必要输出
     app.quit();
 }
-app.on("ready", async (event, info) => {
+app.on("ready", async (_event, _info) => {
     global.logger = new Logger(`${app.getPath("userData")}/programData/logs`);
     global.config = await Util.loadConfig();
     global.logger.setLevel(Reflect.get(LogLevel, config.logLevel));
@@ -102,7 +104,7 @@ app.on("ready", async (event, info) => {
     app.isPackaged ? connectPhoneWindow.loadFile("./dist/renderer/index.html", { hash: "connect-phone" }) : connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone");
     connectPhoneWindow.setMenu(null);
     //阻止多开
-    app.on("second-instance", async (event, args, dir, data) => {
+    app.on("second-instance", async (_event, args, _dir, _data) => {
         //主窗口
         if (mainWindow != null && !mainWindow?.isDestroyed()) {
             logger.writeDebug("Restore main window because of second instance");
@@ -154,7 +156,7 @@ app.on("ready", async (event, info) => {
     });
 });
 //ipc
-ipcMain.handleOnce("connectPhone_initServer", async (event) => {
+ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     let trayInitd = false;
     //检查并获取配置文件
     await Util.updateConfig();
@@ -433,7 +435,7 @@ function initTray() {
     trayInstance.setContextMenu(Menu.buildFromTemplate(trayMenu));
 }
 //未捕获异常弹窗 给点功能选择
-process.on("uncaughtException", (error, origin) => {
+process.on("uncaughtException", (error, _origin) => {
     console.log(error);
     logger.writeError(error);
     dialog.showMessageBox({
@@ -463,16 +465,16 @@ process.on("uncaughtException", (error, origin) => {
     });
 });
 //是否开发模式
-ipcMain.handle("isDeveloping", event => {
+ipcMain.handle("isDeveloping", _event => {
     return Util.isDeveloping;
 })
 //关闭服务器
-ipcMain.handle("rebootServer", (event) => {
+ipcMain.handle("rebootServer", (_event) => {
     serverPort = randomThing.number(1, 60000);
     connectedDevice.close();
 });
 //返回基础信息
-ipcMain.handle('main_getDeviceBaseInfo', event => {
+ipcMain.handle('main_getDeviceBaseInfo', _event => {
     //调用两次不算bug 一次主页一次数据库
     logger.writeDebug(`connected device base info:${global.clientMetadata}`);
     return global.clientMetadata
@@ -488,7 +490,7 @@ ipcMain.handle("main_getUserPath", () => {
 //     return await fs.writeFile(path, str);
 // });
 //使用资源管理器打开文件或文件夹
-ipcMain.handle("main_openInExplorer", (event, type, filePath) => {
+ipcMain.handle("main_openInExplorer", (_event, type, filePath) => {
     switch (type) {
         //互传文件文件夹
         case "transmitFolder":
@@ -511,11 +513,11 @@ ipcMain.handle("main_openInExplorer", (event, type, filePath) => {
     }
 });
 //获取互传文件路径
-ipcMain.handle("transmit_generateTransmitFileURL", (event, file) => {
+ipcMain.handle("transmit_generateTransmitFileURL", (_event, file) => {
     logger.writeDebug(`Generate file URL:file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`);
     return `file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`.replaceAll("\\", "/");
 });
-ipcMain.handle("main_shellOpenFile", async (event, file) => {
+ipcMain.handle("main_shellOpenFile", async (_event, file) => {
     const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`.replaceAll("/", "\\");
     //检查文件存在
     if (await fs.exists(filePath)) {
@@ -529,7 +531,7 @@ ipcMain.handle("main_shellOpenFile", async (event, file) => {
 
 })
 //重启程序
-ipcMain.on("reboot_application", (event): void => {
+ipcMain.on("reboot_application", (_event): void => {
     logger.writeInfo("Reboot application")
     //简单粗暴但有效
     mainWindow?.destroy();
@@ -537,7 +539,7 @@ ipcMain.on("reboot_application", (event): void => {
     app.quit();
 });
 //打开代理设置
-ipcMain.on("connectPhone_openProxySetting", (event) => {
+ipcMain.on("connectPhone_openProxySetting", (_event) => {
     exec("start ms-settings:network-proxy")
 });
 //局域网扫描绑定设备
@@ -555,13 +557,13 @@ ipcMain.on("main_startAutoConnectBroadcast", () => {
     broadcaster.start();
 });
 //退出应用
-ipcMain.on("close_application", (event): void => {
+ipcMain.on("close_application", (_event): void => {
     logger.writeInfo("Close application")
     mainWindow?.destroy();
     app.quit();
 })
 //获取设备数据目录
-ipcMain.handle("main_getDeviceDataPath", (event): string => {
+ipcMain.handle("main_getDeviceDataPath", (_event): string => {
     return `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/`
 });
 //代理检测
@@ -569,15 +571,15 @@ ipcMain.handle("connectPhone_detectProxy", async () => {
     return await getProxyWindows() !== null
 })
 //获取主配置
-ipcMain.handle("main_getConfig", (event, prop: string) => {
+ipcMain.handle("main_getConfig", (_event, prop: string) => {
     return Reflect.get(global.config, prop) ?? null;
 });
 //获取所有配置 方便点
-ipcMain.handle("main_getAllConfig", (event) => {
+ipcMain.handle("main_getAllConfig", (_event) => {
     return global.config;
 });
 //获取设备配置 加密啥的
-ipcMain.handle("main_getDeviceConfig", (event, prop: string) => {
+ipcMain.handle("main_getDeviceConfig", (_event, prop: string) => {
     return global.deviceConfig.getConfigProp(prop);
 });
 //获取设备所有配置
@@ -585,7 +587,7 @@ ipcMain.handle("main_getDeviceAllConfig", () => {
     return global.deviceConfig.getAllConfig();
 });
 //写入配置
-ipcMain.handle("main_setConfig", (event, prop: string, value: string | number | boolean | null) => {
+ipcMain.handle("main_setConfig", (_event, prop: string, value: string | number | boolean | null) => {
     if (Reflect.has(global.config, prop)) {
         Reflect.set(global.config, prop, value);
         //保存配置
@@ -604,7 +606,7 @@ ipcMain.handle("main_setConfig", (event, prop: string, value: string | number | 
     }
 });
 //写入设备配置
-ipcMain.handle("main_setDeviceConfig", (event, prop: string, value: string | number | boolean | null) => {
+ipcMain.handle("main_setDeviceConfig", (_event, prop: string, value: string | number | boolean | null) => {
     global.deviceConfig.setConfig(prop, value)
 });
 //创建凭证
@@ -630,7 +632,7 @@ ipcMain.handle("main_createStartMenuShortcut", () => {
     return Util.hasStartMenuShortcut();
 });
 //使用外部浏览器打开链接
-ipcMain.on("main_openUrl", (event, url: string) => {
+ipcMain.on("main_openUrl", (_event, url: string) => {
     //再次过滤
     if (url.length > 2081 || !Util.checkUrl(url)) {
         logger.writeWarn(`Trying open a invalid or too large URL:${url}`);
@@ -646,10 +648,10 @@ ipcMain.on("main_openUrl", (event, url: string) => {
     shell.openExternal(url);
 })
 //右键菜单
-ipcMain.handle("main_createRightClickMenu", async (event, list: RightClickMenuItem[] | null) => {
+ipcMain.handle("main_createRightClickMenu", async (_event, list: RightClickMenuItem[] | null) => {
     //虽然基本不可能发生
     if (list == null) return RightClickMenuItemId.Null;
-    return new Promise<RightClickMenuItemId>((resolve, reject) => {
+    return new Promise<RightClickMenuItemId>((resolve, _reject) => {
         const menu: Menu = new Menu();
         for (const customMenuItem of list) {
             menu.append(new MenuItem({
@@ -690,7 +692,7 @@ ipcMain.handle("main_openDebugPanel", () => {
         panelWindow.show();
     });
 });
-ipcMain.handle("debug_sendMainWindowEvent", (event, name, ...data) => {
+ipcMain.handle("debug_sendMainWindowEvent", (_event, name, ...data) => {
     mainWindow?.webContents.send("webviewEvent", name, ...data);
 });
 //开启apk下载服务器
@@ -700,20 +702,17 @@ ipcMain.handle("main_startApkDownloadServer", () => {
         apkDownloadServerInstance.start();
     }
 });
-ipcMain.handle("main_checkAndroidClientPermission", (event, permission: string) => {
+ipcMain.handle("main_checkAndroidClientPermission", (_event, permission: string) => {
     return connectedDevice?.checkAndroidClientPermission(permission);
 });
 //获取设备ip
 ipcMain.handle("main_getPhoneIp", () => {
     return connectedDevice?.getPhoneAddress();
 });
-ipcMain.on("main_downloadPhoneFile", async (event, downloadFilePath: string) => {
+ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) => {
     phoneFileDownloadPathTemp = downloadFilePath;
     if (!phoneFileDownloadWindow) {
         phoneFileDownloadWindow = new BrowserWindow({
-            webPreferences: {
-                partition: "DownloadWindow"
-            },
             show: false,
             focusable: false,
             movable: false
@@ -725,7 +724,7 @@ ipcMain.on("main_downloadPhoneFile", async (event, downloadFilePath: string) => 
             url: `https://${connectedDevice.getPhoneAddress()}`,
             sameSite: "no_restriction",
         });
-        phoneFileDownloadWindow.webContents.session.on("will-download", (event, item) => {
+        phoneFileDownloadWindow.webContents.session.on("will-download", (_event, item) => {
             item.setSaveDialogOptions({
                 title: "下载手机上的文件",
                 buttonLabel: "下载到此",
@@ -752,22 +751,26 @@ ipcMain.handle("main_deleteLogs", async () => {
     }
     logger.writeInfo("Deleted all logs");
 });
-app.on("certificate-error", (event, webContents, url, error, cert, callback) => {
-    // console.log(url);
-    if (url.startsWith(`https://${connectedDevice?.getPhoneAddress()}:${30767}`)) {
+app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
+    if (localCertFingerprint256 === null) {
+        const rawLocalCertData = fs.readFileSync(`${app.getPath("userData")}/programData/cert/cert.crt`, { encoding: "utf-8" })
+        localCertFingerprint256 = new X509Certificate(rawLocalCertData).fingerprint256
+    }
+    const remoteCertFingerprint256 = new X509Certificate(cert.data).fingerprint256;
+    if (url.startsWith(`https://${connectedDevice?.getPhoneAddress()}:${30767}`) && localCertFingerprint256 === remoteCertFingerprint256) {
         event.preventDefault();
         callback(true);
     } else {
         dialog.showMessageBox({
             type: "error",
             title: "连接失败",
-            message: "目标地址错误 请尝试重启双方客户端",
+            message: "目标地址或证书错误 请尝试清除移动端证书或重启双方客户端",
             buttons: ["确定"]
         } as MessageBoxOptions);
         callback(false);
     }
 });
-ipcMain.handle("main_setAudioForward", async (event, enable: boolean) => {
+ipcMain.handle("main_setAudioForward", async (_event, enable: boolean) => {
     if (enable) {
         AudioForward.start(connectedDevice.getPhoneAddress())
     } else {
