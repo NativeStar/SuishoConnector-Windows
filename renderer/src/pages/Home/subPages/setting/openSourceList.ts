@@ -41,10 +41,6 @@ export const OpenSourceList:OpenSourceList=[
         url:"https://github.com/Azure/get-proxy-settings"
     },
     {
-        name:"is-port-available",
-        url:"https://github.com/colxi/is-port-available"
-    },
-    {
         name:"js-sha256",
         url:"https://github.com/emn178/js-sha256"
     },
@@ -119,5 +115,9 @@ export const OpenSourceList:OpenSourceList=[
     {
         name:"windows-notification-state",
         url:"https://github.com/felixrieseberg/windows-notification-state"
+    },
+    {
+        name:"node-forge",
+        url:"https://github.com/digitalbazaar/forge"
     }
 ] as const;

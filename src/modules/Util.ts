@@ -6,6 +6,7 @@ import child_process from 'child_process';
 import build from "../constant/build.prop.json";
 import configTemp from "../constant/configTemplate";
 import os from "os";
+import forge from "node-forge"
 type Config = typeof configTemp;
 class Util {
     static #DEVELOPING = true;
@@ -120,39 +121,56 @@ class Util {
      * @memberof Util
      */
     static async ensureCert() {
-        return new Promise<void>(async (resolve, reject) => {
-            const certPath: string = `${app.getPath("userData")}/programData/cert/`;
-            await fs.ensureDir(certPath);
-            if (await fs.exists(`${certPath}cert.crt`) && await fs.exists(`${certPath}cert.key`) && await fs.exists(`${certPath}cert.p12`) && await fs.exists(`${certPath}certs.pak`)) {
-                logger.writeInfo("Certificate exists");
-                resolve();
-                return;
-            }
-            logger.writeInfo("creating certificate");
-            const opensslProcess = child_process.exec(`"${path.resolve("./lib/openssl/openssl.exe")}" req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout "${certPath}cert.key" -out "${certPath}cert.crt" -config "${path.resolve("./lib/openssl/openssl.cnf")}" -subj "/C=CN/ST=Momo/L=Crystal/O=Suisho/OU=SuishoApps/CN=SuishoConnectorEncryption"`);
-            opensslProcess.on("exit", () => {
-                const opensslP12Process = child_process.exec(`"${path.resolve("./lib/openssl/openssl.exe")}" pkcs12 -export -in "${certPath}cert.crt" -inkey "${certPath}cert.key" -out "${certPath}cert.p12" -name "suishoApps" -passout pass:SuishoConnectorPwd`);
-                opensslP12Process.on("exit", async () => {
-                    //创建合并的文件
-                    const crtFileBuffer = await fs.readFile(path.resolve(`${certPath}cert.crt`));
-                    const p12FileBuffer = await fs.readFile(path.resolve(`${certPath}cert.p12`));
-                    //以.crt证书文件大小为分割判断依据
-                    const crtFileSizeDataBuffer = Buffer.alloc(2);
-                    crtFileSizeDataBuffer.writeInt16BE(crtFileBuffer.length);
-                    const outFileBuffer = Buffer.concat([new Uint8Array(crtFileSizeDataBuffer), new Uint8Array(crtFileBuffer), new Uint8Array(p12FileBuffer)]);
-                    fs.writeFile(path.resolve(`${certPath}certs.pak`), new Uint8Array(outFileBuffer));
-                    logger.writeInfo("Created certificate");
-                    //保证证书完成生成 避免加载到空证书
-                    setTimeout(() => {
-                        resolve();
-                    }, 500);
-                })
-            })
-            //防止进程干完活赖着不走 虽然这跟Electron比根本不算啥
-            setTimeout(() => {
-                if (opensslProcess.exitCode === null) opensslProcess.kill();
-            }, 10000);
-        })
+        const certPath: string = `${app.getPath("userData")}/programData/cert/`;
+        await fs.ensureDir(certPath);
+        if (await fs.exists(`${certPath}cert.crt`) && await fs.exists(`${certPath}cert.key`) && await fs.exists(`${certPath}cert.p12`) && await fs.exists(`${certPath}certs.pak`)) {
+            logger.writeInfo("Certificate exists");
+            return;
+        }
+        //crt和key文件
+        const randomBytes = forge.random.getBytesSync(16);
+        const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
+        const cert = forge.pki.createCertificate();
+        cert.publicKey = keyPair.publicKey;
+        cert.serialNumber = forge.util.bytesToHex(randomBytes).replace(/^0+/, "");
+        const date = new Date();
+        cert.validity.notBefore = new Date(date.getTime() - 5 * 60 * 1000);
+        cert.validity.notAfter = new Date(date.getTime() + 3650 * 24 * 60 * 60 * 1000);
+        const certAttr = [
+            { name: "countryName", value: "CN" },
+            { name: "stateOrProvinceName", value: "Momo" },
+            { name: "localityName", value: "Crystal" },
+            { name: "organizationName", value: "Suisho" },
+            { name: "organizationalUnitName", value: "SuishoApps" },
+            { name: "commonName", value: "SuishoConnectorEncryption" },
+        ];
+        cert.setSubject(certAttr);
+        cert.setIssuer(certAttr);
+        cert.setExtensions([
+            { name: "basicConstraints", cA: false },
+            { name: "keyUsage", digitalSignature: true, keyEncipherment: true },
+            { name: "extKeyUsage", serverAuth: true },
+            { name: "subjectKeyIdentifier" },
+        ]);
+        cert.sign(keyPair.privateKey, forge.md.sha256.create());
+        const certPem = forge.pki.certificateToPem(cert);
+        const keyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
+        await fs.writeFile(`${certPath}cert.crt`, certPem);
+        await fs.writeFile(`${certPath}cert.key`, keyPem);
+        //p12文件
+        const p12 = forge.pkcs12.toPkcs12Asn1(keyPair.privateKey, cert, "SuishoConnectorPwd", {
+            algorithm: "3des",
+            generateLocalKeyId: true,
+            friendlyName: "suishoApps",
+        });
+        const p12DerBytes = forge.asn1.toDer(p12).getBytes();
+        await fs.writeFile(`${certPath}cert.p12`, Buffer.from(p12DerBytes, "binary"));
+        //pak文件
+        const crtData = await fs.readFile(`${certPath}cert.crt`);
+        const p12Data = await fs.readFile(`${certPath}cert.p12`);
+        const lenBuf = Buffer.alloc(2);
+        lenBuf.writeUInt16BE(crtData.length, 0);
+        await fs.writeFile(`${certPath}certs.pak`, Buffer.concat([lenBuf, crtData, p12Data]));
     }
     /**
      * @description 创建桌面快捷方式
