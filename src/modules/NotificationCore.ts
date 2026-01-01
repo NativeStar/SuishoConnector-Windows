@@ -71,7 +71,6 @@ class NotificationCore {
             logger.writeInfo("Notification config sync success");
         } else {
             fs.outputJson(this.configPath, jsonTemplate);
-            //TODO 加入key检测模块 处理配置文件更新
             logger.writeInfo("Created new notification config file");
             this.config = jsonTemplate;
         };

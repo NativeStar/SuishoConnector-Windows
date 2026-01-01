@@ -1,5 +1,3 @@
-import isPortAvailable from "is-port-available";
-import randomThing from "randomthing-js";
 import fs from "fs-extra";
 import crypto from "crypto";
 import { app, dialog, shell } from "electron";
@@ -57,27 +55,6 @@ class Util {
         const filteredName = name.replaceAll(" ", "");
         return this.windowsReservedWords.has(filteredName);
     }
-    /**
-     * @description 寻找可用端口
-     * @static
-     * @memberof Util
-     */
-    // TODO 删掉涉及的库
-    // static async findUsablePort(): Promise<{ state: boolean, port: number | null }> {
-    //     let port: number;
-    //     let loopCount = 0;
-    //     while (true) {
-    //         port = randomThing.number(1, 60000);
-    //         if (await isPortAvailable(port)) {
-    //             return { state: true, port: port }
-    //         }
-    //         loopCount++;
-    //         //超过次数报找不到端口
-    //         if (loopCount >= 60000) {
-    //             return { state: false, port: null }
-    //         }
-    //     }
-    // }
     /**
      * @description 是否处于开发模式
      *
