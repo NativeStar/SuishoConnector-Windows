@@ -169,6 +169,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
         logger.writeWarn('Found working "Clash" virtual network device');
         return new Error("Clash");
     }
+    // TODO 加入配对token
     connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
             logger.writeDebug("Invoke open main window");

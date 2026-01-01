@@ -13,9 +13,8 @@ import { setColorScheme } from "mdui";
 import { releaseFfmpeg } from "~/utils";
 export type StatesListObject = { [key in States]?: ApplicationState };
 export type StateAction = [{
-  type: "add" | "remove",
-  id: States,
-  onClick?: () => void
+  type: "add" | "remove"
+  id: States
 }];
 export default function Home() {
   useDevMode();
@@ -28,7 +27,7 @@ export default function Home() {
   const routeRef = useRef<PageRouteRef>(null);
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
     if (action.type === "add") {
-      const stateInstance = getStateInstance(action.id, action.onClick);
+      const stateInstance = getStateInstance(action.id);
       return {
         ...state,
         [action.id]: stateInstance
@@ -86,6 +85,7 @@ export default function Home() {
       alert({
         headline: "通讯中断",
         description: reason ?? "由于未知原因 连接断开",
+        confirmText:"重启应用",
         onConfirm() {
           ipc.rebootApplication();
         },
