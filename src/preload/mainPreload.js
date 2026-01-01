@@ -12,10 +12,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     getDeviceDetailInfo:()=>{return ipcRenderer.invoke("main_getDeviceDetailInfo")},
     //返回数据
     getUserPath:()=>{return ipcRenderer.invoke("main_getUserPath")},
-    //返回互传数据
-    // getTransmitMessages:()=>{return ipcRenderer.invoke("main_getTransmitMessages")},
-    //存盘
-    // writeFile:(path,data)=>{return ipcRenderer.invoke("main_writeFile",path,data)},
     // 文件上传进度
     registerFileUploadProgressListener:handle=>{ipcRenderer.on("fileUploadProgressUpdate",handle)},
     unregisterFileUploadProgressListener:handle=>{ipcRenderer.removeListener("fileUploadProgressUpdate",handle)},

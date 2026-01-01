@@ -17,7 +17,6 @@ const LevelText = {
     [ApplicationStateLevel.Info]: "提醒",
     [ApplicationStateLevel.Warn]: "警告",
     [ApplicationStateLevel.Error]: "异常",
-
 } as const;
 interface ApplicationStateCardProps {
     stateInstance: ApplicationState

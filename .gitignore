@@ -3,6 +3,7 @@ out
 dist
 ./out/
 test
+./test
 srcBackup.zip
 /temp_index.txt
 psd

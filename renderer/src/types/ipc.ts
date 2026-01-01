@@ -1,3 +1,4 @@
+import {TrustMode} from "shared/const/TrustMode"
 export type InitServerResult = {
     address: string | null,
     port: number,
@@ -11,6 +12,9 @@ export type DeviceBaseInfo = {
     oem: string
     protocolVersion: number
     sessionId: string
+}
+export type TrustModeIpc={
+    trustMode:TrustMode
 }
 export type ApplicationNotificationProfile = {
     enableProfile: boolean,

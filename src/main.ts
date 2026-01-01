@@ -299,7 +299,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     global.serverAddress = Util.getIPAdress(os.networkInterfaces());
     //将服务器地址打进全局
     logger.writeInfo(`Local address is ${global.serverAddress}`);
-    const serverPort=await connectedDevice.getPortAsync();
+    const serverPort = await connectedDevice.getPortAsync();
     //手动连接服务
     manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId);
     manualConnectRedirectServer.init();
@@ -369,19 +369,6 @@ function initTray() {
                 logger.writeInfo(`Open folder in exploder(tray):${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`)
             }
         },
-        //debug
-        {
-            label: "调试功能",
-            submenu: [
-                {
-                    label: "打开调试工具",
-                    click: () => {
-                        const allWindows: BrowserWindow[] = BrowserWindow.getAllWindows();
-                        allWindows[0].webContents.openDevTools();
-                    }
-                }
-            ]
-        },
         {
             type: "separator"
         },
@@ -423,6 +410,20 @@ function initTray() {
             }
         }
     ];
+    if (!app.isPackaged) {
+        trayMenu.push({
+            label: "调试功能",
+            submenu: [
+                {
+                    label: "打开调试工具",
+                    click: () => {
+                        const allWindows: BrowserWindow[] = BrowserWindow.getAllWindows();
+                        allWindows[0].webContents.openDevTools();
+                    }
+                }
+            ]
+        },)
+    }
     trayInstance.setContextMenu(Menu.buildFromTemplate(trayMenu));
 }
 //未捕获异常弹窗 给点功能选择
@@ -470,11 +471,6 @@ ipcMain.handle("main_getUserPath", () => {
     logger.writeDebug(`Return user path:${app.getPath("userData")}`);
     return app.getPath("userData");
 });
-//写入文件
-// ipcMain.handle("main_writeFile", async (event, path, str) => {
-//     logger.writeDebug(`Renderer process request write file:${path}`)
-//     return await fs.writeFile(path, str);
-// });
 //使用资源管理器打开文件或文件夹
 ipcMain.handle("main_openInExplorer", (_event, type, filePath) => {
     switch (type) {
@@ -489,7 +485,7 @@ ipcMain.handle("main_openInExplorer", (_event, type, filePath) => {
             logger.writeInfo(`Open folder in exploder:${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`)
             break
         case "transmitFile":
-            const basePathName=path.basename(filePath);
+            const basePathName = path.basename(filePath);
             if (!fs.existsSync(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${basePathName}`)) {
                 logger.writeInfo(`Request open in Exploder file not found:${basePathName}`);
                 return false;
@@ -616,7 +612,9 @@ ipcMain.handle("main_startAuthorization", async () => {
 ipcMain.handle("main_createStartMenuShortcut", () => {
     Util.createStartMenuShortcut();
     connectedDevice.getNotificationManager()?.recheckXmlPermission();
-    return Util.hasStartMenuShortcut();
+    const result=Util.hasStartMenuShortcut();
+    result&&mainWindow?.webContents.send("webviewEvent", "editState", { type: "remove", id: "warn_xml_notification_cannot_show" });
+    return result
 });
 //使用外部浏览器打开链接
 ipcMain.on("main_openUrl", (_event, url: string) => {
@@ -678,9 +676,6 @@ ipcMain.handle("main_openDebugPanel", () => {
     panelWindow.once("ready-to-show", () => {
         panelWindow.show();
     });
-});
-ipcMain.handle("debug_sendMainWindowEvent", (_event, name, ...data) => {
-    mainWindow?.webContents.send("webviewEvent", name, ...data);
 });
 //开启apk下载服务器
 ipcMain.handle("main_startApkDownloadServer", () => {

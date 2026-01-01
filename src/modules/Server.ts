@@ -13,7 +13,6 @@ import RequestId from "../constant/RequestId";
 import os from "os";
 import ConnectionCloseCode from "../enum/ConnectionCloseCode";
 import ConnectionCloseReasonString from "../constant/CloseCodeReasonString";
-
 import path from "path";
 import nodeStreamZip from "node-stream-zip";
 import { SocketFileWriter } from "./SocketFileWriter";
@@ -138,9 +137,6 @@ class Server {
             }, 8000);
             socket.on("message", (data, isBinary) => this.onSocketMessage(data, isBinary, socket));
             socket.on("close", (code, reason) => { this.onSocketClose(code, reason) });
-            ipcMain.handle("debug_fakeMessage", (_event, data: Buffer | Buffer | ArrayBuffer) => {
-                this.onSocketMessage(data, false, socket)
-            });
             this.phoneAddress = connectRequest.socket.remoteAddress;
             logger.writeInfo(`Receive connection from ${connectRequest.socket.remoteAddress}`);
             //退出前收尾

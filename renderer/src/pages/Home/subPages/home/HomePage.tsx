@@ -6,6 +6,8 @@ import ApplicationStatesBar from "./components/ApplicationStatesBar";
 import ActiveNotifications from "./components/ActiveNotifications";
 // import { confirm } from "mdui";
 import MediaControl from "./components/MediaControl";
+import type { TrustModeIpc } from "~/types/ipc";
+import { TrustMode } from "shared/const/TrustMode";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
@@ -53,6 +55,13 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 memoryUsage: ((value.memInfo.total - value.memInfo.avail) / value.memInfo.total) * 100
             }))
         });
+        // 信任模式获取
+        ipc.sendRequestPacket<TrustModeIpc>({ packetType: "main_getTrustMode"}).then(value=>{
+            value.trustMode==TrustMode.UNTRUSTED && applicationStatesDispatch({
+                type: "add",
+                id: "info_device_not_trusted"
+            });
+        })
         const updateNetworkLatencyCleanup = ipc.on("updateNetworkLatency", value => {
             setDeviceState(prevState => ({ ...prevState, latency: value }))
         });
