@@ -28,7 +28,6 @@ class DownloadServer {
             this.fileData = fs.readFileSync(this.filePath);
         } else {
             logger.writeInfo(`Download server:${this.label || "Not label"} working with stream mode:${this.filePath}`);
-            this.fileStream = fs.createReadStream(this.filePath);
         }
         this.server = createServer({
             key: fs.readFileSync("./res/cert/default.key"),
@@ -42,6 +41,10 @@ class DownloadServer {
                 if (this.fileData !== null) {
                     res.end(this.fileData);
                 } else {
+                    if (this.fileStream) {
+                        this.fileStream.close();
+                    }
+                    this.fileStream = fs.createReadStream(this.filePath);
                     this.fileStream?.pipe(res);
                 }
                 logger.writeInfo(`Download server sent file:${this.filePath}`);

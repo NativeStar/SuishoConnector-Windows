@@ -666,7 +666,7 @@ class Server {
                     onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message })
                 });
                 const uploaderPort=await uploader.init();
-                this.responseManager?.send({ packetType: "transmit_uploadFile", port: uploaderPort, fileName: name, _request_id: RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE, fileSize: size });
+                await this.responseManager?.send({ packetType: "transmit_uploadFile", port: uploaderPort, fileName: name, _request_id: RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE, fileSize: size });
             } catch (error: any) {
                 logger.writeError(`Upload file failed:${error}`);
                 this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message });
