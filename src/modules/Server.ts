@@ -515,7 +515,7 @@ class Server {
             });
             //关闭除主窗口和调试窗口外所有窗口
             BrowserWindow.getAllWindows().forEach(window => {
-                if (!window.title.startsWith("Suisho Connector:") && window.title !== "DebugPanel") {
+                if (!window.title.startsWith("Suisho Connector:")) {
                     //如果这些窗口在焦点 则将主窗口拉起
                     if (window.isFocused()) {
                         this.appWindow.show();

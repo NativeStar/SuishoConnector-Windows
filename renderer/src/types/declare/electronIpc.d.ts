@@ -40,7 +40,6 @@ declare global {
             readonly startAuthorization: () => Promise<boolean>;
             readonly createStartMenuShortcut: () => Promise<boolean>;
             readonly openUrl: (url: string) => Promise<void>;
-            readonly openDebugPanel: () => Promise<void>;
             readonly getFilePath: (file: File) => string;
             readonly checkAndroidClientPermission: (permission: string) => Promise<{ result: boolean }>;
             readonly getPhoneDirectoryFiles: (path: string) => Promise<{code:number,files:FileItem[]}>

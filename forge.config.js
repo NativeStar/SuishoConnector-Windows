@@ -30,10 +30,11 @@ module.exports = {
       "node_modules/@types",
       "forge.config.js",
       "tsconfig.json",
-      "assets.old",
       "^/renderer(/|$)",
       ".claude",
       ".gitignore",
+      "CLAUDE.md",
+      "AGENTS.md"
     ]
   },
   rebuildConfig: {

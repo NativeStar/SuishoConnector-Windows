@@ -55,8 +55,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     createRightClickMenu:(itemList)=>{return ipcRenderer.invoke("main_createRightClickMenu",itemList)},
     //使用浏览器打开url
     openUrl:(url)=>{ipcRenderer.send("main_openUrl",url)},
-    //打开调试面板
-    openDebugPanel:()=>{ipcRenderer.invoke("main_openDebugPanel")},
     //获取文件路径
     getFilePath:(file)=>{return webUtils.getPathForFile(file)},
     //检查安卓端权限

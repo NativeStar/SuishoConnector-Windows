@@ -66,7 +66,6 @@ function useMainWindowIpc() {
         },
         closeApplication: window.electronMainProcess.closeApplication,
         rebootApplication: window.electronMainProcess.rebootApplication,
-        openDebugPanel: window.electronMainProcess.openDebugPanel,
         getDeviceBaseInfo: window.electronMainProcess.getDeviceBaseInfo,
         getDeviceDetailInfo: window.electronMainProcess.getDeviceDetailInfo,
         sendPacket: window.electronMainProcess.sendPacket,

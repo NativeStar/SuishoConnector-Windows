@@ -4,20 +4,6 @@ import type { TransmitMessageListDispatch } from "../TransmitPage";
 import type useDatabase from "~/hooks/useDatabase";
 import type { TransmitTextMessage } from "~/types/database";
 import type { VirtuosoHandle } from "react-virtuoso";
-//打开debug面板
-let codeIndex = 0;
-const konamiCode = [
-    "ArrowUp",
-    "ArrowUp",
-    "ArrowDown",
-    "ArrowDown",
-    "ArrowLeft",
-    "ArrowRight",
-    "ArrowLeft",
-    "ArrowRight",
-    "b",
-    "a"
-];
 interface TransmitTextInputAreaProps {
     messageDispatch: React.ActionDispatch<TransmitMessageListDispatch>,
     database: ReturnType<typeof useDatabase<"transmit">>,
@@ -28,15 +14,6 @@ export default function TransmitTextInputArea({ messageDispatch, database ,list}
         if (event.ctrlKey && event.key === "Enter") {
             sendTextMessage()
             return
-        }
-        if (event.key === konamiCode[codeIndex]) {
-            codeIndex++;
-            if (codeIndex === konamiCode.length) {
-                codeIndex = 0;
-                ipc.openDebugPanel();
-            }
-        } else {
-            codeIndex = 0;
         }
     }
     function sendTextMessage() {

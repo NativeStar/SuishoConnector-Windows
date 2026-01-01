@@ -339,7 +339,6 @@ function initTray() {
                     preload: path.join(__dirname, 'preload/mainPreload.js'),
                 }
             });
-            mainWindow.loadFile("./assets/html/main.html");
             mainWindow.setMenu(null);
             mainWindow.hookWindowMessage(278, () => {
                 mainWindow?.setEnabled(false);
@@ -347,6 +346,7 @@ function initTray() {
                     mainWindow?.setEnabled(true);
                 }, 50);
             });
+            app.isPackaged ? mainWindow.loadFile("./dist/renderer/index.html", { hash: "home" }) : mainWindow.loadURL("http://localhost:5173/#/home");
             mainWindow.once("ready-to-show", () => {
                 mainWindow?.show();
                 logger.writeInfo("Opened main window");
@@ -612,8 +612,8 @@ ipcMain.handle("main_startAuthorization", async () => {
 ipcMain.handle("main_createStartMenuShortcut", () => {
     Util.createStartMenuShortcut();
     connectedDevice.getNotificationManager()?.recheckXmlPermission();
-    const result=Util.hasStartMenuShortcut();
-    result&&mainWindow?.webContents.send("webviewEvent", "editState", { type: "remove", id: "warn_xml_notification_cannot_show" });
+    const result = Util.hasStartMenuShortcut();
+    result && mainWindow?.webContents.send("webviewEvent", "editState", { type: "remove", id: "warn_xml_notification_cannot_show" });
     return result
 });
 //使用外部浏览器打开链接
@@ -658,24 +658,6 @@ ipcMain.handle("main_createRightClickMenu", async (_event, list: RightClickMenuI
         });
         menu.popup();
     })
-});
-ipcMain.handle("main_openDebugPanel", () => {
-    const panelWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            contextIsolation: true,
-            preload: path.resolve(path.join(__dirname, "preload/debugPanelPreload.js")),
-            // v8CacheOptions
-        },
-        show: false,
-    });
-    panelWindow.loadFile("./assets/html/debugPanel.html");
-    panelWindow.setMenu(null);
-    panelWindow.setContentProtection(global.config.enableContentProtection);
-    panelWindow.once("ready-to-show", () => {
-        panelWindow.show();
-    });
 });
 //开启apk下载服务器
 ipcMain.handle("main_startApkDownloadServer", () => {
