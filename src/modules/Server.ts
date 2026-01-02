@@ -120,6 +120,12 @@ class Server {
             })
         };
         this.websocket!.on("connection", (socket, connectRequest) => {
+            // 当已有成功连接时 禁止后续连接
+            if (this.socket) {
+                logger.writeInfo(`Reject new connection because already connected.Address: ${connectRequest.socket.remoteAddress}`);
+                socket.close(ConnectionCloseCode.CONNECTION_ALREADY_EXISTS, ConnectionCloseReasonString[ConnectionCloseCode.CONNECTION_ALREADY_EXISTS])
+                return
+            }
             //返回值管理器
             this.responseManager = new ResponseManager(socket);
             //设置变量

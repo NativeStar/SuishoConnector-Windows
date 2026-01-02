@@ -5,5 +5,6 @@ const CloseReason={
     1003:"手机端Wifi断开",
     1006:"由于响应超时或未知异常 连接被关闭",
     1007:"手机端程序崩溃 连接中断",
+    1008:"计算表已有连接"
 };
 export default CloseReason;

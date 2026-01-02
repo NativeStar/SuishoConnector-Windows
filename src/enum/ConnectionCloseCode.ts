@@ -11,5 +11,7 @@ enum ConnectionCloseCode {
     CloseHeartBeatTimeout=1006,
     //手机端崩溃
     CloseFromClientCrash=1007,
+    // 已有连接
+    CONNECTION_ALREADY_EXISTS=1008
 }
 export default ConnectionCloseCode;
