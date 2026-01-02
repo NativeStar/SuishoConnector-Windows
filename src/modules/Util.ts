@@ -5,15 +5,24 @@ import path from "path";
 import child_process from 'child_process';
 import build from "../constant/build.prop.json";
 import configTemp from "../constant/configTemplate";
+import {VirtualNetworkDriverName} from "../constant/VirtualNetworkDriverName"
 import os from "os";
 import forge from "node-forge"
 type Config = typeof configTemp;
 class Util {
-    static #DEVELOPING = true;
+    private static Developing = true;
     //Windows文件名保留字
-    static windowsReservedWords = new Set(["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]);
+    private static windowsReservedWords = new Set(["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]);
     //url判断正则
-    static urlRegexp = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
+    private static urlRegexp = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
+    private static checkNetworkDriverName(name:string){
+        for (const virtualName of VirtualNetworkDriverName) {
+            if (name.toLowerCase().includes(virtualName.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
     static delay(ms = 0) {
         return new Promise<void>((resolve, reject) => {
             setTimeout(() => {
@@ -31,12 +40,11 @@ class Util {
     static getIPAdress(interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>): string | null {
         for (let devName in interfaces) {
             //跳过虚拟网卡 仅排查我碰到过的
-            const deviceNameLowCase = devName.toLowerCase();
-            if (deviceNameLowCase.includes("vmware") || deviceNameLowCase.includes("vethernet") || deviceNameLowCase.includes("virtual")) {
+            if (this.checkNetworkDriverName(devName)) {
                 logger.writeDebug(`Skipping virtual network device:${devName}`);
                 continue
             }
-            let iface = interfaces[devName] /* as unknown as os.NetworkInterfaceInfo[] */;
+            let iface = interfaces[devName];
             if (iface == null) return null;
             for (let i = 0; i < iface.length; i++) {
                 var alias = iface[i];
@@ -64,7 +72,7 @@ class Util {
      * @memberof Util
      */
     static get isDeveloping(): boolean {
-        return this.#DEVELOPING;
+        return this.Developing;
     }
     /**
      * @static
