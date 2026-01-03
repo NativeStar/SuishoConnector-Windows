@@ -6,4 +6,6 @@ test
 ./test
 srcBackup.zip
 /temp_index.txt
-/psd
+/psd/
+/.claude/
+/.vscode/
