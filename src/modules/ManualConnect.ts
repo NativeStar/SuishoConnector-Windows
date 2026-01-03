@@ -1,4 +1,5 @@
-import { createServer, Server } from "http";
+import { createServer, Server } from "https";
+import fs from "fs-extra";
 import randomThing from "randomthing-js"
 class ManualConnect {
     serverPort: number;
@@ -33,10 +34,13 @@ class ManualConnect {
         });
     }
     async init() {
-        this.server = createServer(async (req, res) => {
+        this.server = createServer({
+            key: fs.readFileSync("./res/cert/default.key"),
+            cert: fs.readFileSync("./res/cert/default.crt")
+        }, async (req, res) => {
             const ip = req.socket.remoteAddress ?? null;
             if (req.headers["user-agent"] === "Shamiko") {
-                if (ip&&this.ipConnectCounter.has(ip)&&this.ipConnectCounter.get(ip)!>5) {
+                if (ip && this.ipConnectCounter.has(ip) && this.ipConnectCounter.get(ip)! > 5) {
                     res.writeHead(429);
                     res.end(JSON.stringify({
                         success: false,
