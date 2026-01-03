@@ -288,19 +288,19 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     });
     //SSL证书下载服务器
     if (certDownloadServer === null) {
-        certDownloadServer = new DownloadServer(`${path.resolve(`${app.getPath("userData")}/programData/cert/certs.pak`)}`, 6735, "SSLCertDownload");
+        certDownloadServer = new DownloadServer(`${path.resolve(`${app.getPath("userData")}/programData/cert/certs.pak`)}`, 6735, "SSLCertDownload",connectedDevice.pairToken);
         await certDownloadServer.init();
         logger.writeInfo(`Cert download server started at port:${certDownloadServer.serverPost}`);
     } else {
         logger.writeDebug("Skipped download server init")
     }
-    global.serverAddress = Util.getIPAdress(os.networkInterfaces());
-    //将服务器地址打进全局
-    logger.writeInfo(`Local address is ${global.serverAddress}`);
     const serverPort = await connectedDevice.getPortAsync();
     //手动连接服务
     manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId,connectedDevice.pairToken);
     manualConnectRedirectServer.init();
+    global.serverAddress = Util.getIPAdress(os.networkInterfaces());
+    //将服务器地址打进全局
+    logger.writeInfo(`Local address is ${global.serverAddress}`);
     return {
         address: global.serverAddress,
         port: serverPort,

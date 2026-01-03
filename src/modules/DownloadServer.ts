@@ -9,8 +9,11 @@ class DownloadServer {
     private label?: string;
     private fileData: Buffer | null;
     private fileSize: number;
-    constructor(file: string, port: number | null, label?: string) {
+    private pairToken: string|null;
+    private static readonly LOG_TAG: string = "DownloadServer";
+    constructor(file: string, port: number | null, label?: string,pairToken?:string) {
         this.port = port;
+        this.pairToken = pairToken??null;
         this.filePath = file;
         this.server = null;
         this.fileStream = null;
@@ -35,6 +38,12 @@ class DownloadServer {
         }, (req, res) => {
             //对上ua才发送
             if (req.headers["user-agent"] === "I HATE YOU") {
+                if (this.pairToken&&req.headers["suisho-pair-token"] !== this.pairToken) {
+                    res.writeHead(403);
+                    res.end("Pair token error");
+                    logger.writeInfo(`Download server:${this.label || "Not label"} verify pair token failed.IP:${req.socket.remoteAddress}`);
+                    return
+                }
                 res.setHeader("Content-Type", "application/octet-stream");
                 res.setHeader("Content-Length", this.fileSize);
                 res.writeHead(200);

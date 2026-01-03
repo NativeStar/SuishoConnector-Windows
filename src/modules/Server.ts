@@ -130,7 +130,6 @@ class Server {
                 return
             }
             const pairTokenHeader = connectRequest.headers["suisho-pair-token"];
-            console.log(connectRequest.headers,pairTokenHeader,this.pairToken);
             if (pairTokenHeader !== this.pairToken) {
                 logger.writeInfo(`Connection authorization failed.Address:${connectRequest.socket.remoteAddress}`);
                 socket.close(ConnectionCloseCode.AuthorizationFailed, ConnectionCloseReasonString[ConnectionCloseCode.AuthorizationFailed])
