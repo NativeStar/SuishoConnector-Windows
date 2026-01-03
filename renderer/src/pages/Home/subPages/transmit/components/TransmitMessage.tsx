@@ -113,7 +113,6 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                 ipc.unregisterFileUploadProgressListener(progressListener);
             }
         }
-        // TODO 把这个改为点击时才操作
         if(!data.isDeleted&&data.from==="phone"){
             ipc.generateTransmitFileURL(data.name).then(fullPath => {
                 fileFullPathRef.current = fullPath;

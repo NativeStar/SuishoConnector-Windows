@@ -24,5 +24,7 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     startApkDownloadServer:()=>{ipcRenderer.invoke("main_startApkDownloadServer")},
     //隐藏自动连接提示
     autoConnectError:callback=>{ipcRenderer.on("main_autoConnectError",callback)},
+    //使用浏览器打开url
+    openUrl:(url)=>{ipcRenderer.send("main_openUrl",url)},
     
 })

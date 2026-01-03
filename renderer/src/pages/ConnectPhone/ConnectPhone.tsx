@@ -84,6 +84,9 @@ export default function ConnectPhone() {
     connectPhoneWindowIpc.on("autoConnectorError", () => {
         setIsAutoConnectorError(true);
     });
+    function openProjectUrl() {
+        connectPhoneWindowIpc.openUrl("https://github.com/NativeStar/SuishoConnector-Windows");
+    }
     function showManualConnectDialog() {
         // 39865固定的手动连接中转端口
         mdui.alert({
@@ -106,7 +109,7 @@ export default function ConnectPhone() {
                     <QRCodeSVG className="mt-6" value={`http://${qrcodeData?.address ?? "ERROR"}:25120/suishoPkgDownload`} size={150} bgColor="#fdf7fe" fgColor="#707070" />
                     <span className="text-[gray] mt-5">
                         或者手机访问官方
-                        <a href="javascript:void(0);" target="_blank" className="text-[gray] underline"> Github仓库 </a>
+                        <a className="text-[gray] underline" style={{cursor:"pointer"}} onClick={openProjectUrl}> Github仓库 </a>
                         下载安卓端
                     </span>
                     <mdui-tooltip content="返回">

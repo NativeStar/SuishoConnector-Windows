@@ -22,6 +22,7 @@ function useConnectPhoneWindowIpc() {
         getBoundDeviceId:():Promise<null|string>=>window.electronMainProcess.getConfig("boundDeviceId") as Promise<null|string>,
         startAutoConnectBroadcast:window.electronMainProcess.startAutoConnectBroadcast,
         startApkDownloadServer:window.electronMainProcess.startApkDownloadServer,
+        openUrl:window.electronMainProcess.openUrl,
     }
 }
 export default useConnectPhoneWindowIpc;
