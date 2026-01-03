@@ -46,6 +46,7 @@ class TransmitFileUploader {
         //验证并发送消息
         socket.on("message", (data) => {
             clearTimeout(verifyTimer);
+            // TODO 改使用sessionId验证
             if (data.toString("utf-8") === global.clientMetadata.androidId) {
                 logger.writeInfo(`Upload file device verify success`);
                 //通过

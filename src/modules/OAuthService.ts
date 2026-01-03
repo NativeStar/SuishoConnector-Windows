@@ -34,7 +34,7 @@ class OAuthService {
             await fs.writeFile(`${app.getPath("userData")}/programData/oauth.bin`,new DataView(buffer));
             logger.writeInfo("Saved oauth key binary");
         })
-        this.server.listen(this.port);
+        this.server.listen(this.port,"127.0.0.1");
     }
     /**
      * 创建凭证

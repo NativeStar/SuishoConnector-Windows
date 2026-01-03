@@ -247,6 +247,12 @@ class Server {
                 clearTimeout(<number>this.connectTimeoutTimer);
                 //握手返回的数据
                 //设置全局
+                // 检查androidId
+                if (!/^[A-Za-z0-9_-]{8,64}$/.test(jsonObj.androidId)) {
+                    this.close(false);
+                    this.appWindow.webContents.send("connectPhone_connectFailed", "设备ID异常");
+                    return
+                }
                 global.clientMetadata.androidSdkVersion = jsonObj.androidVersion
                 global.clientMetadata.protocolVersion = jsonObj.protocolVersion
                 global.clientMetadata.model = jsonObj.modelName;
