@@ -75,7 +75,6 @@ app.on("ready", async (_event, _info) => {
         title: "Electron Application",
         resizable: false,
         autoHideMenuBar: true,
-        // transparent: true,
         frame: false,
         titleBarOverlay: {
             height: 40,
@@ -196,7 +195,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 // width: 850,
                 // height: 650,
                 show: false,
-                // skipTaskbar:true,
                 webPreferences: {
                     webSecurity: app.isPackaged,
                     spellcheck: false,
@@ -307,13 +305,15 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     logger.writeInfo(`Local address is ${global.serverAddress}`);
     const serverPort = await connectedDevice.getPortAsync();
     //手动连接服务
-    manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId);
+    manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId,connectedDevice.pairToken);
     manualConnectRedirectServer.init();
     return {
         address: global.serverAddress,
         port: serverPort,
         certDownloadPort: certDownloadServer.serverPost,
-        id: global.config.deviceId
+        id: global.config.deviceId,
+        token:connectedDevice.pairToken,
+        pairCode:manualConnectRedirectServer.pairCode
     }
 });
 function initTray() {
@@ -542,7 +542,7 @@ ipcMain.on("main_startAutoConnectBroadcast", () => {
         });
         return
     }
-    broadcaster = new Broadcaster(global.config.boundDeviceKey as any);
+    broadcaster = new Broadcaster(global.config.boundDeviceId as any);
     broadcaster.start();
 });
 //退出应用

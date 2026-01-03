@@ -1,5 +1,5 @@
 import { AppBar } from "~/components/AppBar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ConnectQrcode } from "./components/ConnectQrcode";
 import useDevMode from "~/hooks/useDevMode";
 import { type InitServerResult } from "~/types/ipc"
@@ -16,11 +16,12 @@ import { QRCodeSVG } from "qrcode.react";
 export default function ConnectPhone() {
     useDevMode();
     const connectPhoneWindowIpc = useConnectPhoneWindowIpc();
-    const [qrcodeData, setQrcodeData] = useState<InitServerResult | null>(null);
+    const [qrcodeData, setQrcodeData] = useState<Omit<InitServerResult,"pairCode"> | null>(null);
     const [isConnecting, setIsConnecting] = useState<boolean>(false);
     const [autoConnectorWorking, setAutoConnectorWorking] = useState<boolean>(false);
     const [isAutoConnectorError, setIsAutoConnectorError] = useState<boolean>(false);
     const [inApkDownloadPage, setInApkDownloadPage] = useState<boolean>(false);
+    const pairCode=useRef<string>("");
     //连接相关初始化
     useEffect(() => {
         connectPhoneWindowIpc.initServer().then(value => {
@@ -34,8 +35,9 @@ export default function ConnectPhone() {
                 });
                 return
             }
+            const { pairCode:code, ...data } = value;
             //空地址检测
-            if (value.address === null) {
+            if (data.address === null) {
                 mdui.alert({
                     headline: "发生异常",
                     description: "无法获取本机IP地址\n请检查网卡及网络连接是否正常\n或向开发者反馈此问题",
@@ -44,7 +46,8 @@ export default function ConnectPhone() {
                 });
                 return
             }
-            setQrcodeData(value)
+            pairCode.current=code
+            setQrcodeData(data)
         });
         connectPhoneWindowIpc.getBoundDeviceId().then(value => {
             if (value !== null) {
@@ -93,7 +96,8 @@ export default function ConnectPhone() {
             headline: "手动连接",
             description: `请在手机端对应位置内输入以下信息\n
             IP:${qrcodeData?.address ?? "发生异常!"}\n
-            端口:39865`,
+            端口:39865
+            配对码:${pairCode.current}`,
             confirmText: "确定"
         })
     }

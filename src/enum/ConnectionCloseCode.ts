@@ -12,6 +12,8 @@ enum ConnectionCloseCode {
     //手机端崩溃
     CloseFromClientCrash=1007,
     // 已有连接
-    CONNECTION_ALREADY_EXISTS=1008
+    ConnectionAlreadyExists=1008,
+    // 鉴权失败
+    AuthorizationFailed=1009,
 }
 export default ConnectionCloseCode;

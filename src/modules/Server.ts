@@ -25,6 +25,7 @@ interface MainHandle {
 }
 class Server {
     private LOG_TAG: string = "Server";
+    pairToken: string;
     isConnectVerified: boolean;
     protocolVersion: number;
     phoneAddress: string | undefined = undefined;
@@ -57,6 +58,8 @@ class Server {
         this.showDefaultDisconnectAlert = true;
         //回调
         this.mainHandle = onMessageMainCallbacks;
+        // 配对token
+        this.pairToken = randomThing.number_en(64);
         /**
          * @description 通知管理核心
          * @type {NotificationCore}
@@ -77,7 +80,7 @@ class Server {
         };
         //使toString无法被枚举 不然炸ipc
         Object.defineProperty(global.clientMetadata, "toString", {
-            value: function (): string {
+            value: (): string => {
                 let temp = "{"
                 for (const key of Object.keys(global.clientMetadata)) {
                     if (key !== "toString") temp += `${key}:${global.clientMetadata[key as keyof typeof global.clientMetadata]},`
@@ -94,7 +97,7 @@ class Server {
             MEDIUM: 30 * 1000,
             HIGH: 15 * 1000,
             VERY_HIGH: 5 * 1000,
-            // 预留
+            // 暂时不用
             REALTIME: 1 * 1000
         }
         try {
@@ -123,7 +126,14 @@ class Server {
             // 当已有成功连接时 禁止后续连接
             if (this.socket) {
                 logger.writeInfo(`Reject new connection because already connected.Address: ${connectRequest.socket.remoteAddress}`);
-                socket.close(ConnectionCloseCode.CONNECTION_ALREADY_EXISTS, ConnectionCloseReasonString[ConnectionCloseCode.CONNECTION_ALREADY_EXISTS])
+                socket.close(ConnectionCloseCode.ConnectionAlreadyExists, ConnectionCloseReasonString[ConnectionCloseCode.ConnectionAlreadyExists])
+                return
+            }
+            const pairTokenHeader = connectRequest.headers["suisho-pair-token"];
+            console.log(connectRequest.headers,pairTokenHeader,this.pairToken);
+            if (pairTokenHeader !== this.pairToken) {
+                logger.writeInfo(`Connection authorization failed.Address:${connectRequest.socket.remoteAddress}`);
+                socket.close(ConnectionCloseCode.AuthorizationFailed, ConnectionCloseReasonString[ConnectionCloseCode.AuthorizationFailed])
                 return
             }
             //返回值管理器
@@ -671,7 +681,7 @@ class Server {
                     //失败时执行 throw可能抓不到
                     onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message })
                 });
-                const uploaderPort=await uploader.init();
+                const uploaderPort = await uploader.init();
                 await this.responseManager?.send({ packetType: "transmit_uploadFile", port: uploaderPort, fileName: name, _request_id: RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE, fileSize: size });
             } catch (error: any) {
                 logger.writeError(`Upload file failed:${error}`);

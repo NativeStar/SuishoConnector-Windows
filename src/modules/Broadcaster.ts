@@ -5,10 +5,10 @@ import Util from "./Util";
 class Broadcaster {
     private socket: Socket;
     private looper: number | null | NodeJS.Timeout;
-    private deviceKey: string;
-    constructor(deviceKey: string) {
+    private deviceId: string;
+    constructor(deviceId:string) {
         this.looper = null;
-        this.deviceKey = deviceKey;
+        this.deviceId = deviceId;
         this.socket = createSocket("udp4");
         this.socket.on("error", async (err) => {
             logger.writeWarn(`Broadcaster socket open error:${err}`);
@@ -55,7 +55,7 @@ class Broadcaster {
         logger.writeInfo("Start network broadcast");
         this.socket.bind(60127, () => {
             this.socket.setBroadcast(true);
-            const msgBuffer = Uint8Array.from(Buffer.from(this.deviceKey));
+            const msgBuffer = Uint8Array.from(Buffer.from(this.deviceId));
             //不知道为什么 Windows上如果是系统启动后首次发的包会被吞
             setTimeout(() => {
                 try {
