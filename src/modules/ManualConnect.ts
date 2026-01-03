@@ -1,10 +1,5 @@
 import { createServer, Server } from "http";
 import randomThing from "randomthing-js"
-type Response = {
-    mainPort: number,
-    certPort: number,
-    id: string
-}
 class ManualConnect {
     serverPort: number;
     certPort: number;
@@ -15,6 +10,8 @@ class ManualConnect {
     failedResponseObjectString: string;
     pairCode: string;
     pairToken: string;
+    ipConnectCounter: Map<string, number>
+    private static readonly LOG_TAG: string = "ManualConnect";
     constructor(serverPort: number, certPort: number, id: string, pairToken: string) {
         this.serverPort = serverPort;
         this.certPort = certPort;
@@ -22,6 +19,7 @@ class ManualConnect {
         this.server = null;
         this.pairCode = randomThing.number(100000, 999999).toString();
         this.pairToken = pairToken;
+        this.ipConnectCounter = new Map();
         this.successResponseObjectString = JSON.stringify({
             success: true,
             mainPort: this.serverPort,
@@ -31,21 +29,35 @@ class ManualConnect {
         });
         this.failedResponseObjectString = JSON.stringify({
             success: false,
-            message: "验证失败 请检查配对码是否正确或使用扫码连接"
+            message: "验证失败 如为手动连接请检查配对码是否正确 或改为使用扫码连接"
         });
     }
     async init() {
         this.server = createServer(async (req, res) => {
+            const ip = req.socket.remoteAddress ?? null;
             if (req.headers["user-agent"] === "Shamiko") {
+                if (ip&&this.ipConnectCounter.has(ip)&&this.ipConnectCounter.get(ip)!>5) {
+                    res.writeHead(429);
+                    res.end(JSON.stringify({
+                        success: false,
+                        message: "该地址验证失败过多 请重启PC端后重试或使用扫码连接"
+                    }));
+                    logger.writeDebug(`IP ${ip} blocked by too many verify failed`, ManualConnect.LOG_TAG)
+                    return
+                }
                 const pairCode = req.headers["suisho-pair-code"];
                 const autoConnectorKey = req.headers["suisho-auto-connector-key"];
                 if (pairCode) {
                     if (pairCode === this.pairCode) {
                         res.writeHead(200);
                         res.end(this.successResponseObjectString);
+                        logger.writeInfo(`IP ${ip} connect verify success`, ManualConnect.LOG_TAG)
                         return
                     }
-                    // TODO 失败计数暂时拉黑
+                    if (ip) {
+                        this.ipConnectCounter.has(ip) ? this.ipConnectCounter.set(ip, this.ipConnectCounter.get(ip)! + 1) : this.ipConnectCounter.set(ip, 1);
+                    }
+                    logger.writeInfo(`IP ${ip} connect verify failed`, ManualConnect.LOG_TAG)
                     res.writeHead(200);
                     res.end(this.failedResponseObjectString);
                     return
@@ -54,8 +66,13 @@ class ManualConnect {
                     if (autoConnectorKey === global.config.boundDeviceKey) {
                         res.writeHead(200);
                         res.end(this.successResponseObjectString);
+                        logger.writeInfo(`IP ${ip} connect verify success`, ManualConnect.LOG_TAG)
                         return
                     }
+                    if (ip) {
+                        this.ipConnectCounter.has(ip) ? this.ipConnectCounter.set(ip, this.ipConnectCounter.get(ip)! + 1) : this.ipConnectCounter.set(ip, 1);
+                    }
+                    logger.writeInfo(`IP ${ip} connect verify failed`, ManualConnect.LOG_TAG)
                     res.writeHead(200);
                     res.end(this.failedResponseObjectString);
                     return

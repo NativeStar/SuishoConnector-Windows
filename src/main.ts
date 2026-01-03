@@ -168,12 +168,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
         logger.writeWarn('Found working "Clash" virtual network device');
         return new Error("Clash");
     }
-    /**
-     * TODO 加入pairToken
-     * 扫码连接:直接将数据塞进二维码
-     * 手动连接:PC端启动时生成6位配对码 移动端添加配对码输入框 将数据作为code参数传递 ManualConnect服务端验证code是否匹配 匹配才下发数据
-     * 自动连接:绑定时生成128位密钥 保存在PC端并转为base64下发给移动端 自动连接收到广播时将此数据再次转为base64并作为key参数传递 PC端验证key是否匹配 匹配才下发数据
-     * */
     connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
             logger.writeDebug("Invoke open main window");
