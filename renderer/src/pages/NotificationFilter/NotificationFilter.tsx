@@ -12,8 +12,10 @@ import TextFilterPanel from "./components/TextFilterPanel";
 import AppProfilePanel from "./components/AppProfilePanel";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
+import { setColorScheme } from "mdui";
 export default function NotificationFilter() {
     useDevMode();
+    setColorScheme("#895cad")
     const [searchParams]=useSearchParams();
     const [tabValue,setTabValue]=useState<"textFilter"|"appProfile">("textFilter");
     useEffect(() => {

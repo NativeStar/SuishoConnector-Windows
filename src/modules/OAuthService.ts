@@ -4,7 +4,7 @@ import path from "path";
 import { BrowserWindow, ipcMain ,app} from "electron";
 class OAuthService {
     private server:http.Server|null;
-    port:number;
+    private port:number;
     private oauthKeyBinary:ArrayBuffer|Buffer|null;
     private keyPath:string=`${app.getPath("userData")}/programData/oauth.bin`;
     private authWindow:BrowserWindow|null;
@@ -29,7 +29,7 @@ class OAuthService {
             res.destroy();
         });
         //保存原始密钥文件
-        ipcMain.handle("oauth_saveRawID",async (event,buffer:ArrayBuffer)=>{
+        ipcMain.handle("oauth_saveRawID",async (_event,buffer:ArrayBuffer)=>{
             this.oauthKeyBinary=buffer;
             await fs.writeFile(`${app.getPath("userData")}/programData/oauth.bin`,new DataView(buffer));
             logger.writeInfo("Saved oauth key binary");
@@ -128,7 +128,7 @@ class OAuthService {
             });
             //要调用resolve 只能在这了
             if (!this.initdAuthorizationHandle) {
-                ipcMain.on("oauth_authorizationCallback",(event,result:boolean)=>{
+                ipcMain.on("oauth_authorizationCallback",(_event,result:boolean)=>{
                     this.authWindow?.close();
                     this.tempPromise.resolve(result);
                     logger.writeDebug(`Authentication result:${result}`);

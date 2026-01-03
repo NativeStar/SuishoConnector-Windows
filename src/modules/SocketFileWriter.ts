@@ -3,7 +3,6 @@ import { app } from 'electron';
 import fs from "fs-extra";
 import Util from "./Util";
 class SocketFileWriter {
-    // port: number;
     target: string;
     fileSize: number | null;
     isVerified: boolean;
@@ -57,7 +56,7 @@ class SocketFileWriter {
             fs.remove(this.target);
         }, 8000);
         //验证
-        //第一个包必须是AndroidId 
+        //第一个包必须是sessionID
         //计时器 超时无响应直接失败
         socket.on("data", (data: Buffer) => {
             if (!this.isVerified) {

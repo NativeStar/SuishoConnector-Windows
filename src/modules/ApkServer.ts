@@ -12,7 +12,7 @@ class ApkServer{
             this.indexHtml=`
                 <html>
                     <body>
-                        <span>发生异常:文件丢失 请重新安装软件以修复</span>
+                        <span>发生异常:文件丢失 请重新安装PC端以修复</span>
                     </body>
                 </html>
             `

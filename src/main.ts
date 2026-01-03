@@ -5,9 +5,7 @@ process.chdir(app.getAppPath());
 import { exec } from "child_process";
 import os from "os";
 import { X509Certificate } from "crypto"
-import randomThing from "randomthing-js";
 import fs from "fs-extra";
-//自己的模块
 import PhoneServer from "./modules/Server";
 import Util from "./modules/Util";
 import DownloadServer from "./modules/DownloadServer";
@@ -23,17 +21,14 @@ import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import ApkDownloadServer from "./modules/ApkServer";
 import AudioForward from "./modules/AudioForward";
 import configTemplate from "./constant/configTemplate";
-//随机端口号 超过60000的正则不好搞哦
-// let serverPort;
-/** @type {PhoneServer} */
 let connectedDevice: PhoneServer;
 /**
  * @description 连接手机窗口
- * @type {bw} */
+*/
 let connectPhoneWindow: BrowserWindow;
 /**
  * @description 主操作窗口
- * @type {bw} */
+*/
 let mainWindow: BrowserWindow | null = null;
 //SSL证书下载服务器实例
 let certDownloadServer: DownloadServer | null = null;
@@ -50,8 +45,6 @@ let phoneFileDownloadWindow: BrowserWindow | null = null;
 let phoneFileDownloadPathTemp: string = "";
 let trayInstance: Tray | null = null;
 let localCertFingerprint256: string | null = null;
-//设备配置管理
-// let deviceConfig:DeviceConfig|null=null;
 declare global {
     var logger: Logger
     var config: TypeConfig

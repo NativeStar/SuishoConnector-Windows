@@ -111,7 +111,6 @@ class TransmitFileUploader {
                     //清除超时检测
                     clearTimeout(timer);
                     //开服
-                    // this.port = findPort.port;
                     const certPath = path.resolve(`${app.getPath("userData")}/programData/cert/`)
                     const server = createServer({
                         key: fs.readFileSync(path.resolve(`${certPath}/cert.key`)),

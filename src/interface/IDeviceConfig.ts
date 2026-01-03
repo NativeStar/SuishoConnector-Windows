@@ -8,10 +8,6 @@ export default interface IDeviceConfig{
      */
     protectMethod:"oauth"|"password"|"none",
     /**
-     * 密码验证时的hash
-     */
-    // protectNotificationForwardPagePasswordHash:null|string,
-    /**
      * 是否启用通知转发
      */
     enableNotificationForward:boolean,

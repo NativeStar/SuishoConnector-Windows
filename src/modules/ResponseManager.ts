@@ -17,11 +17,6 @@ interface requestObject {
 class ResponseManager {
     private socket: ws;
     private responseMap: Map<string, requestObject>;
-    /**
-     * Creates an instance of rm.
-     * @param {ws} socket 发送数据用socket
-     * @memberof rm
-     */
     constructor(socket: ws) {
         this.socket = socket;
         /**

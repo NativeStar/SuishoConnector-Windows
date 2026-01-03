@@ -13,17 +13,14 @@ class TransmitFileWriter {
     writeStream: null | fs.WriteStream;
     isVerified: boolean;
     fileSocket: net.Server;
-    // decryptionKey:Buffer;
     decipher: crypto.Decipher;
     /**
      * @module
-     * @param {number} socketPort socket端口号
      * @param {String} fileName 文件名
      * @param {String} writeDir 文件路径
      * @param {number} fileSize 文件大小
-     * @param {String} id 验证用 设备AndroidId 
      * @param {BrowserWindow} webContent 浏览器窗口 发信号用
-     * @param {String} displayName 外显名称 
+     * @param {String} displayName 外显名称
      * @memberof TransmitFileWriter
      */
     constructor(fileName: string, writeDir: string, fileSize: number, webContent: BrowserWindow, displayName: string, encryptKeyBase64: string, encryptIvBase64: string) {
@@ -71,11 +68,6 @@ class TransmitFileWriter {
             });
         })
     }
-    /**
-     *
-     *
-     * @param {net.Socket} socket
-     */
     onConnectListener(socket: net.Socket) {
         //定时器 防止验证超时
         const verifyTimer = setTimeout(() => {
@@ -87,7 +79,7 @@ class TransmitFileWriter {
         }, 8000);
         socket.on("data", (data) => {
             //验证
-            //第一个包必须是AndroidId 
+            //第一个包必须是sessionId 
             //计时器 超时无响应直接失败
             if (!this.isVerified) {
                 //只要收到验证响应就清除定时器
