@@ -42,7 +42,8 @@ export default function TransmitTextInputArea({ messageDispatch, database ,list}
             <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="transmitInputArea bg-white pl-0.5 pb-9 text-[0.7rem] w-[68%] h-[65%] ml-[1.8%] resize-none overflow-auto focus:border-2 focus:outline-none"
+                className="transmitInputArea bg-[rgb(var(--mdui-color-surface))] text-[rgb(var(--mdui-color-on-surface))] pl-0.5 pb-9 text-[0.7rem] w-[68%] h-[65%] ml-[1.8%] resize-none overflow-auto focus:border-2 focus:outline-none"
+                // className="transmitInputArea bg-white pl-0.5 pb-9 text-[0.7rem] w-[68%] h-[65%] ml-[1.8%] resize-none overflow-auto focus:border-2 focus:outline-none"
                 rows={2}
                 cols={50}
                 onKeyDownCapture={handleTextareaKeyDown}

@@ -276,7 +276,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 }}
             />
             {/* 输入和菜单区 */}
-            <div className="fixed w-full h-[8%] bottom-0 left-[9%] border-r-[5px] bg-[#f8edf9]">
+            <div className="fixed w-full h-[8%] bottom-0 left-[9%] border-r-[5px] bg-[rgb(var(--mdui-color-surface-container-low))]">
                 {/* 文件上传input */}
                 <input type="file" hidden ref={fileInputRef} onChange={onFileInputValueChange} />
                 <TransmitTextInputArea messageDispatch={messageListDispatch} database={db} list={listRef} />

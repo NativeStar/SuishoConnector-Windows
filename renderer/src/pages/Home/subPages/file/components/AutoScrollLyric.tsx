@@ -25,7 +25,7 @@ function LyricItem({ text, timestamp, isCurrentLyric, audioRef, enableLyricAutoS
     return (
         <div
             ref={textRef}
-            className="lyricItem w-full text-center overflow-clip hover:bg-gray-100"
+            className="lyricItem w-full text-center overflow-clip hover:bg-black/10"
             style={{ color: isCurrentLyric ? "red" : "gray" }}
             onClick={() => {
                 if (audioRef.current) {

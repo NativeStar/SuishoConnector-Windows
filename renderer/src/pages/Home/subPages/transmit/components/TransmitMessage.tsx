@@ -80,7 +80,7 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
         }
     }
     return (
-        <mdui-card onContextMenu={onContextMenu} className={twMerge("w-10/12 mt-1", from === "phone" ? "bg-[#ede7ed]" : "bg-[#f3ebf3] ml-28")} variant="filled">
+        <mdui-card onContextMenu={onContextMenu} className={twMerge("w-10/12 mt-1", from === "phone" ? "bg-[rgb(var(--mdui-color-surface-container-highest))]" : "bg-[rgb(var(--mdui-color-surface-container-low))] ml-28")} variant="filled">
             <div style={{ userSelect: "text" }} className="whitespace-normal wrap-break-word text-wrap pl-2 pt-0.5 pb-0.5">
                 {text}
             </div>
