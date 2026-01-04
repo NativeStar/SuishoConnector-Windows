@@ -2,7 +2,6 @@ import fs from "fs-extra";
 import os from "os";
 import randomthing from "randomthing-js";
 import ApplicationVersion from "shared/const/ApplicationVersion";
-// import build from "../constant/build.prop.json"
 import textArray from "../constant/LogEasterEggs.json"
 enum LogLevel {
     NONE,//禁用

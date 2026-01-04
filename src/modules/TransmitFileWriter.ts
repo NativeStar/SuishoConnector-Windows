@@ -85,9 +85,9 @@ class TransmitFileWriter {
                 //只要收到验证响应就清除定时器
                 clearTimeout(verifyTimer);
                 //检查
-                if (data.toString() === global.clientMetadata.androidId) {
+                if (data.toString() === global.clientMetadata.sessionId) {
                     this.isVerified = true;
-                    logger.writeInfo(`Transmit file writer device verify success:${data.toString()}`);
+                    logger.writeInfo(`Transmit file writer session verify success:${data.toString()}`);
                     //通知ui创建文件项和进度条
                     this.window.webContents.send("webviewEvent", "transmitAppendFile", { displayName: this.displayName, size: this.fileSize, fileName: this.fileName });
                     //发送开始信号
@@ -95,7 +95,7 @@ class TransmitFileWriter {
                     if (!socket.destroyed) socket.write("START\r");
                     return
                 } else {
-                    logger.writeWarn(`Transmit file writer device verify failed:${data.toString()}`);
+                    logger.writeWarn(`Transmit file writer session verify failed:${data.toString()}`);
                     //不通过 关闭socket
                     if (!socket.destroyed) socket.end("VERIFY_FAILED\r");
                     //给前端信号显示消息
