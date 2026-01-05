@@ -17,8 +17,8 @@ const deviceAddress = process.argv[process.argv.length - 1];
     const channels = 2;
     const bytesPerSample = 2;
     const bytesPerSecond = sampleRate * channels * bytesPerSample; // 192000
-    const targetQueueBytes = Math.floor(bytesPerSecond * 0.10); // ~100ms
-    const maxQueueBytes = Math.floor(bytesPerSecond * 0.30); // ~300ms
+    const targetBufferedBytes = Math.floor(bytesPerSecond * 0.08); // ~80ms (含 speaker 内部缓冲)
+    const maxBufferedBytes = Math.floor(bytesPerSecond * 0.18); // ~180ms (含 speaker 内部缓冲)
 
     const magic = 0x41463031; // "AF01"
     const headerSize = 4 + 4 + 8; // magic + seq + ptsUs
@@ -29,17 +29,29 @@ const deviceAddress = process.argv[process.argv.length - 1];
     const pcmQueue: Buffer[] = [];
     let waitingDrain = false;
 
-    speaker = new Speaker({
+    const speakerOptions = {
         bitDepth: 16,
         channels,
         sampleRate,
-        highWaterMark: targetQueueBytes,
-    });
+        samplesPerFrame: 480,
+        highWaterMark: Math.floor(bytesPerSecond * 0.04), // ~40ms
+    } satisfies Speaker.Options & { samplesPerFrame?: number };
+
+    speaker = new Speaker(speakerOptions);
+
+    const totalBufferedBytes = () => queuedBytes + speaker.writableLength;
+
+    const updateDroppingState = () => {
+        const total = totalBufferedBytes();
+        if (dropping) {
+            if (total <= targetBufferedBytes) dropping = false;
+        } else {
+            if (total > maxBufferedBytes) dropping = true;
+        }
+    };
 
     const trimQueueIfNeeded = () => {
-        if (queuedBytes <= maxQueueBytes) return;
-        dropping = true;
-        while (queuedBytes > targetQueueBytes && pcmQueue.length > 0) {
+        while (pcmQueue.length > 0 && totalBufferedBytes() > targetBufferedBytes) {
             const dropped = pcmQueue.shift()!;
             queuedBytes -= dropped.length;
         }
@@ -60,7 +72,6 @@ const deviceAddress = process.argv[process.argv.length - 1];
                 return;
             }
         }
-        if (queuedBytes <= targetQueueBytes) dropping = false;
     };
 
     socket = dgram.createSocket("udp4").bind(8899);
@@ -71,20 +82,23 @@ const deviceAddress = process.argv[process.argv.length - 1];
             return
         }
         try {
+            updateDroppingState();
             if (dropping) {
                 trimQueueIfNeeded();
+                updateDroppingState();
                 if (dropping) return;
             }
 
             let payload = data;
             if (data.length >= headerSize && data.readUInt32BE(0) === magic) {
                 const seq = data.readInt32BE(4);
+                if (seq === 0 && lastSeq > 1000) lastSeq = -1;
                 if (seq <= lastSeq) return;
                 lastSeq = seq;
                 payload = data.subarray(headerSize);
             }
 
-            const result = decoder.decodeFrame(new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength));
+            const result = decoder.decodeFrame(payload);
             const mergedBuffer = mergeStereoChannels(result.channelData[0], result.channelData[1]);
             pcmQueue.push(mergedBuffer);
             queuedBytes += mergedBuffer.length;
@@ -99,11 +113,13 @@ function mergeStereoChannels(leftChannel: Buffer | Float32Array, rightChannel: B
     if (leftChannel instanceof Float32Array && rightChannel instanceof Float32Array) {
         const samples = Math.min(leftChannel.length, rightChannel.length);
         const stereoBuffer = Buffer.allocUnsafe(samples * 2 * 2);
+        const out = new Int16Array(stereoBuffer.buffer, stereoBuffer.byteOffset, samples * 2);
+        let o = 0;
         for (let i = 0; i < samples; i++) {
-            const leftSample = Math.round(Math.max(-1, Math.min(1, leftChannel[i])) * 32767);
-            const rightSample = Math.round(Math.max(-1, Math.min(1, rightChannel[i])) * 32767);
-            stereoBuffer.writeInt16LE(leftSample, (i * 2) * 2);
-            stereoBuffer.writeInt16LE(rightSample, (i * 2 + 1) * 2);
+            const l = Math.max(-1, Math.min(1, leftChannel[i]));
+            const r = Math.max(-1, Math.min(1, rightChannel[i]));
+            out[o++] = Math.round(l < 0 ? l * 32768 : l * 32767);
+            out[o++] = Math.round(r < 0 ? r * 32768 : r * 32767);
         }
         return stereoBuffer;
     }
