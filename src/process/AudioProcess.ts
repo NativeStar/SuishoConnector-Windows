@@ -3,8 +3,8 @@ import dgram from "dgram";
 let socket: dgram.Socket;
 let speaker: Speaker;
 process.once("SIGINT", () => {
-    socket.close();
-    speaker.close(true);
+    socket?.close();
+    speaker?.close(true);
     process.exit(0);
 })
 const deviceAddress = process.argv[process.argv.length - 1];
@@ -12,7 +12,57 @@ const deviceAddress = process.argv[process.argv.length - 1];
     const opusImport = await import("opus-decoder");
     const decoder = new opusImport.OpusDecoder({ channels: 2, sampleRate: 48000 });
     await decoder.ready;
-    speaker = new Speaker({ bitDepth: 16, channels: 2, sampleRate: 48000 });
+
+    const sampleRate = 48000;
+    const channels = 2;
+    const bytesPerSample = 2;
+    const bytesPerSecond = sampleRate * channels * bytesPerSample; // 192000
+    const targetQueueBytes = Math.floor(bytesPerSecond * 0.10); // ~100ms
+    const maxQueueBytes = Math.floor(bytesPerSecond * 0.30); // ~300ms
+
+    const magic = 0x41463031; // "AF01"
+    const headerSize = 4 + 4 + 8; // magic + seq + ptsUs
+
+    let lastSeq = -1;
+    let queuedBytes = 0;
+    let dropping = false;
+    const pcmQueue: Buffer[] = [];
+    let waitingDrain = false;
+
+    speaker = new Speaker({
+        bitDepth: 16,
+        channels,
+        sampleRate,
+        highWaterMark: targetQueueBytes,
+    });
+
+    const trimQueueIfNeeded = () => {
+        if (queuedBytes <= maxQueueBytes) return;
+        dropping = true;
+        while (queuedBytes > targetQueueBytes && pcmQueue.length > 0) {
+            const dropped = pcmQueue.shift()!;
+            queuedBytes -= dropped.length;
+        }
+    };
+
+    const pump = () => {
+        if (waitingDrain) return;
+        while (pcmQueue.length > 0) {
+            const chunk = pcmQueue.shift()!;
+            queuedBytes -= chunk.length;
+            const ok = speaker.write(chunk);
+            if (!ok) {
+                waitingDrain = true;
+                speaker.once("drain", () => {
+                    waitingDrain = false;
+                    pump();
+                });
+                return;
+            }
+        }
+        if (queuedBytes <= targetQueueBytes) dropping = false;
+    };
+
     socket = dgram.createSocket("udp4").bind(8899);
     //TODO 加密
     socket.on("message", (data, remoteInfo) => {
@@ -21,9 +71,25 @@ const deviceAddress = process.argv[process.argv.length - 1];
             return
         }
         try {
-            const result = decoder.decodeFrame(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+            if (dropping) {
+                trimQueueIfNeeded();
+                if (dropping) return;
+            }
+
+            let payload = data;
+            if (data.length >= headerSize && data.readUInt32BE(0) === magic) {
+                const seq = data.readInt32BE(4);
+                if (seq <= lastSeq) return;
+                lastSeq = seq;
+                payload = data.subarray(headerSize);
+            }
+
+            const result = decoder.decodeFrame(new Uint8Array(payload.buffer, payload.byteOffset, payload.byteLength));
             const mergedBuffer = mergeStereoChannels(result.channelData[0], result.channelData[1]);
-            speaker.write(mergedBuffer)
+            pcmQueue.push(mergedBuffer);
+            queuedBytes += mergedBuffer.length;
+            trimQueueIfNeeded();
+            pump();
         } catch (error) {
             console.error("Decode error:", error);
         }
