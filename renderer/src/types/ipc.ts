@@ -55,3 +55,7 @@ export type MediaSessionState={
     playing:boolean
     position:number
 }
+export type AudioForwardResponse={
+    result:boolean
+    exception?:string
+}

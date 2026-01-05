@@ -96,6 +96,7 @@ function useMainWindowIpc() {
         downloadPhoneFile: window.electronMainProcess.downloadPhoneFile,
         getPhoneIp: window.electronMainProcess.getPhoneIp,
         appendMediaSessionControl: window.electronMainProcess.appendMediaSessionControl,
+        setAudioForwardEnable:window.electronMainProcess.setAudioForwardEnable,
     }
 }
 export default useMainWindowIpc;

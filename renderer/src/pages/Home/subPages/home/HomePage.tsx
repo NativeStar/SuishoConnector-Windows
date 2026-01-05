@@ -8,6 +8,7 @@ import ActiveNotifications from "./components/ActiveNotifications";
 import MediaControl from "./components/MediaControl";
 import type { TrustModeIpc } from "~/types/ipc";
 import { TrustMode } from "shared/const/TrustMode";
+import AudioForwardPanel from "./components/AudioForwardPanel";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
@@ -89,6 +90,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             <br />
             <ActiveNotifications />
             <MediaControl />
+            <AudioForwardPanel/>
             {/* <mdui-button className="mt-[35%]" onClick={() => {
                 confirm({
                     headline: "关闭程序",

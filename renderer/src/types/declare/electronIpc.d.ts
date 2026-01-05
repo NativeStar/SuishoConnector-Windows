@@ -55,6 +55,7 @@ declare global {
             readonly getPackageList:(forceUpdate:boolean)=>Promise<{data:ApplicationListData[]}>,
             readonly sendMessageToMainWindow:(type:string,message:{[key:string]:string|number|boolean})=>void
             readonly appendMediaSessionControl:(action:"changePlayState"|"next"|"previous"|"seek",time?:number)=>void
+            readonly setAudioForwardEnable:(enable:boolean)=>Promise<void>
         }
     }
 }
