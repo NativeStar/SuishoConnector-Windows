@@ -4,6 +4,7 @@ import "mdui/components/menu";
 import "mdui/components/card";
 import type { StatesListObject } from "~/pages/Home/Home";
 import { ApplicationStateLevel, type ApplicationState, type States } from "~/types/applicationState";
+import { twMerge } from "tailwind-merge";
 const LevelIcon = {
     [ApplicationStateLevel.Checked]: "checked",
     [ApplicationStateLevel.Busy]: "hourglass_top",
@@ -23,6 +24,7 @@ interface ApplicationStateCardProps {
 };
 interface ApplicationStateBarProps {
     states: StatesListObject
+    className?: string
 }
 function getStateLevel(states: StatesListObject): number {
     const keys = Reflect.ownKeys(states);
@@ -54,10 +56,10 @@ function ApplicationStateCard({ stateInstance }: ApplicationStateCardProps) {
         </mdui-card>
     )
 }
-export default function ApplicationStatesBar({ states }: ApplicationStateBarProps) {
+export default function ApplicationStatesBar({ states ,className}: ApplicationStateBarProps) {
     return (
         <mdui-dropdown placement="left-start">
-            <mdui-chip slot="trigger" elevated icon={getCurrentStateLevelIcon(states)} end-icon="more_vert">{getCurrentStateLevelText(states)}</mdui-chip>
+            <mdui-chip slot="trigger" elevated icon={getCurrentStateLevelIcon(states)} end-icon="more_vert" className={twMerge("fixed",className)}>{getCurrentStateLevelText(states)}</mdui-chip>
             <mdui-menu>
                 {
                     Reflect.ownKeys(states).map((stateId) => {

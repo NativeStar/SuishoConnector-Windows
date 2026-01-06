@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react"
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
-import DeviceStateBar, { type DeviceState } from "./components/DeviceStateBar";
+import DeviceStatePanel, { type DeviceState } from "./components/DeviceStatePanel";
 import type { StateAction, StatesListObject } from "../../Home";
 import ApplicationStatesBar from "./components/ApplicationStatesBar";
 import ActiveNotifications from "./components/ActiveNotifications";
-// import { confirm } from "mdui";
 import MediaControl from "./components/MediaControl";
 import type { TrustModeIpc } from "~/types/ipc";
 import { TrustMode } from "shared/const/TrustMode";
 import AudioForwardPanel from "./components/AudioForwardPanel";
+import DeviceInfoPanel from "./components/DeviceInfoPanel";
+import FabMenu from "./components/FabMenu";
 interface HomePageProps {
     hidden: boolean,
     applicationStates: StatesListObject,
@@ -16,7 +17,6 @@ interface HomePageProps {
 }
 export default function HomePage({ hidden, applicationStates, applicationStatesDispatch }: HomePageProps) {
     const ipc = useMainWindowIpc();
-    const [deviceName, setDeviceName] = useState<string>("");
     const [deviceState, setDeviceState] = useState<DeviceState>({
         memoryUsage: 0,
         batteryLevel: 0,
@@ -26,9 +26,6 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
     });
     const batteryFullState = useRef(false);
     useEffect(() => {
-        ipc.getDeviceBaseInfo().then(value => {
-            setDeviceName(value.model);
-        });
         ipc.getDeviceDetailInfo().then(value => {
             setDeviceState(prevState => ({
                 ...prevState,
@@ -84,26 +81,13 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
     }, []);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
-            <h1 className="text-lg">{deviceName}</h1>
-            <DeviceStateBar state={deviceState} />
-            <ApplicationStatesBar states={applicationStates} />
-            <br />
-            <ActiveNotifications />
-            <MediaControl />
-            <AudioForwardPanel/>
-            {/* <mdui-button className="mt-[35%]" onClick={() => {
-                confirm({
-                    headline: "关闭程序",
-                    description: "确认关闭程序?",
-                    confirmText: "关闭",
-                    cancelText: "取消",
-                    onConfirm: () => {
-                        ipc.closeApplication();
-                    }
-                }).catch(() => { })
-            }}>
-                关闭程序
-            </mdui-button> */}
+            <DeviceInfoPanel className="top-[9.5%]"/>
+            <DeviceStatePanel state={deviceState} className="top-[42.5%]"/>
+            <ActiveNotifications className="top-[46%] left-[45%]"/>
+            <ApplicationStatesBar states={applicationStates} className="top-[9%] right-[2.3%]"/>
+            <MediaControl className="right-[15%] top-[9.5%]"/>
+            <AudioForwardPanel className="top-[68.5%] left-[10%]"/>
+            <FabMenu className="bottom-[2.5%] right-[2.5%]"/>
         </div>
     )
 }

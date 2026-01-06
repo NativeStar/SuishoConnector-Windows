@@ -1,9 +1,12 @@
 import { snackbar, confirm } from "mdui";
 import { useState } from "react";
+import { twMerge } from "tailwind-merge";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import type { AudioForwardResponse } from "~/types/ipc";
-
-export default function AudioForwardPanel() {
+interface AudioForwardPanelProps {
+    className?: string;
+}
+export default function AudioForwardPanel({className}:AudioForwardPanelProps) {
     const ipc = useMainWindowIpc();
     const [forwarding, setForwarding] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -48,7 +51,7 @@ export default function AudioForwardPanel() {
         }
     }
     return (
-        <mdui-card className="fixed flex flex-col h-[10%] w-[37%] top-[60%]">
+        <mdui-card className={twMerge("fixed flex flex-col h-[10%] w-[34%]",className)}>
             <div className="flex items-center justify-between mt-2.5">
                 <mdui-icon name={forwarding ? "volume_up" : "volume_off"} className="text-4xl ml-1" />
                 <span className="text-[gray]">音频转发已{forwarding ? "开启" : "关闭"}</span>

@@ -1,6 +1,7 @@
 import { sha256 } from "js-sha256"
 import { prompt } from "mdui";
 import type { NotificationItem } from "./types/database";
+import {AndroidVersions, type AndroidVersionData} from "./types/androidVersions"
 
 const urlRegexp = /^(?:https?:\/\/)?(?:(?:[\p{L}\p{N}-]+\.)+[A-Za-z\u00a1-\uffff]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:[/?#][^\s]*)?$/iu;
 const deepHideNotificationCacheMap = new Map<string, boolean>();
@@ -143,4 +144,7 @@ export async function releaseFfmpeg() {
 export function time2str(time:number) {
     const second=Math.floor(time);
     return `${Math.floor(second / 60)}:${second % 60 < 10 ? "0" + second % 60 : second % 60}`;
+}
+export function getAndroidVersionInfoBySdkVersion(version:number):AndroidVersionData{
+    return AndroidVersions[version]??{name:"Unknown",semver:"Unknown"};
 }

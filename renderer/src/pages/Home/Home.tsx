@@ -49,7 +49,7 @@ export default function Home() {
       if (hasDialog) return;
       confirm({
         headline: "重启程序",
-        description: "确认重启程序?所有连接将关闭",
+        description: "确认重启程序?连接将关闭",
         confirmText: "重启",
         cancelText: "取消",
         onOpened() {

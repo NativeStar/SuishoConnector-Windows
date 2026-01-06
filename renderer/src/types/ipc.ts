@@ -7,7 +7,7 @@ export type InitServerResult = {
     pairCode:string
 }
 export type DeviceBaseInfo = {
-    android: number//sdk版本
+    androidSdkVersion: number//sdk版本
     androidId: string
     model: string
     oem: string

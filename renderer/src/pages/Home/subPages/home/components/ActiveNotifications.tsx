@@ -8,6 +8,9 @@ interface ActiveNotificationCardProp {
     dataPath: string
     onClose: (key: string) => void
 }
+interface ActiveNotificationListProp {
+    className?: string
+}
 interface ActiveNotification {
     packageName: string,
     title: string,
@@ -48,7 +51,7 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
         </mdui-card>
     )
 }
-export default function ActiveNotifications() {
+export default function ActiveNotifications({className}:ActiveNotificationListProp) {
     function updateNotification() {
         ipc.sendRequestPacket<{ list: ActiveNotification[] }>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
             activeNotificationDispatch({ type: "set", initNotificationList: value.list });
@@ -85,7 +88,7 @@ export default function ActiveNotifications() {
     useEffect(() => {
         setTimeout(() => {
             updateNotification();
-        }, 750);
+        }, 1500);
         const updateNotificationCleanup=ipc.on("currentNotificationUpdate", data => {
             if (!data.title&&!data.content) {
                 return
@@ -109,7 +112,7 @@ export default function ActiveNotifications() {
         }
     }, []);
     return (
-        <mdui-card className="fixed h-[40%] flex flex-col max-w-[40%] min-w-[40%] ">
+        <mdui-card className={twMerge("fixed h-[40%] flex flex-col max-w-[40%] min-w-[40%]",className)}>
             <div className="flex items-center px-2 py-1">
                 <small className="text-[gray]">通知列表</small>
                 <div className="ml-auto flex items-center text-[gray]">

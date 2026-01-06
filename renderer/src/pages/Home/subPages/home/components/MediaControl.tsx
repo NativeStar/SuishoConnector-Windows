@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
+import { twMerge } from "tailwind-merge";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import type { MediaSessionMetadata } from "~/types/ipc";
 import { time2str } from "~/utils";
 type MduiSliderElement = HTMLElement & { value: number };
-
-export default function MediaControl() {
+interface MediaControlProps {
+    className?: string
+}
+export default function MediaControl({className}:MediaControlProps) {
     const ipc = useMainWindowIpc();
     const [playing, setPlaying] = useState(false);
     const [controllable, setControllable] = useState(false);
@@ -69,7 +72,7 @@ export default function MediaControl() {
         }
     }, [playing, mediaSessionMetadata])
     return (
-        <mdui-card className="fixed left-[53%] h-[35%] flex flex-col max-w-[40%] min-w-[40%]">
+        <mdui-card className={twMerge("fixed h-[35%] flex flex-col max-w-[40%] min-w-[40%]",className)}>
             <div className="flex">
                 {/* 封面 */}
                 <img src={mediaSessionMetadata.image === "null" ? "./audioPlayerNotPicture.png" : mediaSessionMetadata.image} className="w-24 h-24 mt-2 ml-2" />
