@@ -7,12 +7,16 @@ type MduiSliderElement = HTMLElement & { value: number };
 interface MediaControlProps {
     className?: string
 }
+// 旋转动画角度
+const rotateList = [60, 120, 180, 240, 300, 360];
 export default function MediaControl({className}:MediaControlProps) {
     const ipc = useMainWindowIpc();
     const [playing, setPlaying] = useState(false);
     const [controllable, setControllable] = useState(false);
     const [duration, setDuration] = useState(0);
+    const [rotate, setRotate] = useState<number>(0);
     const userControllingSlider = useRef<boolean>(false);
+    const imageRef = useRef<HTMLImageElement | null>(null);
     const [mediaSessionMetadata, setMediaSessionMetadata] = useState<MediaSessionMetadata>({
         title: "暂无播放",
         artist: "-",
@@ -34,6 +38,7 @@ export default function MediaControl({className}:MediaControlProps) {
                 }));
                 return
             }
+            setRotate(0);
             setMediaSessionMetadata(data);
         });
         const updateMediaSessionPlaybackStateCleanup = ipc.on("updateMediaSessionPlaybackState", data => {
@@ -54,7 +59,21 @@ export default function MediaControl({className}:MediaControlProps) {
             setControllable(true);
             setDuration(data.position);
         });
+        let aniIndex = 0;
+        const animationLooper= setInterval(() => {
+            if (!imageRef.current?.src.startsWith("data:image")) {
+                if (aniIndex >= rotateList.length) {
+                    aniIndex = 0;
+                }
+                setRotate(rotateList[aniIndex]);
+                aniIndex++;
+            } else {
+                aniIndex = 0;
+                setRotate(0);
+            }
+        }, 200);
         return () => {
+            clearInterval(animationLooper);
             updateMediaSessionMetadataCleanup();
             updateMediaSessionPlaybackStateCleanup();
         }
@@ -75,7 +94,7 @@ export default function MediaControl({className}:MediaControlProps) {
         <mdui-card className={twMerge("fixed h-[35%] flex flex-col max-w-[40%] min-w-[40%]",className)}>
             <div className="flex">
                 {/* 封面 */}
-                <img src={mediaSessionMetadata.image === "null" ? "./audioPlayerNotPicture.png" : mediaSessionMetadata.image} className="w-24 h-24 mt-2 ml-2" />
+                <img ref={imageRef} style={{ rotate: `${rotate}deg` }} src={mediaSessionMetadata.image === "null" ? "./audioPlayerNotPicture.png" : mediaSessionMetadata.image} className="w-24 h-24 mt-2 ml-2" />
                 {/* 元数据 */}
                 <div className="flex flex-col ml-3 mt-5 w-[67%]">
                     <b className="truncate text-nowrap text-[gray]">{mediaSessionMetadata.title}</b>
