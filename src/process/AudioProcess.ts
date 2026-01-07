@@ -20,61 +20,139 @@ const iv = Buffer.from(process.argv[process.argv.length - 1],"base64");
     const channels = 2;
     const bytesPerSample = 2;
     const bytesPerSecond = sampleRate * channels * bytesPerSample; // 192000
-    const targetBufferedBytes = Math.floor(bytesPerSecond * 0.08); // ~80ms (含 speaker 内部缓冲)
-    const maxBufferedBytes = Math.floor(bytesPerSecond * 0.18); // ~180ms (含 speaker 内部缓冲)
+    const bytesPerSecondBig = BigInt(bytesPerSecond);
+
+    // 目标延迟更偏保守，优先避免爆音；如需更低可再下调
+    const targetLeadUs = 60_000n;
+    const maxLeadUs = 120_000n;
+    const playoutDelayUs = targetLeadUs;
+    const lateDropUs = 80_000n;
+
+    const targetLeadBytes = (bytesPerSecondBig * targetLeadUs) / 1_000_000n;
+    const maxLeadBytes = (bytesPerSecondBig * maxLeadUs) / 1_000_000n;
+
+    // 还未提交到 speaker 的队列尽量保持很短，避免“排队变成延迟”
+    const targetQueueBytes = (bytesPerSecondBig * 30_000n) / 1_000_000n;
+    const maxQueueBytes = (bytesPerSecondBig * 70_000n) / 1_000_000n;
 
     const magic = 0x41463032; // "AF02"
     const tagSize = 16;
     const headerSize = 4 + 4 + 8 + 8; // magic + seq + ptsUs + nonceCtr
 
     let lastSeq = -1;
-    let queuedBytes = 0;
-    let dropping = false;
-    const pcmQueue: Buffer[] = [];
+
+    type PcmFrame = { pcm: Buffer; playAtUs: bigint };
+    const pcmQueue: PcmFrame[] = [];
+    let queuedBytes = 0n;
+
     let waitingDrain = false;
+    let playbackStartUs: bigint | null = null;
+    let submittedBytes = 0n;
+
+    let ptsBaseUs: bigint | null = null;
+    let localBaseUs: bigint | null = null;
 
     const speakerOptions = {
         bitDepth: 16,
         channels,
         sampleRate,
-        samplesPerFrame: 480,
-        highWaterMark: Math.floor(bytesPerSecond * 0.04), // ~40ms
+        // 和 48kHz、20ms (960 samples) 对齐，避免 speaker 内部切块造成额外堆积
+        samplesPerFrame: 960,
+        // 让 Node stream 的背压更敏感一些，减少一次性灌入过多数据
+        highWaterMark: Math.floor(bytesPerSecond * 0.02), // ~20ms
     } satisfies Speaker.Options & { samplesPerFrame?: number };
 
     speaker = new Speaker(speakerOptions);
 
-    const totalBufferedBytes = () => queuedBytes + speaker.writableLength;
+    const nowUs = () => process.hrtime.bigint() / 1000n;
 
-    const updateDroppingState = () => {
-        const total = totalBufferedBytes();
-        if (dropping) {
-            if (total <= targetBufferedBytes) dropping = false;
-        } else {
-            if (total > maxBufferedBytes) dropping = true;
-        }
+    const estimatePlayedBytes = () => {
+        if (playbackStartUs == null) return 0n;
+        const elapsedUs = nowUs() - playbackStartUs;
+        if (elapsedUs <= 0n) return 0n;
+        return (elapsedUs * bytesPerSecondBig) / 1_000_000n;
     };
+
+    const leadBytes = () => {
+        const played = estimatePlayedBytes();
+        return submittedBytes > played ? submittedBytes - played : 0n;
+    };
+
+    const totalBufferedBytes = () => leadBytes() + queuedBytes;
 
     const trimQueueIfNeeded = () => {
-        while (pcmQueue.length > 0 && totalBufferedBytes() > targetBufferedBytes) {
+        while (pcmQueue.length > 0 && queuedBytes > maxQueueBytes) {
             const dropped = pcmQueue.shift()!;
-            queuedBytes -= dropped.length;
+            queuedBytes -= BigInt(dropped.pcm.length);
+        }
+        while (pcmQueue.length > 0 && queuedBytes > targetQueueBytes && leadBytes() >= targetLeadBytes) {
+            const dropped = pcmQueue.shift()!;
+            queuedBytes -= BigInt(dropped.pcm.length);
         }
     };
 
-    const pump = () => {
-        if (waitingDrain) return;
+    const dropLateFramesIfNeeded = () => {
+        const now = nowUs();
         while (pcmQueue.length > 0) {
-            const chunk = pcmQueue.shift()!;
-            queuedBytes -= chunk.length;
-            const ok = speaker.write(chunk);
+            const head = pcmQueue[0]!;
+            if (now <= head.playAtUs + lateDropUs) break;
+            const dropped = pcmQueue.shift()!;
+            queuedBytes -= BigInt(dropped.pcm.length);
+        }
+    };
+
+    const scheduleFromPts = (ptsUs: bigint) => {
+        const now = nowUs();
+        if (ptsBaseUs != null && ptsUs < ptsBaseUs) {
+            ptsBaseUs = null;
+            localBaseUs = null;
+        }
+        if (ptsBaseUs == null || localBaseUs == null) {
+            ptsBaseUs = ptsUs;
+            localBaseUs = now;
+        }
+        return localBaseUs + (ptsUs - ptsBaseUs) + playoutDelayUs;
+    };
+
+    const prebufferBytes = (bytesPerSecondBig * 40_000n) / 1_000_000n; // ~40ms
+
+    const tryFeedSpeaker = () => {
+        if (waitingDrain) return;
+
+        trimQueueIfNeeded();
+        dropLateFramesIfNeeded();
+
+        if (playbackStartUs == null) {
+            if (queuedBytes < prebufferBytes) return;
+            playbackStartUs = nowUs();
+            submittedBytes = 0n;
+        }
+
+        let currentLead = leadBytes();
+        while (pcmQueue.length > 0 && currentLead < targetLeadBytes) {
+            const frame = pcmQueue.shift()!;
+            queuedBytes -= BigInt(frame.pcm.length);
+
+            // 如果已经明显落后于计划播放时间，直接丢掉该帧避免把延迟“听出来”
+            if (nowUs() > frame.playAtUs + lateDropUs) {
+                continue;
+            }
+
+            const ok = speaker.write(frame.pcm);
+            submittedBytes += BigInt(frame.pcm.length);
+            currentLead = leadBytes();
+
             if (!ok) {
                 waitingDrain = true;
                 speaker.once("drain", () => {
                     waitingDrain = false;
-                    pump();
+                    tryFeedSpeaker();
                 });
                 return;
             }
+
+            // 如果后端已领先太多，停止继续写入，等待播放追上
+            if (currentLead > maxLeadBytes) return;
         }
     };
 
@@ -117,19 +195,22 @@ const iv = Buffer.from(process.argv[process.argv.length - 1],"base64");
         //拒绝来自其他设备的包
         if (remoteInfo.address !== deviceAddress) return
         try {
-            updateDroppingState();
-            if (dropping) {
-                trimQueueIfNeeded();
-                updateDroppingState();
-                if (dropping) return;
-            }
-
             if (data.length < headerSize + tagSize) return;
             if (data.readUInt32BE(0) !== magic) return;
 
             const seq = data.readInt32BE(4);
-            if (seq === 0 && lastSeq > 1000) lastSeq = -1;
+            if (seq === 0 && lastSeq > 1000) {
+                lastSeq = -1;
+                ptsBaseUs = null;
+                localBaseUs = null;
+                playbackStartUs = null;
+                submittedBytes = 0n;
+                queuedBytes = 0n;
+                pcmQueue.length = 0;
+            }
             if (seq <= lastSeq) return;
+
+            const ptsUs = data.readBigInt64BE(8);
 
             const payload = decryptPayload(data);
             if (!payload) return;
@@ -137,14 +218,16 @@ const iv = Buffer.from(process.argv[process.argv.length - 1],"base64");
 
             const result = decoder.decodeFrame(payload);
             const mergedBuffer = mergeStereoChannels(result.channelData[0], result.channelData[1]);
-            pcmQueue.push(mergedBuffer);
-            queuedBytes += mergedBuffer.length;
-            trimQueueIfNeeded();
-            pump();
+            pcmQueue.push({ pcm: mergedBuffer, playAtUs: scheduleFromPts(ptsUs) });
+            queuedBytes += BigInt(mergedBuffer.length);
+            tryFeedSpeaker();
         } catch (error) {
             console.error("Decode error:", error);
         }
     })
+
+    // 定时限速喂入，避免一次性灌满音频后端造成 300ms+ 延迟
+    setInterval(tryFeedSpeaker, 5);
 })();
 function mergeStereoChannels(leftChannel: Buffer | Float32Array, rightChannel: Buffer | Float32Array, sampleSize: number = 2): Buffer {
     if (leftChannel instanceof Float32Array && rightChannel instanceof Float32Array) {
