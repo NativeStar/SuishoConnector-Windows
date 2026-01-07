@@ -18,9 +18,11 @@ export default function DeviceInfoPanel({className}:DeviceInfoPanelProps) {
         sessionId: "Loading"
     });
     useEffect(() => { 
-        ipc.getDeviceBaseInfo().then(v=>setDeviceInfo(v));
-        const androidVersionInfo=getAndroidVersionInfoBySdkVersion(deviceInfo.androidSdkVersion);
-        setAndroidVersionDisplay(`${androidVersionInfo.semver}-${androidVersionInfo.name}`);
+        ipc.getDeviceBaseInfo().then(v=>{
+            setDeviceInfo(v)
+            const androidVersionInfo=getAndroidVersionInfoBySdkVersion(v.androidSdkVersion);
+            setAndroidVersionDisplay(`${androidVersionInfo.semver}-${androidVersionInfo.name}`);
+        });
     }, []);
     return (
         <mdui-card className={twMerge("fixed flex flex-col h-[32%] w-[34%]",className)}>
