@@ -1,4 +1,4 @@
-import type { InitServerResult, DeviceBaseInfo ,ApplicationListData,ApplicationNotificationProfile,TextFilterConfig, FileItem} from "~/types/ipc"
+import type { InitServerResult, DeviceBaseInfo ,ApplicationListData,ApplicationNotificationProfile,TextFilterConfig, FileItem,AudioForwardResponse} from "~/types/ipc"
 import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
 declare global {
     interface Window { 
@@ -55,7 +55,7 @@ declare global {
             readonly getPackageList:(forceUpdate:boolean)=>Promise<{data:ApplicationListData[]}>,
             readonly sendMessageToMainWindow:(type:string,message:{[key:string]:string|number|boolean})=>void
             readonly appendMediaSessionControl:(action:"changePlayState"|"next"|"previous"|"seek",time?:number)=>void
-            readonly setAudioForwardEnable:(enable:boolean)=>Promise<void>
+            readonly setAudioForwardEnable:(enable:boolean)=>Promise<AudioForwardResponse>
         }
     }
 }

@@ -7,7 +7,9 @@ process.once("SIGINT", () => {
     speaker?.close(true);
     process.exit(0);
 })
-const deviceAddress = process.argv[process.argv.length - 1];
+const deviceAddress = process.argv[process.argv.length - 3];
+const key = Buffer.from(process.argv[process.argv.length - 2],"base64");
+const iv = Buffer.from(process.argv[process.argv.length - 1],"base64");
 (async () => {
     const opusImport = await import("opus-decoder");
     const decoder = new opusImport.OpusDecoder({ channels: 2, sampleRate: 48000 });

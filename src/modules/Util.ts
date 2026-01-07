@@ -5,7 +5,7 @@ import path from "path";
 import child_process from 'child_process';
 import build from "../constant/build.prop.json";
 import configTemp from "../constant/configTemplate";
-import {VirtualNetworkDriverName} from "../constant/VirtualNetworkDriverName"
+import { VirtualNetworkDriverName } from "../constant/VirtualNetworkDriverName"
 import os from "os";
 import forge from "node-forge"
 type Config = typeof configTemp;
@@ -15,7 +15,7 @@ class Util {
     private static windowsReservedWords = new Set(["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]);
     //url判断正则
     private static urlRegexp = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
-    private static checkNetworkDriverName(name:string){
+    private static checkNetworkDriverName(name: string) {
         for (const virtualName of VirtualNetworkDriverName) {
             if (name.toLowerCase().includes(virtualName.toLowerCase())) {
                 return true;
@@ -262,6 +262,11 @@ class Util {
             }
         }
         if (taskName) logger.writeError(`Task "${taskName}" full failed`, "Retry task");
+    }
+    static createAes128GcmKey() {
+        const key = crypto.randomBytes(16);
+        const iv = crypto.randomBytes(12);
+        return { key:key.toString("base64"), iv:iv.toString("base64") };
     }
 }
 export default Util;

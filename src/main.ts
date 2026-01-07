@@ -729,9 +729,16 @@ app.on("certificate-error", (event, _webContents, url, _error, cert, callback) =
 });
 ipcMain.handle("main_setAudioForward", async (_event, enable: boolean) => {
     if (enable) {
-        AudioForward.start(connectedDevice.getPhoneAddress())
+        const {iv,key}=Util.createAes128GcmKey();
+        const result:any=await connectedDevice.responseManager?.send({ packetType:"main_startAudioForward",key,iv});
+        if (result.result) {
+            AudioForward.start(connectedDevice.getPhoneAddress(),key,iv);
+        }
+        return result;
     } else {
+        const result:any=await connectedDevice.responseManager?.send({ packetType:"main_stopAudioForward"});
         AudioForward.stop();
+        return result;
     }
 });
 ipcMain.on("sendMessageToMainWindow", (_event, type: string, message: { [key: string]: string | number | boolean }) => {

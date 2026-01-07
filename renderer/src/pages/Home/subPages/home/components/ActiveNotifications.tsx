@@ -52,6 +52,7 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
     )
 }
 export default function ActiveNotifications({className}:ActiveNotificationListProp) {
+    // TODO 被点开的通知可能不会取消(怕不是Android端的锅)
     function updateNotification() {
         ipc.sendRequestPacket<{ list: ActiveNotification[] }>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
             activeNotificationDispatch({ type: "set", initNotificationList: value.list });
