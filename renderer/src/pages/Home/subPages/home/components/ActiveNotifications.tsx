@@ -52,7 +52,6 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
     )
 }
 export default function ActiveNotifications({className}:ActiveNotificationListProp) {
-    // TODO 被点开的通知可能不会取消(怕不是Android端的锅)
     function updateNotification() {
         ipc.sendRequestPacket<{ list: ActiveNotification[] }>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
             activeNotificationDispatch({ type: "set", initNotificationList: value.list });
@@ -91,6 +90,11 @@ export default function ActiveNotifications({className}:ActiveNotificationListPr
             updateNotification();
         }, 1500);
         const updateNotificationCleanup=ipc.on("currentNotificationUpdate", data => {
+            //点击通知导致的移除无title content属性
+            if (data.type === "remove") {
+                activeNotificationDispatch({ type: "remove", key: data.key });
+                return
+            }
             if (!data.title&&!data.content) {
                 return
             }
