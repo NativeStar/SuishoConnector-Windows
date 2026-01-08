@@ -46,7 +46,7 @@ export default function DeviceInfoPanel({className}:DeviceInfoPanelProps) {
             </div>
             <div className="flex mt-2 ml-1">
                 <mdui-icon name="diversity_2" />
-                <small className="text-[gray] mt-1">协议版本  {deviceInfo.protocolVersion}</small>
+                <small className="text-[gray] mt-1">协议版本:  {deviceInfo.protocolVersion}</small>
             </div>
         </mdui-card>
     )

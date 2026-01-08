@@ -1,4 +1,29 @@
 const path = require('path');
+const fs = require('fs');
+const fsp = require('fs/promises');
+async function safeRm(targetPath) {
+  try {
+    await fsp.rm(targetPath, { recursive: true, force: true });
+  } catch {
+    // ignore
+  }
+}
+function walkDirSync(dirPath, handlers) {
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      if (handlers.onDir && handlers.onDir(fullPath, entry) === false) {
+        continue;
+      }
+      walkDirSync(fullPath, handlers);
+      continue;
+    }
+    if (entry.isFile()) {
+      handlers.onFile && handlers.onFile(fullPath, entry);
+    }
+  }
+}
 
 module.exports = {
   packagerConfig: {
@@ -14,7 +39,7 @@ module.exports = {
     win:{
       "publisherName": "Suisho Apps",
     },
-    asar: true,
+    asar: false,
     derefSymlinks: true,
     ignore:[
       ".js.map$",
@@ -39,6 +64,68 @@ module.exports = {
       "temp_index.txt",
       "(^/shared/|^/shared$)"
     ]
+  },
+  hooks: {
+    packageAfterExtract: async (_forgeConfig, buildPath, _electronVersion, platform) => {
+      if (platform !== 'win32') return;
+      const localesDir = path.join(buildPath, 'locales');
+      if (!fs.existsSync(localesDir)) return;
+      const keepLocales = new Set([
+        'zh-CN.pak',
+        'zh-TW.pak',
+        'en-US.pak'
+      ]);
+      const entries = fs.readdirSync(localesDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        if (!entry.name.toLowerCase().endsWith('.pak')) continue;
+        if (keepLocales.has(entry.name)) continue;
+        await safeRm(path.join(localesDir, entry.name));
+      }
+    },
+    packageAfterCopy: async (_forgeConfig, buildPath, _electronVersion, platform) => {
+      if (platform !== 'win32') return;
+
+      const nodeModulesDir = path.join(buildPath, 'resources', 'app', 'node_modules');
+      if (!fs.existsSync(nodeModulesDir)) return;
+      const deleteExts = new Set([
+        '.pdb',
+        '.ipdb',
+        '.iobj',
+        '.obj',
+        '.ilk',
+        '.exp',
+        '.lib',
+        '.tlog',
+        '.log',
+        '.lastbuildstate',
+      ]);
+      const deleteDirNames = new Set([
+        'obj',
+        '.vs',
+      ]);
+      const pendingRemovals = [];
+      walkDirSync(nodeModulesDir, {
+        onDir: (dirFullPath, dirent) => {
+          const name = dirent.name.toLowerCase();
+          if (deleteDirNames.has(name)) {
+            pendingRemovals.push(dirFullPath);
+            return false;
+          }
+          return true;
+        },
+        onFile: (fileFullPath, dirent) => {
+          const nameLower = dirent.name.toLowerCase();
+          const extLower = path.extname(nameLower);
+          if (deleteExts.has(extLower)) {
+            pendingRemovals.push(fileFullPath);
+          }
+        },
+      });
+      for (const targetPath of pendingRemovals) {
+        await safeRm(targetPath);
+      }
+    },
   },
   rebuildConfig: {
   },
@@ -69,9 +156,9 @@ module.exports = {
     // },
   ],
   plugins: [
-    {
-      name: '@electron-forge/plugin-auto-unpack-natives',
-      config: {},
-    },
+    // {
+    //   name: '@electron-forge/plugin-auto-unpack-natives',
+    //   config: {},
+    // },
   ]
 };
