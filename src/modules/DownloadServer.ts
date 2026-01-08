@@ -1,6 +1,8 @@
 import { createServer, Server } from "https";
 import fs from "fs-extra";
 import { AddressInfo } from "net";
+import { app } from "electron";
+import path from "path";
 class DownloadServer {
     private port: number | null;
     private fileStream: fs.ReadStream | null;
@@ -33,8 +35,8 @@ class DownloadServer {
             logger.writeInfo(`Download server:${this.label || "Not label"} working with stream mode:${this.filePath}`);
         }
         this.server = createServer({
-            key: fs.readFileSync("./res/cert/default.key"),
-            cert: fs.readFileSync("./res/cert/default.crt")
+            key: fs.readFileSync(path.join(app.getAppPath(), "res", "cert", "default.key")),
+            cert: fs.readFileSync(path.join(app.getAppPath(), "res", "cert", "default.crt"))
         }, (req, res) => {
             //对上ua才发送
             if (req.headers["user-agent"] === "I HATE YOU") {

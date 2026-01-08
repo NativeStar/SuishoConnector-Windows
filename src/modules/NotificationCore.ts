@@ -400,7 +400,7 @@ class NotificationCore {
                     spellcheck: false,
                     contextIsolation: true,
                     // 逆天调试环境
-                    preload: path.resolve(app.isPackaged ? "./dist/preload/notificationFilterSettingPreload.js" : "./src/preload/notificationFilterSettingPreload.js")
+                    preload: path.resolve(app.isPackaged ? path.join(app.getAppPath(),"dist","preload","notificationFilterSettingPreload.js") : "./src/preload/notificationFilterSettingPreload.js")
                 }
             });
             this.configWindow.setMenu(null);

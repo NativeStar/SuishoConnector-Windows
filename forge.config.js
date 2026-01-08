@@ -14,7 +14,8 @@ module.exports = {
     win:{
       "publisherName": "Suisho Apps",
     },
-    asar: false,
+    asar: true,
+    derefSymlinks: true,
     ignore:[
       ".js.map$",
       "psd",
@@ -34,7 +35,9 @@ module.exports = {
       ".claude",
       ".gitignore",
       "CLAUDE.md",
-      "AGENTS.md"
+      "AGENTS.md",
+      "temp_index.txt",
+      "(^/shared/|^/shared$)"
     ]
   },
   rebuildConfig: {
@@ -66,9 +69,9 @@ module.exports = {
     // },
   ],
   plugins: [
-    // {
-    //   name: '@electron-forge/plugin-auto-unpack-natives',
-    //   config: {},
-    // },
+    {
+      name: '@electron-forge/plugin-auto-unpack-natives',
+      config: {},
+    },
   ]
 };

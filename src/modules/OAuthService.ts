@@ -23,7 +23,8 @@ class OAuthService {
         // 直接加载文件没法调用auth 至少要localhost
         this.server=http.createServer(async (req,res)=>{
             if (req.url==="/localAuth"&&req.headers["user-agent"]==="suisho_local_auth_request_window") {
-                res.writeHead(200).end(await fs.readFile("./res/oauth.html","utf-8"));
+                res.writeHead(200).end(await fs.readFile(path.join(app.getAppPath(),"res","oauth.html"),"utf-8"));
+                // res.writeHead(200).end(await fs.readFile("./res/oauth.html","utf-8"));
                 return
             }
             res.destroy();

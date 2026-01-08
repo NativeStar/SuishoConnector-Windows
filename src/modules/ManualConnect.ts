@@ -1,6 +1,8 @@
 import { createServer, Server } from "https";
 import fs from "fs-extra";
 import randomThing from "randomthing-js"
+import { app } from "electron";
+import path from "path";
 class ManualConnect {
     serverPort: number;
     certPort: number;
@@ -35,8 +37,8 @@ class ManualConnect {
     }
     async init() {
         this.server = createServer({
-            key: fs.readFileSync("./res/cert/default.key"),
-            cert: fs.readFileSync("./res/cert/default.crt")
+            key: fs.readFileSync(path.join(app.getAppPath(), "res", "cert", "default.key")),
+            cert: fs.readFileSync(path.join(app.getAppPath(), "res", "cert", "default.crt"))
         }, async (req, res) => {
             const ip = req.socket.remoteAddress ?? null;
             if (req.headers["user-agent"] === "Shamiko") {

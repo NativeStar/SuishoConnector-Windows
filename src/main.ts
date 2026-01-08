@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem } from "electron";
 import path from "path";
 //更改执行路径
-process.chdir(app.getAppPath());
+// process.chdir(app.getAppPath());
 import { exec } from "child_process";
 import os from "os";
 import { X509Certificate } from "crypto"
@@ -305,7 +305,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
 });
 function initTray() {
     //创建托盘图标
-    const trayImage: Electron.NativeImage = nativeImage.createFromPath("./res/icon.ico");
+    const trayImage: Electron.NativeImage = nativeImage.createFromPath(path.join(app.getAppPath(), "res", "icon.ico"));
     trayInstance = new Tray(trayImage);
     trayInstance.setTitle("Suisho Connector");
     trayInstance.setToolTip("Suisho Connector");
@@ -708,6 +708,7 @@ ipcMain.handle("main_deleteLogs", async () => {
     }
     logger.writeInfo("Deleted all logs");
 });
+//TODO asar打包问题
 app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
     if (localCertFingerprint256 === null) {
         const rawLocalCertData = fs.readFileSync(`${app.getPath("userData")}/programData/cert/cert.crt`, { encoding: "utf-8" })

@@ -1,13 +1,19 @@
 import http from "http";
 import fs from "fs-extra";
+import path from "path";
+import { app } from "electron";
 class ApkServer{
     private initd:boolean=false;
+    private readonly htmlPath:string;
+    private readonly packagePath: string;
     server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     indexHtml:string;
     private packageSize:number;
     constructor(){
-        if (fs.existsSync("./res/android/apkDownload.html")) {
-            this.indexHtml=fs.readFileSync("./res/android/apkDownload.html",{encoding:"utf-8"});
+        this.htmlPath=path.join(app.getAppPath(),"res","android","apkDownload.html");
+        this.packagePath=path.join(app.getAppPath(),"res","android","package.apk");
+        if (fs.existsSync(this.htmlPath)) {
+            this.indexHtml=fs.readFileSync(this.htmlPath,{encoding:"utf-8"});
         }else{
             this.indexHtml=`
                 <html>
@@ -17,10 +23,10 @@ class ApkServer{
                 </html>
             `
         };
-        this.packageSize=fs.statSync("./res/android/package.apk").size;
+        this.packageSize=fs.statSync(this.packagePath).size;
         this.server=http.createServer((req,res)=>{
             if (req.url==="/dlPackage") {
-                if (!fs.existsSync("./res/android/package.apk")) {
+                if (!fs.existsSync(this.packagePath)) {
                     res.writeHead(404, {
                         'content-type': 'text/html;charset=utf8'
                     });
@@ -34,7 +40,7 @@ class ApkServer{
                     return
                 }
                 res.writeHead(200,{"Content-Type":"application/vnd.android.package-archive","Content-Length":this.packageSize,"Content-Disposition": 'attachment; filename="SuishoConnectorAndroid.apk"'});
-                fs.createReadStream("./res/android/package.apk").pipe(res);
+                fs.createReadStream(this.packagePath).pipe(res);
                 /* 
                 用于给客户端判定
                 避免某些人想更新软件什么的结果拿装好的客户端扫这个码或者纯粹没分清
