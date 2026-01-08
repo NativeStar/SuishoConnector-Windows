@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "tsc&&electron ./",
     "start": "electron-forge start",
-    "package": "npm run build --workspace shared && tsc && cd ./renderer && npm run build && (if exist ..\\dist\\renderer rmdir /s /q ..\\dist\\renderer) && robocopy ./dist ../dist/renderer /E && cd ../ || electron-forge package",
-    "make": "electron-forge make"
+    "prep:forge": "npm run build --workspace shared && tsc && npm run build --workspace renderer && node scripts/copy-renderer-dist.js",
+    "package": "npm run prep:forge && electron-forge package",
+    "make": "npm run prep:forge && electron-forge make"
   },
   "author": "suisho",
   "license": "MIT",

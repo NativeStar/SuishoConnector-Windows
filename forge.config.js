@@ -39,7 +39,7 @@ module.exports = {
     win:{
       "publisherName": "Suisho Apps",
     },
-    asar: false,
+    asar: true,
     derefSymlinks: true,
     ignore:[
       ".js.map$",
@@ -62,7 +62,9 @@ module.exports = {
       "CLAUDE.md",
       "AGENTS.md",
       "temp_index.txt",
-      "(^/shared/|^/shared$)"
+      "(^/shared/|^/shared$)",
+      "(^/scripts/|^/scripts$)",
+      "WixUI_zh-CN.wxl"
     ]
   },
   hooks: {
@@ -136,6 +138,50 @@ module.exports = {
       config: {
         // WiX installer 侧使用的应用/卸载显示图标
         icon: path.resolve(__dirname, 'res', 'icon.ico'),
+        // 简体中文（zh-CN）
+        language: 2052,
+        manufacturer: 'Suisho Apps',
+        // 固定 UpgradeCode，便于后续版本覆盖安装/升级
+        upgradeCode: '4D4B78B7-820E-4470-BE1F-B9E669575049',
+        // 与 src/main.ts 里 packaged 的 AUMID 保持一致
+        appUserModelId: 'com.suisho.connector',
+        // 与 package.json:interactive-notifications.toast-activator-clsid 保持一致
+        toastActivatorClsid: '171807FD-769F-4129-A8C2-C603F8F125C8',
+        // 传统安装器体验：启用 UI，并允许选择安装目录
+        ui: { chooseDirectory: true ,localizations: [path.resolve(__dirname,'WixUI_zh-CN.wxl')]},
+        // perMachine：默认安装到 Program Files（通常需要管理员权限）
+        defaultInstallMode: 'perMachine',
+        // 方案B：不使用 Update.exe / stub 启动器，让快捷方式直接指向真实主程序
+        beforeCreate: (creator) => {
+          const versionedExeTarget = '[APPLICATIONROOTDIRECTORY]app-{{SemanticVersion}}\\{{ApplicationBinary}}.exe';
+
+          // 禁用 electron-wix-msi 生成的 stub 启动器（约 555KB 的同名 exe），避免快捷方式指向它
+          creator.getSpecialFiles = async () => [];
+          creator.exeFilePath = path.join(creator.appDirectory, `${creator.exe}.exe`);
+
+          const originalGetRegistryKeys = creator.getRegistryKeys.bind(creator);
+          creator.getRegistryKeys = function () {
+            const registry = originalGetRegistryKeys();
+            for (const item of registry) {
+              if (typeof item.value === 'string') {
+                item.value = item.value.replace(
+                  '[APPLICATIONROOTDIRECTORY]{{ApplicationBinary}}.exe',
+                  versionedExeTarget
+                );
+              }
+            }
+            return registry;
+          };
+
+          if (typeof creator.wixTemplate === 'string') {
+            creator.wixTemplate = creator.wixTemplate
+              .replaceAll('[APPLICATIONROOTDIRECTORY]{{ApplicationBinary}}.exe', versionedExeTarget)
+              .replaceAll('{{ApplicationName}} (Machine - MSI)', '{{ApplicationName}}')
+              .replaceAll('{{ApplicationName}} (User - MSI)', '{{ApplicationName}}')
+              .replaceAll('{{ApplicationName}} (Machine)', '{{ApplicationName}}')
+              .replaceAll('{{ApplicationName}} (User)', '{{ApplicationName}}');
+          }
+        },
       },
     },
     // {
@@ -156,9 +202,9 @@ module.exports = {
     // },
   ],
   plugins: [
-    // {
-    //   name: '@electron-forge/plugin-auto-unpack-natives',
-    //   config: {},
-    // },
+    {
+      name: '@electron-forge/plugin-auto-unpack-natives',
+      config: {},
+    },
   ]
 };
