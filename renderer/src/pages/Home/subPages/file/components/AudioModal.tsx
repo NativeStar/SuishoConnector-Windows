@@ -142,7 +142,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
     }
     return (
         <div className="w-full h-full fixed bg-black/70 left-0 z-10" onClick={() => setVisible(false)}>
-            <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-highest))] rounded-xl flex" onClick={(e) => e.stopPropagation()}>
+            <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-low))] rounded-xl flex" onClick={(e) => e.stopPropagation()}>
                 {/* 左侧 信息显示和控制 */}
                 <div className="h-full flex flex-col flex-1 items-center mt-6">
                     {/* 歌名 */}
