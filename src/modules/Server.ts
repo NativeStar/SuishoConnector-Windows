@@ -530,6 +530,7 @@ class Server {
         if (!this.appWindow.isDestroyed() && !this.appWindow.isVisible()) {
             logger.writeInfo(`Post device disconnect notification`);
             //直接用Electron自带通知
+            // TODO 修收纳后点击通知无法打开页面
             const notification = new Notification({
                 title: "设备断开连接",
                 body: `${global.clientMetadata.model}已断开连接`,

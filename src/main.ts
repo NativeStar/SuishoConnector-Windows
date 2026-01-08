@@ -708,7 +708,9 @@ ipcMain.handle("main_deleteLogs", async () => {
     }
     logger.writeInfo("Deleted all logs");
 });
-//TODO asar打包问题
+//TODO 更详细的日志 包括Android端也要加
+//TODO 让Claude看下音频转发延迟问题
+//TODO 文件同步功能 使用chokidar的awaitWriteFinish
 app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
     if (localCertFingerprint256 === null) {
         const rawLocalCertData = fs.readFileSync(`${app.getPath("userData")}/programData/cert/cert.crt`, { encoding: "utf-8" })
