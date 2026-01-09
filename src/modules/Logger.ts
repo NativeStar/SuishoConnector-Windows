@@ -3,6 +3,7 @@ import os from "os";
 import randomthing from "randomthing-js";
 import ApplicationVersion from "shared/const/ApplicationVersion";
 import textArray from "../constant/LogEasterEggs.json"
+import { ipcMain } from "electron";
 enum LogLevel {
     NONE,//禁用
     DEBUG,//调试
@@ -32,6 +33,13 @@ class Logger {
         if (!existFile) {
             this.writeStream.write(this.getLogHeaderString());
         }
+        ipcMain.on("appendRendererLog", (event, data:string[]) => {
+            let tempStr = ""
+            for (const item of data) {
+                tempStr += `[Renderer] ${item}\n`
+            }
+            this.writeStream.write(tempStr);
+        });
         this.writeInfo("Logger init success!")
     }
     /**
@@ -84,6 +92,10 @@ class Logger {
             this.writeStream.write(tempStr + "\n");
             console.log("\x1B[31m" + tempStr + "\x1b[0m");
         }
+    }
+    // 渲染进程专用
+    writeLogArray(data:Array<logInput>):void{
+        
     }
     getLogFileName(): string {
         return this.logFileName;

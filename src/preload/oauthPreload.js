@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     createCredentialsResult:(result)=>{ipcRenderer.send("oauth_createCredentialsCallback",result)},
     saveRawID:(buffer)=>{ipcRenderer.invoke("oauth_saveRawID",buffer)},
     setStartAuthorization:(handle)=>{ipcRenderer.on("startAuthorization",handle)},
-    authorizationResult:(result=>{ipcRenderer.send("oauth_authorizationCallback",result)})
+    authorizationResult:(result=>{ipcRenderer.send("oauth_authorizationCallback",result)}),
+    appendLog:(logs)=>ipcRenderer.send("appendRendererLog",logs)
 })

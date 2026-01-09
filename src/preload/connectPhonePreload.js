@@ -26,5 +26,5 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     autoConnectError:callback=>{ipcRenderer.on("main_autoConnectError",callback)},
     //使用浏览器打开url
     openUrl:(url)=>{ipcRenderer.send("main_openUrl",url)},
-    
+    appendLog:(logs)=>ipcRenderer.send("appendRendererLog",logs)
 })

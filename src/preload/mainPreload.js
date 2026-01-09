@@ -71,4 +71,5 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     deleteLogs:()=>{return ipcRenderer.invoke("main_deleteLogs")},
     //发送媒体会话控制
     appendMediaSessionControl:(action,time)=>{return ipcRenderer.invoke("mediaSession_appendAction",action,time)},
+    appendLog:(logs)=>ipcRenderer.send("appendRendererLog",logs)
 })
