@@ -22,6 +22,7 @@ export default function DeviceInfoPanel({className}:DeviceInfoPanelProps) {
             setDeviceInfo(v)
             const androidVersionInfo=getAndroidVersionInfoBySdkVersion(v.androidSdkVersion);
             setAndroidVersionDisplay(`${androidVersionInfo.semver}-${androidVersionInfo.name}`);
+            console.info("Success show device info");
         });
     }, []);
     return (

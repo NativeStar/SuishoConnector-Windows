@@ -87,6 +87,7 @@ function CollapseListItem({ searchText, setSearchText, setPackageList, setCurren
                     <mdui-list-item slot="header" icon="refresh" onClick={() => {
                         setCurrentAppPackageName("");
                         setPackageList(null);
+                        console.info("App profile panel refresh app list");
                         ipc.getPackageList(true).then(value => {
                             setPackageList(value.data);
                         });
@@ -104,11 +105,13 @@ function ProfileSettingPanel({ packageName, packageList, dataPath, appName }: Pr
     useEffect(() => {
         ipc.getNotificationProfile(packageName).then(profile => {
             setProfile(profile);
+            console.debug(`Get application notification forward profile:${packageName}`);
         })
     }, [packageName]);
     function onProfileEdit(profileKey: keyof ApplicationNotificationProfile, value: boolean | ApplicationNotificationProfile["detailShowMode"]) {
         const newProfile = { ...profile!, [profileKey]: value };
         setProfile(newProfile);
+        console.debug(`Edit app "${packageName}" notification profile:${profileKey}:${value}`);
         ipc.setNotificationProfile(packageName, newProfile);
     };
     return (
@@ -187,6 +190,7 @@ export default function AppProfilePanel({ packageName, appName }: AppProfilePane
     useEffect(() => {
         ipc.getPackageList(false).then(value => {
             setPackageList(value.data);
+            console.info(`App profile panel app list init success.Data size:${value.data.length}`);
         });
     }, []);
     useEffect(() => {

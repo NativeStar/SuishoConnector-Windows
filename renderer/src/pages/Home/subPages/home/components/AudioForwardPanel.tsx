@@ -20,12 +20,13 @@ export default function AudioForwardPanel({ className }: AudioForwardPanelProps)
                         closeable: true
                     });
                     setLoading(false);
+                    console.debug(`Failed to start audio forward:${value.exception ? value.exception : "not permission"}`);
                     return
                 }
                 setForwarding(true);
                 setLoading(false);
+                console.info("Started audio forward");
             })
-            // })
         } else {
             confirm({
                 headline: "关闭音频转发",
@@ -36,6 +37,7 @@ export default function AudioForwardPanel({ className }: AudioForwardPanelProps)
                     ipc.setAudioForwardEnable(false).then(() => {
                         setForwarding(false);
                         setLoading(false);
+                        console.info("Stopped audio forward");
                     })
                 },
                 onCancel() {

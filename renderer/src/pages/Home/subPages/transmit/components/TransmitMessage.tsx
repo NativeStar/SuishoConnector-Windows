@@ -31,10 +31,12 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
             case RightClickMenuItemId.Copy:
                 if (!selectedText || selectedText === "") {
                     await navigator.clipboard.writeText(text);
-                    //清空选择
+                    console.debug(`Copied transmit message:${text}`);
                 } else {
                     await navigator.clipboard.writeText(selectedText);
+                    //清空选择
                     getSelection()?.removeAllRanges();
+                    console.debug(`Copied transmit message selected text:${selectedText}`);
                 }
                 break;
             case RightClickMenuItemId.Delete:
@@ -43,18 +45,21 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
                     type: "remove",
                     timestamp: timestamp
                 });
+                console.debug(`Delete transmit text message:${timestamp}`);
                 break
             case RightClickMenuItemId.OpenUrl:
                 if (!selectedText || selectedText === "") {
                     openUrl(text);
+                    console.info(`Opened url from transmit message:${text}`);
                 } else {
                     openUrl(selectedText);
+                    console.info(`Opened url from transmit message:${selectedText}`);
                 }
                 break
             case RightClickMenuItemId.Null:
                 break
             default:
-                console.warn(`Unknown result id:${result}`);
+                console.warn(`Unknown transmit message menu result id:${result}`);
                 break;
         }
     }
@@ -66,7 +71,8 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
             //未选择文本
             if (checkUrl(text)) {
                 //含有url
-                createRightClickMenu(TransmitMessageMenuUrlText).then(onContextMenuCallback)
+                createRightClickMenu(TransmitMessageMenuUrlText).then(onContextMenuCallback);
+                console.debug("Transmit text message create has url menu");
                 return
             }
             createRightClickMenu(TransmitMessageMenuCommonText).then(onContextMenuCallback)
@@ -74,8 +80,10 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
             //选中文本
             if (checkUrl(selectedText)) {
                 createRightClickMenu(TransmitMessageMenuSelectedUrlText).then(onContextMenuCallback)
+                console.debug("Transmit text message create has selection menu");
                 return
             }
+            console.debug("Transmit text message create common menu");
             createRightClickMenu(TransmitMessageMenuSelectedCommonText).then(onContextMenuCallback)
         }
     }
@@ -104,16 +112,19 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                 setProgressValue(data.size);
                 setProgressing(false);
                 ipc.unregisterFileUploadProgressListener(progressListener);
+                console.info(`Transmit file receive success:${data.name}`);
             });
             ipc.on("transmitFileTransmitFailed", () => {
                 setProgressing(false);
                 ipc.unregisterFileUploadProgressListener(progressListener);
+                console.warn(`Transmit file receive failed:${data.name}`);
             })
             return () => {
                 ipc.unregisterFileUploadProgressListener(progressListener);
+                console.debug(`Unmount transmit file progress listener:${data.name}`);
             }
         }
-        if(!data.isDeleted&&data.from==="phone"){
+        if (!data.isDeleted && data.from === "phone") {
             ipc.generateTransmitFileURL(data.name).then(fullPath => {
                 fileFullPathRef.current = fullPath;
             })
@@ -134,7 +145,9 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                     type: "remove",
                     timestamp: data.timestamp
                 });
+                console.debug(`Delete transmit file message:${data.timestamp}`);
             } else if (result === RightClickMenuItemId.OpenInExplorer) {
+                console.info(`Try open file in explorer`);
                 ipc.openInExplorer("transmitFile", data.name).then(result => {
                     if (!result) {
                         // 文件不存在
@@ -146,6 +159,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                             messageInstance: { ...data, isDeleted: true }
                         });
                         database.putData(modifiedData);
+                        console.info(`Transmit file deleted:${data.timestamp}`);
                     }
                 })
             }
@@ -156,9 +170,11 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
             event.dataTransfer.setData("DownloadURL", `application/x-www-form-urlencoded:${data.displayName}:${fileFullPathRef.current}`);
         }
         event.dataTransfer.setData("from_self", "true");
+        console.info(`Start drag file message:${data.name}`);
     }
     function openFile() {
         if (data.from === "computer") return
+        console.info("Try open file");
         ipc.openFile(data.name).then(result => {
             if (!result) {
                 setIsDeleted(true);
@@ -169,6 +185,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                     messageInstance: { ...data, isDeleted: true }
                 });
                 database.putData(modifiedData);
+                console.info(`Transmit file deleted:${data.timestamp}`);
             }
         })
     }

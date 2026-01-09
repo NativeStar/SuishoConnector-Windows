@@ -8,7 +8,6 @@ import AutoScrollLyric, { type LyricItemType } from "./AutoScrollLyric";
 import { alert } from "mdui";
 // 旋转动画角度
 const rotateList = [60, 120, 180, 240, 300, 360];
-
 interface AudioModalProps {
     setVisible: React.Dispatch<React.SetStateAction<boolean>>;
     src: string
@@ -35,6 +34,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
     let imageUrl: string;
     function onAudioMetadataLoaded() {
         setDuration(() => audioRef.current?.duration ?? 0);
+        console.info(`Audio "${metadata?.title}" metadata duration:${audioRef.current?.duration}`);
         audioRef.current?.removeEventListener("loadedmetadata", onAudioMetadataLoaded);
     }
     function onAudioTimeUpdate() {
@@ -48,6 +48,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         audioRef.current!.pause();
         audioRef.current!.currentTime = 0;
         setSliderValue(() => 0);
+        console.debug(`Audio ${metadata?.title} play ended`);
     }
     useAsyncEffect(async (isMounted) => {
         let aniIndex = 0;
@@ -64,7 +65,9 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             }
         }, 200);
         // ffmpeg
+        console.debug(`Loading ffmpeg`);
         ffmpegInstance = await ensureFfmpegLoaded();
+        console.debug(`Fetching audio file`);
         const rawFetchData = await fetch(src, { cache: "no-store" });
         if (rawFetchData.status!==200) {
             alert({
@@ -77,10 +80,12 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             })
             return
         }
+        console.debug(`Parsing audio file`);
         const fileData = await rawFetchData.arrayBuffer();
         //解码 使用无损flac
         if (!isMounted()) return () => {
             clearInterval(looper);
+            console.info(`Audio player unmount before parse metadata`);
         }
         //元数据
         const audioMetadata = await parseBuffer(new Uint8Array(fileData));
@@ -89,10 +94,12 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             artist: audioMetadata.common.artist ?? "未知歌手",
             album: audioMetadata.common.album ?? "未知专辑",
         });
+        console.debug(`Audio metadata parsed`);
         const lyricArray = audioMetadata.common.lyrics?.[0].syncText;
         setLyric(lyricArray ?? []);
         setEnableLyricAutoScroll((lyricArray?.length ?? 0) > 0);
         if (audioMetadata.common.picture && audioMetadata.common.picture[0]) {
+            console.debug(`Audio has picture`);
             const picture = audioMetadata.common.picture[0];
             const coverBlob = new Blob([picture.data as unknown as BlobPart], { type: picture.format });
             imageUrl = URL.createObjectURL(coverBlob);
@@ -102,9 +109,11 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         }
         await ffmpegInstance.writeFile("tmpAudioInput", new Uint8Array(fileData));
         await ffmpegInstance.exec(["-i", "tmpAudioInput", "-f", "flac", "tmpAudioOutput"]);
+        console.info(`ffmpeg encode "${metadata?.title}" success`);
         // 释放原始输入 它的任务结束了
         await ffmpegInstance.deleteFile("tmpAudioInput");
         const finalAudioData = await ffmpegInstance.readFile("tmpAudioOutput");
+        console.info(`ffmpeg read encoded file success`);
         // 释放转码后的音频
         await ffmpegInstance.deleteFile("tmpAudioOutput");
         const audioBlob = URL.createObjectURL(new Blob([finalAudioData as unknown as BlobPart], { type: "audio/flac" }));
@@ -116,6 +125,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             imageUrl && URL.revokeObjectURL(imageUrl);
             ffmpegInstance.deleteFile("tmpAudioOutput").catch(() => { });
             ffmpegInstance.deleteFile("tmpAudioInput").catch(() => { });
+            console.info(`Audio player unmount before play`);
         }
         audioRef.current?.play();
         audioRef.current?.addEventListener("loadedmetadata", onAudioMetadataLoaded);
@@ -133,6 +143,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             audioRef.current = null;
             imageUrl && URL.revokeObjectURL(imageUrl);
             URL.revokeObjectURL(audioBlob);
+            console.info(`Audio player unmount`);
         }
     }, result => result?.(), []);
     function onSliderChange(event: React.ChangeEvent<HTMLInputElement>) {

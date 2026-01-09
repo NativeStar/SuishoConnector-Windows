@@ -47,6 +47,7 @@ export default function AutoScrollLyric({ currentTime, lyric, audioRef, enableLy
                 setCurrentLyricTimestamp(currentLyric.timestamp ?? 0);
             }
         }
+        console.info(`Scroll lyric length:${lyric.length}`);
     }, [currentTime]);
     return lyric.length === 0 ?
         (

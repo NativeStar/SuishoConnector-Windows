@@ -19,10 +19,12 @@ export default function SettingItemSelect({ icon, title, desc, className, onChan
     },[configs])
     async function internalOnChange(value: string) {
         if(await onChange?.(value)===false){
+            console.info(`Setting "${configKey}" select change canceled`);
             return false
         }
         //事件没被取消 执行更改
         setConfig(configKey, value);
+        console.info(`Setting "${configKey}" select change to "${value}"`);
         return true
     }
     return (

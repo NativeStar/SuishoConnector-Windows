@@ -9,6 +9,7 @@ export default function TextFilterPanel() {
         ipc.getTextFilterConfig().then(result => {
             setFilterMode(result.filterMode);
             setTextFilter(result.filterText);
+            console.info("Init text filter panel success");
         })
     }, []);
     return (
@@ -24,7 +25,8 @@ export default function TextFilterPanel() {
                                 snackbar({
                                     message: "已删除",
                                     autoCloseDelay: 1000
-                                })
+                                });
+                                console.info(`Deleted notification filter text:${text}`);
                             }} />
                         </mdui-list-item>
                     )
@@ -54,6 +56,7 @@ export default function TextFilterPanel() {
                             return
                         }
                         ipc.editTextFilterRule("add", finalText);
+                        console.info(`Add notification filter text:${finalText}`);
                         setTextFilter(state => [...state, finalText]);
                     }).catch(() => { });
                 }} />
@@ -61,7 +64,9 @@ export default function TextFilterPanel() {
                     snackbar({
                         message: "已切换",
                         autoCloseDelay: 1000
-                    })
+                    });
+                    // 切换 取反
+                    console.info(`Change notification text filter mode to ${state === "blacklist" ? "whitelist" : "blacklist"}`);
                     return state === "blacklist" ? "whitelist" : "blacklist"
                 })} />
             </div>

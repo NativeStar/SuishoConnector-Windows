@@ -71,15 +71,19 @@ export default function ActiveNotifications({className}:ActiveNotificationListPr
                 }
                 const clone = [...state];
                 clone[index] = next; // 用最新内容覆盖
+                console.debug(`Append new active notification:${JSON.stringify(next)}`);
                 return clone;
             case "remove":
+                console.debug(`Remove a active notification with key:${action.key}`);
                 return state.filter(value => value.key !== action.key)
             case "set":
                 const deduped = new Map(
                     (action.initNotificationList ?? []).map(item => [item.key, item])
                 );
+                console.debug(`Set active notification list:${JSON.stringify(action.initNotificationList)}`);
                 return Array.from(deduped.values());
             case "clear":
+                console.debug(`Clear active notification list`);
                 return [];
         }
     }, []);

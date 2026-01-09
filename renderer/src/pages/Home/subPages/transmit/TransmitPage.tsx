@@ -44,6 +44,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 message: "请等待上一个上传任务完成",
                 autoCloseDelay: 1500
             });
+            console.info("Upload file failed:last upload task not completed");
             return
         }
         const fileTimestamp = Date.now();
@@ -65,16 +66,19 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         });
         ipc.transmitUploadFile(file.name, file instanceof File?ipc.getFilePath(file):file.path, file.size);
         listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
+        console.info("Transmit start upload a file");
     }
     function onMessageListContextMenu() {
         ipc.createRightClickMenu(TransmitMessageListMenu).then(menu => {
             if (menu === RightClickMenuItemId.Upload) {
+                console.debug("Show file upload dialog");
                 fileInputRef.current?.click();
             }
         })
     }
     function onFileDragEnterComponent(event: React.DragEvent<HTMLDivElement>) {
         if (!event.dataTransfer.types.includes("Files") || event.dataTransfer.types.length !== 1) return
+        console.debug("Show file frag mark");
         setShowFileDragMark(true);
     }
     function onClearMessageList() {
@@ -87,7 +91,8 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 await db.clearData()
                 messageListDispatch({
                     type:"clear"
-                })
+                });
+                console.info("Clean all transmit history");
             },
         })
     }
@@ -149,6 +154,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 initMessageList: data
             });
             listRef.current?.scrollToIndex(data.length - 1);
+            console.info("Init transmit message success");
         });
         // 接收到文本
         const appendTextCleanup = ipc.on("transmitAppendPlainText", text => {
@@ -166,6 +172,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 messageInstance
             })
             db.addData(messageInstance);
+            console.debug(`Receive new transmit text:${messageInstance.message}`);
         });
         // 接收就是有进度
         const appendFileCleanup = ipc.on("transmitAppendFile", file => {
@@ -189,10 +196,12 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 type: "add",
                 messageInstance: messageInstance
             });
+            console.debug(`Transmit receive new file:${messageInstance.name}`);
         });
         const uploadFileSuccessListenerCleanup = ipc.on("transmitFileUploadSuccess", () => {
             hasProgressingFile = false;
             uploadingFileTimestamp.current = null;
+            console.debug(`Transmit receive file success`);
         });
         const uploadFileFailListenerCleanup = ipc.on("transmitFileTransmitFailed", ({ title, message }) => {
             db.deleteData(uploadingFileTimestamp.current!);
@@ -207,13 +216,15 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 confirmText: "确定",
                 onConfirm: () => { },
             })
+            console.warn(`Transmit receive file failed:${message}`);
         });
         const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", data => {
             uploadTransmitFile({
                 name:data.filename,
                 size:data.size,
                 path:data.filePath
-            })
+            });
+            console.debug(`Transmit drag a new file`);
         });
         return () => {
             appendTextCleanup();
@@ -237,6 +248,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             if (!hidden) {
                 if (event.ctrlKey && event.key.toUpperCase() === "F") {
                     setShowFilterCard(state => !state);
+                    console.debug("Show transmit forward page filter card");
                 }
             }
         }

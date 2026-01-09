@@ -32,6 +32,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 batteryLevel: value.batteryLevel,
                 memoryUsage: ((value.memoryInfo.total - value.memoryInfo.avail) / value.memoryInfo.total) * 100
             }))
+            console.info(`Init device state:${JSON.stringify(value)}`);
         })
         const updateDeviceStateCleanup = ipc.on("updateDeviceState", async (value) => {
             if (value.charging && value.batteryLevel === 100) {
@@ -41,6 +42,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                     new Notification("手机满电提醒", {
                         body: "设备电量已满"
                     });
+                    console.info("Posted phone battery full notification");
                 }
             } else {
                 batteryFullState.current = false;
@@ -51,7 +53,8 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 batteryLevel: value.batteryLevel,
                 batteryTemperature: value.batteryTemp,
                 memoryUsage: ((value.memInfo.total - value.memInfo.avail) / value.memInfo.total) * 100
-            }))
+            }));
+            console.debug("Updated device state");
         });
         // 信任模式获取
         ipc.sendRequestPacket<TrustModeIpc>({ packetType: "main_getTrustMode"}).then(value=>{
@@ -59,11 +62,14 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 type: "add",
                 id: "info_device_not_trusted"
             });
+            console.info(`Device trust mode:${value.trustMode}`);
         })
         const updateNetworkLatencyCleanup = ipc.on("updateNetworkLatency", value => {
-            setDeviceState(prevState => ({ ...prevState, latency: value }))
+            setDeviceState(prevState => ({ ...prevState, latency: value }));
+            console.debug(`Updated network latency:${value}`);
         });
         const trustModeChangeCleanup = ipc.on("trustModeChange", (trusted) => {
+            console.info(`Trust mode change:${trusted?"Trusted":"Untrusted"}`);
             applicationStatesDispatch({
                 type: trusted ? "remove" : "add",
                 id: "info_device_not_trusted"

@@ -52,11 +52,13 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
             // 只有左键能锁定
             if (event.button===0) {
                 setCurrentProtectState("protected");
+                console.info("Locked notification forward page");
             }
             return
         }
         //解锁
         const protectMethod: string | null = await ipc.getDeviceConfig("protectMethod","none") as string | null;
+        console.info(`Request unlock notification forward page with verify method:${protectMethod}`);
         if (protectMethod === "oauth") {
             setUnlockButtonLoading(true);
             ipc.startAuthorization().then(result => {
@@ -65,6 +67,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                     message: result ? "已解锁" : "验证失败",
                     autoCloseDelay: 1250
                 });
+                console.info(`Unlock notification forward page verify ${result?"success":"failed"}`);
             }).catch(e => {
                 console.error(e);
             }).finally(() => {
@@ -77,6 +80,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                     message: result ? "已解锁" : "验证失败",
                     autoCloseDelay: 1250
                 });
+                console.info(`Unlock notification forward page verify ${result?"success":"failed"}`);
             })
         } else {
             console.warn(`Unknown protect method:${protectMethod}`);
@@ -97,6 +101,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                     message: "删除成功",
                     autoCloseDelay: 1750
                 });
+                console.info(`Cleaned all notification forward history`);
             }
         }).catch(() => { });
     }
@@ -178,6 +183,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
                 initNotificationList: data
             });
             listRef.current?.scrollToIndex(data.length - 1);
+            console.info("Init notification forward page");
         });
         const notificationAppendListenerCleanup = ipc.on("notificationAppend", (notificationData) => {
             notificationDispatch({
@@ -185,6 +191,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
                 notification: notificationData
             });
             db.addData(notificationData);
+            console.debug(`Append new notification:${JSON.stringify(notificationData)}`);
         });
         ipc.getDeviceConfig("protectNotificationForwardPage",false).then((value) => {
             setCurrentProtectState((value as boolean) ? "protected" : "disabled");
@@ -212,6 +219,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
             if (!hidden) {
                 if (event.ctrlKey && event.key.toUpperCase() === "F") {
                     setShowFilterCard(state => !state);
+                    console.debug("Show notification forward page filter card");
                 }
             }
         }

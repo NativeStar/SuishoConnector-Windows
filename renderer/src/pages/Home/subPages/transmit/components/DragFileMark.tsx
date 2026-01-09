@@ -21,6 +21,7 @@ export default function DragFileMark({ setSelfShow ,onDropFile}: DragFileMarkPro
                 message: "请拖入一个文件",
                 autoCloseDelay: 1200
             });
+            console.debug("File drag mark received invalid file");
             return
         }
         if (event.dataTransfer.files.length >= 2) {
@@ -28,6 +29,7 @@ export default function DragFileMark({ setSelfShow ,onDropFile}: DragFileMarkPro
                 message: "暂时只支持单个文件上传",
                 autoCloseDelay: 1200
             });
+            console.debug("File drag mark received too many files");
             return
         }
         if (event.dataTransfer.items[0].webkitGetAsEntry()?.isDirectory) {
@@ -35,8 +37,10 @@ export default function DragFileMark({ setSelfShow ,onDropFile}: DragFileMarkPro
                 message: "不支持上传文件夹",
                 autoCloseDelay: 1200
             });
+            console.debug("File drag mark received a folder");
             return
         }
+        console.info(`File drag mark received file:${event.dataTransfer.files[0].name}`);
         onDropFile(event.dataTransfer.files[0])
     }
     return (

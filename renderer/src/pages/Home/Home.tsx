@@ -11,12 +11,14 @@ import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import LoadingScreen from "./subPages/home/components/LoadingScreen";
 import { setColorScheme } from "mdui";
 import { releaseFfmpeg } from "~/utils";
+import useLogger from "~/hooks/useLogger";
 export type StatesListObject = { [key in States]?: ApplicationState };
 export type StateAction = [{
   type: "add" | "remove"
   id: States
 }];
 export default function Home() {
+  useLogger();
   useDevMode();
   let hasDialog: boolean = false;
   const ipc = useMainWindowIpc();
@@ -28,12 +30,14 @@ export default function Home() {
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
     if (action.type === "add") {
       const stateInstance = getStateInstance(action.id);
+      console.info(`Add application state:${action.id}`);
       return {
         ...state,
         [action.id]: stateInstance
       }
     } else {
       Reflect.deleteProperty(state, action.id);
+      console.info(`Remove application state:${action.id}`);
       return {
         ...state
       }
@@ -47,6 +51,7 @@ export default function Home() {
     });
     const rebootConfirmCleanup = ipc.on("rebootConfirm", () => {
       if (hasDialog) return;
+      console.debug("Show reboot confirm by ipc message");
       confirm({
         headline: "重启程序",
         description: "确认重启程序?连接将关闭",
@@ -65,6 +70,7 @@ export default function Home() {
     });
     const closeConfirmCleanup = ipc.on("closeConfirm", () => {
       if (hasDialog) return;
+      console.debug("Show close confirm by ipc message");
       confirm({
         headline: "关闭程序",
         description: "确认关闭程序?",
@@ -82,6 +88,7 @@ export default function Home() {
       }).catch(() => { })
     });
     const disconnectEventCleanup = ipc.on("disconnect", (reason => {
+      console.debug("Show disconnect alert");
       alert({
         headline: "通讯中断",
         description: reason ?? "由于未知原因 连接断开",
@@ -92,6 +99,7 @@ export default function Home() {
       })
     }));
     const showAlertCleanup = ipc.on("showAlert", ({ title, content }) => {
+      console.debug(`Show alert by ipc message:${title}:${content}`);
       alert({
         headline: title,
         description: content,
@@ -101,9 +109,11 @@ export default function Home() {
       setPage("notification");
       // 触发滚动
       routeRef.current?.onPageDoubleClick("notification");
+      console.debug("Focus notification forward page");
     });
     const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", () => {
       setPage("transmit");
+      console.debug("Change to transmit page because drag file");
     });
     return () => {
       rebootConfirmCleanup();
@@ -127,6 +137,7 @@ export default function Home() {
         if (selectedText && selectedText !== "") {
           navigator.clipboard.writeText(selectedText);
           getSelection()?.removeAllRanges();
+          console.debug(`Copied text by global hotkey:${selectedText}`);
         }
       }
       // 屏蔽tab键

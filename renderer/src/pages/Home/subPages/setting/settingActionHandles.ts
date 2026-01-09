@@ -37,12 +37,14 @@ export async function onBoundDeviceItemClick(
                     ipc.setConfig("boundDeviceId", null);
                     ipc.setConfig("boundDeviceKey", null)
                     setBoundDeviceId(null);
+                    console.info("Unbound device");
                 } else {
                     const key = cryptRandomString({ length: 256 });
                     await ipc.sendRequestPacket<void>({ packetType: "main_bindDevice", msg: key });
                     ipc.setConfig("boundDeviceId", androidId);
                     ipc.setConfig("boundDeviceKey", key);
                     setBoundDeviceId(androidId);
+                    console.info(`Rebound device:${androidId}`);
                 }
                 snackbar({
                     message: connectedBoundDevice ? "已解绑" : "已换绑",
@@ -68,6 +70,7 @@ export async function onBoundDeviceItemClick(
                     message: "绑定完成",
                     autoCloseDelay: 2000
                 });
+                console.info(`Bound device:${androidId}`);
             }
         })
     }
@@ -78,14 +81,17 @@ export async function onChangePasswordItemClick(
     ipc: ReturnType<typeof useMainWindowIpc>
 ) {
     const pwdHash = localStorage.getItem(`pwdHash_${androidId}`);
+    console.debug("Request change password");
     if (pwdHash) {
         // 有密码 验证密码
+        console.debug("Request verify password before change password");
         const verifyResult = await openPasswordInputDialog("验证密码", androidId)
         if (!verifyResult) {
             snackbar({
                 message: "验证失败",
                 autoCloseDelay: 1250
             });
+            console.info("Verify password failed");
             return
         }
     } else {
@@ -104,6 +110,7 @@ export async function onChangePasswordItemClick(
                 });
                 return
             }
+            console.info("Oauth verify failed");
         }
         //啥都没有 直接放行
     }
@@ -125,6 +132,7 @@ export async function onChangePasswordItemClick(
                 message: "修改成功",
                 autoCloseDelay: 1250
             });
+            console.info("Change password success");
         }
     }).catch(() => { });
 }
@@ -141,7 +149,8 @@ export function onDeleteLogsItemClick(
             snackbar({
                 message: "日志清除完成",
                 autoCloseDelay: 1750
-            })
+            });
+            console.info("Cleaned all logs");
         },
     }).catch(() => { });
 }
@@ -152,18 +161,19 @@ export function rebootSnackbar() {
     })
 }
 export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: ReturnType<typeof useMainWindowIpc>, androidId: string): Promise<boolean> {
-    const currentProtectMethod = await ipc.getDeviceConfig("protectMethod","none") as ProtectMethod;
+    const currentProtectMethod = await ipc.getDeviceConfig("protectMethod", "none") as ProtectMethod;
     const verifyResult = await autoAuthorization(currentProtectMethod, ipc.startAuthorization, androidId, "更改此设置前需要验证");
     if (!verifyResult) {
         snackbar({
             message: "验证失败",
             autoCloseDelay: 1250
         });
+        console.info("Change protect method verify failed");
         return false;
     }
     if (targetValue === "oauth") {
         // 无凭证则创建
-        if (!await ipc.getConfig("hasOAuthCredentials",false)) {
+        if (!await ipc.getConfig("hasOAuthCredentials", false)) {
             snackbar({
                 message: `请在弹出的Windows Hello窗口中确认以初始化凭证`,
                 autoCloseDelay: 4500
@@ -173,6 +183,7 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
                     message: "凭证初始化失败",
                     autoCloseDelay: 1500
                 });
+                console.warn("Failed to init credentials");
                 return false;
             };
             await ipc.setConfig("hasOAuthCredentials", true);
@@ -180,8 +191,10 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
                 message: `初始化成功`,
                 autoCloseDelay: 1500
             });
+            console.info("Success init credentials");
         }
         await ipc.setDeviceConfig("protectMethod", targetValue);
+        console.info(`Change protect method to ${targetValue}`);
         return true
     } else if (targetValue === "password") {
         const pwdHash = localStorage.getItem(`pwdHash_${androidId}`);
@@ -202,11 +215,13 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
                     return false
                 }
                 localStorage.setItem(`pwdHash_${androidId}`, sha256(inputPassword));
+                console.info("Set password success");
             } catch (error) {
                 snackbar({
                     message: "设置失败",
                     autoCloseDelay: 1250
                 });
+                console.error(`Set password error:${error}`);
                 return false
             }
         }

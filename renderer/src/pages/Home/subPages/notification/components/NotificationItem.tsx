@@ -25,13 +25,16 @@ export default function NotificationItem({ dataPath, notification, createRightCl
                 case RightClickMenuItemId.Copy:
                     navigator.clipboard.writeText(selectedText).then(() => {
                         getSelection()?.removeAllRanges();
-                    })
+                    });
+                    console.debug(`Copied notification selected text:${selectedText}`);
                     break;
                 case RightClickMenuItemId.CopyTitle:
                     navigator.clipboard.writeText(notification.title);
+                    console.debug(`Copied notification title:${notification.title}`);
                     break
                 case RightClickMenuItemId.CopyContent:
                     navigator.clipboard.writeText(notification.content);
+                    console.debug(`Copied notification content:${notification.content}`);
                     break
                 case RightClickMenuItemId.Delete:
                     db.deleteData(notification.timestamp);
@@ -39,12 +42,14 @@ export default function NotificationItem({ dataPath, notification, createRightCl
                         type: "remove",
                         time: notification.timestamp
                     })
+                    console.debug(`Deleted notification:${notification.timestamp}`);
                     break
                 case RightClickMenuItemId.OpenNotificationApplicationPanel:
                     openNotificationForwardConfigWindow(notification.packageName,notification.appName)
+                    console.debug(`Opened notification application panel:${notification.packageName}`);
                     break
                 default:
-                    console.warn(`Unsupported type:${result}`);
+                    console.warn(`Unsupported notification menu type:${result}`);
                     break;
             }
         })

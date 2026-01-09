@@ -42,6 +42,7 @@ function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories
         if (rawStaredDir !== null) {
             const staredDir: string[] = JSON.parse(rawStaredDir);
             setStaredDirectories(staredDir);
+            console.info(`Stared directories raw data:${rawStaredDir}`);
         }
     }, []);
     function onContextMenu(path:string){
@@ -49,6 +50,7 @@ function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories
             if (result===RightClickMenuItemId.Delete) {
                 localStorage.setItem("fileManagerStaredDirectory", JSON.stringify(staredDirectories.filter(value=>value!==path)));
                 setStaredDirectories(staredDirectories.filter(value=>value!==path));
+                console.debug(`Remove stared directory:${path}`);
             }
         })
     }
@@ -104,6 +106,7 @@ function FileList({
                     })
                 }
             }).catch(() => { });
+            console.info(`List phone file failed:not permission`);
             return
         }
         setLoading(true);
@@ -118,8 +121,10 @@ function FileList({
                 setLoading(false);
                 // 将添加的path弹出 否则目录会乱
                 setCurrentPath(currentPath!.slice(0, -1));
+                console.info(`Get phone directory files failed with code:${result.code}`);
                 return
             }
+            console.debug(`Got phone file list:${JSON.stringify(result.files??[])}`);
             setFileList(result.files);
             setLoading(false);
         })
@@ -142,13 +147,15 @@ function FileList({
     function onContextMenu(file: FileItem) {
         ipc.createRightClickMenu(file.type === "folder" ? FileManagerStarDirectory : FileManagerDownload).then(result => {
             if (result === RightClickMenuItemId.Download) {
-                ipc.downloadPhoneFile(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`)
+                ipc.downloadPhoneFile(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
+                console.info(`Request download phone file:${file.name}`);
             } else if (result === RightClickMenuItemId.Star) {
                 const joinedPath = currentPath!.join("/");
                 const finalPath=`${joinedPath!==""?`${joinedPath}/`:""}${file.name}`;
                 // 避免重复
                 if (staredDirectories.includes(finalPath)) return;
-                setStaredDirectories([...staredDirectories, finalPath])
+                setStaredDirectories([...staredDirectories, finalPath]);
+                console.info(`Add stared phone directory:${finalPath}`);
             }
         })
     }

@@ -13,7 +13,9 @@ import AppProfilePanel from "./components/AppProfilePanel";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { setColorScheme } from "mdui";
+import useLogger from "~/hooks/useLogger";
 export default function NotificationFilter() {
+    useLogger();
     useDevMode();
     setColorScheme("#895cad")
     const [searchParams]=useSearchParams();
@@ -24,6 +26,7 @@ export default function NotificationFilter() {
         const targetAppName = searchParams.get("appName");
         if (targetAppPkgName && targetAppName) {
             setTabValue("appProfile");
+            console.debug(`Notification profile panel has direct profile request:${targetAppPkgName}`);
         }
     }, [searchParams])
     return (

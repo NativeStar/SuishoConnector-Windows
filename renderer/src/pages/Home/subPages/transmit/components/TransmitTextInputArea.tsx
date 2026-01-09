@@ -34,6 +34,7 @@ export default function TransmitTextInputArea({ messageDispatch, database ,list}
         database.addData(messageObject)
         setText("");
         list.current?.scrollToIndex({ index: "LAST",align:"end",behavior:"smooth" });
+        console.debug(`Sent a transmit text message:${text}`);
     }
     const ipc = useMainWindowIpc();
     const [text, setText] = useState("");

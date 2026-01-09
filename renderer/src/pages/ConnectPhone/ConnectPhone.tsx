@@ -13,7 +13,9 @@ import "mdui/components/tooltip"
 import "mdui/components/button-icon"
 import useConnectPhoneWindowIpc from "~/hooks/ipc/useConnectPhoneWindowIpc";
 import { QRCodeSVG } from "qrcode.react";
+import useLogger from "~/hooks/useLogger";
 export default function ConnectPhone() {
+    useLogger();
     useDevMode();
     const connectPhoneWindowIpc = useConnectPhoneWindowIpc();
     const [qrcodeData, setQrcodeData] = useState<Omit<InitServerResult,"pairCode"> | null>(null);
@@ -33,6 +35,7 @@ export default function ConnectPhone() {
                     confirmText: "重启",
                     onConfirm: () => connectPhoneWindowIpc.rebootApplication(),
                 });
+                console.error(value);
                 return
             }
             const { pairCode:code, ...data } = value;

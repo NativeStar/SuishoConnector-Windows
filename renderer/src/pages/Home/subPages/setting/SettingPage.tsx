@@ -29,7 +29,6 @@ export default function SettingPage({ hidden }: SettingPageProps) {
             setApplicationConfig(res);
         });
     }, []);
-
     return (
         <>
             { showAboutDialog && <AboutDialog setVisible={setShowAboutDialog}/>}

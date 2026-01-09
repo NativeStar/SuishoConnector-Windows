@@ -16,6 +16,7 @@ export default function ItemFilterCard({ className, setSearchText,setShowFilterC
     const [searchTextInner, setSearchTextInner]=useState<string>("");
     function onInputFieldKeyUp(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter") {
+            console.debug(`Search text:${searchTextInner}`);
             setSearchText(searchTextInner);
         }
     }
