@@ -13,6 +13,7 @@ import fs from "fs-extra";
 import xmlEscape from "xml-escape";
 import Util from "./Util";
 import NotificationProfileType from "../interface/INotificationProfile";
+import Server from "./Server";
 declare global {
     var clientMetadata: {
         androidId: string | "failed",
@@ -37,8 +38,9 @@ class NotificationCore {
     private LOG_TAG: string = "NotificationCore";
     private profilePath: string;
     private profile: Map<string, NotificationProfileType>;
+    private server: Server;
     // enableOngoing: boolean;
-    constructor() {
+    constructor(server:Server) {
         /**
          * @type {BrowserWindow}
          */
@@ -50,6 +52,7 @@ class NotificationCore {
         this.configPath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/notification.json`;
         //应用配置文件路径
         this.profilePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/notification/profile.json`;
+        this.server = server;
         //主配置
         if (fs.existsSync(this.configPath)) {
             logger.writeInfo(`Notification manager config loaded`);
@@ -367,6 +370,10 @@ class NotificationCore {
         }
         this.window?.focus();
         this.window?.flashFrame(false)
+        //掉线通知
+        if (this.server.isClosed) {
+            return
+        }
         this.window?.webContents.send("webviewEvent", "focusNotification");
     }
     private async saveConfig() {
@@ -400,7 +407,7 @@ class NotificationCore {
                     spellcheck: false,
                     contextIsolation: true,
                     // 逆天调试环境
-                    preload: path.resolve(app.isPackaged ? path.join(app.getAppPath(),"dist","preload","notificationFilterSettingPreload.js") : "./src/preload/notificationFilterSettingPreload.js")
+                    preload: path.resolve(app.isPackaged ? path.join(app.getAppPath(), "dist", "preload", "notificationFilterSettingPreload.js") : "./src/preload/notificationFilterSettingPreload.js")
                 }
             });
             this.configWindow.setMenu(null);

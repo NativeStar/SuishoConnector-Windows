@@ -26,7 +26,7 @@ export default function DeviceStatePanel({ state ,className}: DeviceStateBarProp
             </div>
             <div className="flex mt-1.5 ml-1">
                 <mdui-icon name={state.charging?"battery_charging_full":"battery_full"} />
-                <small className="text-[gray] mt-0.5">电池电量:   {state.batteryLevel}%</small>
+                <small className="text-[gray] mt-0.5">电池电量:   {state.batteryLevel}% {state.charging&&"(充电中)"}</small>
             </div>
             <div className="flex mt-1.5 ml-1">
                 <mdui-icon name="wifi" />

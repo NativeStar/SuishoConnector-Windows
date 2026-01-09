@@ -62,7 +62,6 @@ class Server {
         this.pairToken = randomThing.number_en(64);
         /**
          * @description 通知管理核心
-         * @type {NotificationCore}
         */
         this.notificationCore = null
         /**
@@ -285,7 +284,7 @@ class Server {
                         }
                     }, 350);
                 }
-                this.notificationCore = new NotificationCore();
+                this.notificationCore = new NotificationCore(this);
                 break
             case "action_transmit":
                 logger.writeDebug(`A transmit message packet type is ${jsonObj.messageType}`);
@@ -530,10 +529,21 @@ class Server {
         if (!this.appWindow.isDestroyed() && !this.appWindow.isVisible()) {
             logger.writeInfo(`Post device disconnect notification`);
             //直接用Electron自带通知
-            // TODO 修收纳后点击通知无法打开页面
+            const canSendXmlNotification = Util.hasStartMenuShortcut();
             const notification = new Notification({
-                title: "设备断开连接",
-                body: `${global.clientMetadata.model}已断开连接`,
+                title: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : "连接中断",
+                body: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : `${global.clientMetadata.model}已断开连接`,
+                toastXml:
+                    `
+            <toast activationType="protocol" launch="suisho:clickNotification">
+                <visual>
+                    <binding template="ToastGeneric">
+                        <text>连接中断</text>
+                        <text>${global.clientMetadata.model}已断开连接</text>
+                    </binding>
+                </visual>
+            </toast>
+            `
             });
             //关闭除主窗口和调试窗口外所有窗口
             BrowserWindow.getAllWindows().forEach(window => {
@@ -549,7 +559,7 @@ class Server {
                     window.close();
                 }
             });
-            notification.on("click", _event => {
+            !canSendXmlNotification&&notification.on("click", _event => {
                 if (this.appWindow !== null && !this.appWindow.isDestroyed()) {
                     this.appWindow.show();
                     if (this.appWindow.isMinimized()) {
@@ -558,7 +568,7 @@ class Server {
                     this.appWindow.focus();
                 }
                 notification.close();
-            })
+            });
             notification.show();
         }
         //关闭窗口时会触发 但窗口已经关闭了 所以会报错
