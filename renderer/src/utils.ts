@@ -1,7 +1,7 @@
 import { sha256 } from "js-sha256"
 import { prompt } from "mdui";
 import type { NotificationItem } from "./types/database";
-import {AndroidVersions, type AndroidVersionData} from "./types/androidVersions"
+import { AndroidVersions, type AndroidVersionData } from "./types/androidVersions"
 
 const urlRegexp = /^(?:https?:\/\/)?(?:(?:[\p{L}\p{N}-]+\.)+[A-Za-z\u00a1-\uffff]{2,}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:[/?#][^\s]*)?$/iu;
 const deepHideNotificationCacheMap = new Map<string, boolean>();
@@ -31,6 +31,7 @@ export function checkUrl(text: string): boolean {
     return urlRegexp.test(text);
 }
 export function openPasswordInputDialog(desc: string, androidId: string) {
+    console.debug("Request open password input dialog");
     return new Promise<boolean>((resolve) => {
         prompt({
             headline: "输入密码",
@@ -60,17 +61,19 @@ export function openPasswordInputDialog(desc: string, androidId: string) {
 /**
  * 根据设置进行验证
  */
-export async function autoAuthorization(type:ProtectMethod,startAuthorization:typeof window.electronMainProcess.startAuthorization,androidId:string,passwordDialogTitle?:string) { 
+export async function autoAuthorization(type: ProtectMethod, startAuthorization: typeof window.electronMainProcess.startAuthorization, androidId: string, passwordDialogTitle?: string) {
+    console.debug(`Auto authorization type:${type}`);
     switch (type) {
         case "none":
             return true;
         case "oauth":
             return await startAuthorization();
         case "password":
-            return await openPasswordInputDialog(passwordDialogTitle??"请输入密码", androidId);
+            return await openPasswordInputDialog(passwordDialogTitle ?? "请输入密码", androidId);
     }
 }
 export async function initHideNotificationCache(getProfile: typeof window.electronMainProcess.getNotificationProfile, list: NotificationItem[]) {
+    console.info("Hide notification cache set init");
     const cachedPackageName = new Set<string>();
     for (const item of list) {
         if (cachedPackageName.has(item.packageName)) {
@@ -83,6 +86,7 @@ export async function initHideNotificationCache(getProfile: typeof window.electr
 }
 export function updateDeepHideNotificationCache(pkgName: string, value: boolean) {
     deepHideNotificationCacheMap.set(pkgName, value);
+    console.debug(`Update deep hide notification cache:${pkgName}:${value}`);
 }
 export function needHideNotification(pkgName: string): boolean {
     return deepHideNotificationCacheMap.get(pkgName) ?? false;
@@ -101,8 +105,10 @@ function toRuntimeUrl(url: string) {
         if (window.location.protocol === "file:") {
             return url.slice(1);
         }
+        console.debug(`Created ffmpeg load runtime url:${window.location.origin}${url}`);
         return `${window.location.origin}${url}`;
     }
+    console.debug(`Created ffmpeg load runtime url:${url}`);
     return url;
 }
 
@@ -118,6 +124,7 @@ export async function ensureFfmpegLoaded(): Promise<FFmpegInstance> {
 
             if (!ffmpegInstance) {
                 ffmpegInstance = new FFmpeg();
+                console.debug("Create new ffmpeg instance");
             }
             if (!ffmpegInstance.loaded) {
                 await ffmpegInstance.load({
@@ -135,16 +142,17 @@ export async function ensureFfmpegLoaded(): Promise<FFmpegInstance> {
     return ffmpegLoadPromise;
 }
 export async function releaseFfmpeg() {
-    if (ffmpegInstance&&ffmpegInstance.loaded) {
+    if (ffmpegInstance && ffmpegInstance.loaded) {
         ffmpegInstance.terminate();
         ffmpegInstance = null;
         ffmpegLoadPromise = null;
+        console.debug("Release ffmpeg instance");
     }
 }
-export function time2str(time:number) {
-    const second=Math.floor(time);
+export function time2str(time: number) {
+    const second = Math.floor(time);
     return `${Math.floor(second / 60)}:${second % 60 < 10 ? "0" + second % 60 : second % 60}`;
 }
-export function getAndroidVersionInfoBySdkVersion(version:number):AndroidVersionData{
-    return AndroidVersions[version]??{name:"Unknown",semver:"Unknown"};
+export function getAndroidVersionInfoBySdkVersion(version: number): AndroidVersionData {
+    return AndroidVersions[version] ?? { name: "Unknown", semver: "Unknown" };
 }

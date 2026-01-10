@@ -34,7 +34,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
     let imageUrl: string;
     function onAudioMetadataLoaded() {
         setDuration(() => audioRef.current?.duration ?? 0);
-        console.info(`Audio "${metadata?.title}" metadata duration:${audioRef.current?.duration}`);
+        console.debug(`Audio "${metadata?.title}" metadata duration:${audioRef.current?.duration}`);
         audioRef.current?.removeEventListener("loadedmetadata", onAudioMetadataLoaded);
     }
     function onAudioTimeUpdate() {
@@ -85,7 +85,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         //解码 使用无损flac
         if (!isMounted()) return () => {
             clearInterval(looper);
-            console.info(`Audio player unmount before parse metadata`);
+            console.debug(`Audio player unmount before parse metadata`);
         }
         //元数据
         const audioMetadata = await parseBuffer(new Uint8Array(fileData));
@@ -125,8 +125,9 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             imageUrl && URL.revokeObjectURL(imageUrl);
             ffmpegInstance.deleteFile("tmpAudioOutput").catch(() => { });
             ffmpegInstance.deleteFile("tmpAudioInput").catch(() => { });
-            console.info(`Audio player unmount before play`);
+            console.debug(`Audio player unmount before play`);
         }
+        console.info(`Start audio preview play`);
         audioRef.current?.play();
         audioRef.current?.addEventListener("loadedmetadata", onAudioMetadataLoaded);
         audioRef.current?.addEventListener("timeupdate", onAudioTimeUpdate);
@@ -143,7 +144,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
             audioRef.current = null;
             imageUrl && URL.revokeObjectURL(imageUrl);
             URL.revokeObjectURL(audioBlob);
-            console.info(`Audio player unmount`);
+            console.debug(`Audio player unmount`);
         }
     }, result => result?.(), []);
     function onSliderChange(event: React.ChangeEvent<HTMLInputElement>) {

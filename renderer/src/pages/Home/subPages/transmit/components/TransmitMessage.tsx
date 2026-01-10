@@ -50,10 +50,10 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
             case RightClickMenuItemId.OpenUrl:
                 if (!selectedText || selectedText === "") {
                     openUrl(text);
-                    console.info(`Opened url from transmit message:${text}`);
+                    console.debug(`Opened url from transmit message:${text}`);
                 } else {
                     openUrl(selectedText);
-                    console.info(`Opened url from transmit message:${selectedText}`);
+                    console.debug(`Opened url from transmit message:${selectedText}`);
                 }
                 break
             case RightClickMenuItemId.Null:
@@ -75,15 +75,16 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
                 console.debug("Transmit text message create has url menu");
                 return
             }
+            console.debug("Transmit text message create common menu");
             createRightClickMenu(TransmitMessageMenuCommonText).then(onContextMenuCallback)
         } else {
             //选中文本
             if (checkUrl(selectedText)) {
                 createRightClickMenu(TransmitMessageMenuSelectedUrlText).then(onContextMenuCallback)
-                console.debug("Transmit text message create has selection menu");
+                console.debug("Transmit text message create has selection url menu");
                 return
             }
-            console.debug("Transmit text message create common menu");
+            console.debug("Transmit text message create has selection text menu");
             createRightClickMenu(TransmitMessageMenuSelectedCommonText).then(onContextMenuCallback)
         }
     }
@@ -147,7 +148,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                 });
                 console.debug(`Delete transmit file message:${data.timestamp}`);
             } else if (result === RightClickMenuItemId.OpenInExplorer) {
-                console.info(`Try open file in explorer`);
+                console.debug(`Try open file in explorer`);
                 ipc.openInExplorer("transmitFile", data.name).then(result => {
                     if (!result) {
                         // 文件不存在
@@ -159,7 +160,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                             messageInstance: { ...data, isDeleted: true }
                         });
                         database.putData(modifiedData);
-                        console.info(`Transmit file deleted:${data.timestamp}`);
+                        console.debug(`Transmit file deleted:${data.timestamp}`);
                     }
                 })
             }
@@ -170,11 +171,11 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
             event.dataTransfer.setData("DownloadURL", `application/x-www-form-urlencoded:${data.displayName}:${fileFullPathRef.current}`);
         }
         event.dataTransfer.setData("from_self", "true");
-        console.info(`Start drag file message:${data.name}`);
+        console.debug(`Start drag file message:${data.name}`);
     }
     function openFile() {
         if (data.from === "computer") return
-        console.info("Try open file");
+        console.debug("Try open file");
         ipc.openFile(data.name).then(result => {
             if (!result) {
                 setIsDeleted(true);
@@ -185,7 +186,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                     messageInstance: { ...data, isDeleted: true }
                 });
                 database.putData(modifiedData);
-                console.info(`Transmit file deleted:${data.timestamp}`);
+                console.debug(`Transmit file deleted:${data.timestamp}`);
             }
         })
     }

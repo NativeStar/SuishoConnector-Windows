@@ -72,7 +72,8 @@ function useLogger() {
         window.addEventListener("unhandledrejection",(event=>{
             console.error(event.reason);
             appendLog("ERROR", `${event.reason}`);
-        }))
+        }));
+        console.info("Logger initd");
     });
 }
 export default useLogger

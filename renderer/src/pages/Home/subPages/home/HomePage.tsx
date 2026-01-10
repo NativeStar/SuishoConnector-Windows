@@ -32,7 +32,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 batteryLevel: value.batteryLevel,
                 memoryUsage: ((value.memoryInfo.total - value.memoryInfo.avail) / value.memoryInfo.total) * 100
             }))
-            console.info(`Init device state:${JSON.stringify(value)}`);
+            console.debug(`Init device state:${JSON.stringify(value)}`);
         })
         const updateDeviceStateCleanup = ipc.on("updateDeviceState", async (value) => {
             if (value.charging && value.batteryLevel === 100) {

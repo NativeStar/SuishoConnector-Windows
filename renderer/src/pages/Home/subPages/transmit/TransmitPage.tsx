@@ -44,7 +44,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 message: "请等待上一个上传任务完成",
                 autoCloseDelay: 1500
             });
-            console.info("Upload file failed:last upload task not completed");
+            console.debug("Upload file failed:last upload task not completed");
             return
         }
         const fileTimestamp = Date.now();

@@ -27,7 +27,7 @@ export default function MediaControl({className}:MediaControlProps) {
     let durationLooper: number = -1;
     function onSliderChange(event: React.ChangeEvent<MduiSliderElement>){
         ipc.appendMediaSessionControl("seek",event.target.value*1000);
-        console.info(`Seek phone media to:${event.target.value*1000}`);
+        console.debug(`Seek phone media to:${event.target.value*1000}`);
     }
     useEffect(() => {
         const updateMediaSessionMetadataCleanup = ipc.on("updateMediaSessionMetadata", data => {
@@ -36,12 +36,12 @@ export default function MediaControl({className}:MediaControlProps) {
                     ...prev,
                     image: prev.image
                 }));
-                console.info("update media session with keep image");
+                console.debug("update media session with keep image");
                 return
             }
             setRotate(0);
             setMediaSessionMetadata(data);
-            console.info(`Update media session:${mediaSessionMetadata.title}:${mediaSessionMetadata.album}:${mediaSessionMetadata.artist}`);
+            console.debug(`Update media session:${mediaSessionMetadata.title}:${mediaSessionMetadata.album}:${mediaSessionMetadata.artist}`);
         });
         const updateMediaSessionPlaybackStateCleanup = ipc.on("updateMediaSessionPlaybackState", data => {
             if (!data.hasSession) {
@@ -55,13 +55,13 @@ export default function MediaControl({className}:MediaControlProps) {
                     image: "null",
                     duration: 0
                 });
-                console.info("Update not media session");
+                console.debug("Update not media session");
                 return
             }
             setPlaying(data.playing);
             setControllable(true);
             setDuration(data.position);
-            console.info(`Update media session playback state:${JSON.stringify(data)}`);
+            console.debug(`Update media session playback state:${JSON.stringify(data)}`);
         });
         let aniIndex = 0;
         const animationLooper= setInterval(() => {

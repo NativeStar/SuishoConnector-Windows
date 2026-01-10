@@ -36,7 +36,7 @@ class Logger {
         ipcMain.on("appendRendererLog", (event, data:string[]) => {
             let tempStr = ""
             for (const item of data) {
-                tempStr += `[Renderer] ${item}\n`
+                tempStr += `[Renderer] [${this.getTimeString()}] ${item}\n`
             }
             this.writeStream.write(tempStr);
         });

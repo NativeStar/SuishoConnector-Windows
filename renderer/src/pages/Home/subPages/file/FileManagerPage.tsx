@@ -42,7 +42,7 @@ function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories
         if (rawStaredDir !== null) {
             const staredDir: string[] = JSON.parse(rawStaredDir);
             setStaredDirectories(staredDir);
-            console.info(`Stared directories raw data:${rawStaredDir}`);
+            console.debug(`Stared directories raw data:${rawStaredDir}`);
         }
     }, []);
     function onContextMenu(path:string){
@@ -106,7 +106,7 @@ function FileList({
                     })
                 }
             }).catch(() => { });
-            console.info(`List phone file failed:not permission`);
+            console.debug(`List phone file failed:not permission`);
             return
         }
         setLoading(true);
@@ -192,15 +192,18 @@ function FileList({
                                     switch (getSupportType(file.name)) {
                                         case "audio":
                                             fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
-                                            setAudioPlayerVisible(true)
+                                            setAudioPlayerVisible(true);
+                                            console.debug(`Preview audio file:${fileUrl.current}`);
                                             return
                                         case "image":
                                             fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
-                                            setImageViewVisible(true)
+                                            setImageViewVisible(true);
+                                            console.debug(`Preview image file:${fileUrl.current}`);
                                             return
                                         case "video":
                                             fileUrl.current = baseRemoteFileUrl + encodeURIComponent(`/storage/emulated/0/${currentPath!.join("/")}/${file.name}`);
                                             setVideoViewVisible(true)
+                                            console.debug(`Preview video file:${fileUrl.current}`);
                                             return
                                         case "none":
                                             break

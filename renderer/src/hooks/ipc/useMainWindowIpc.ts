@@ -27,6 +27,7 @@ let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;
 const listeners = new Map<string, Set<EventListener>>();
 function eventHandle(_unused: never, event: string, ...args: any[]) {
+    console.debug(`Main window ipc received event:${event}`);
     if (listeners.has(event)) {
         listeners.get(event)?.forEach(listener => listener(...args));
     }
@@ -41,6 +42,7 @@ function createListenerCleanup(event: string, callback: EventListener) {
         if (listenersForEvent.size === 0) {
             listeners.delete(event);
         }
+        console.debug(`Main window ipc event cleanup called:${event}`);
     };
 }
 function registerListener(event: string, callback: EventListener) {
@@ -62,6 +64,7 @@ function useMainWindowIpc() {
             type: T,
             callback: (data: IpcEvents[T]) => void
         ): () => void {
+            console.debug(`Main window ipc register new event listener:${type}`);
             return registerListener(type, callback as EventListener);
         },
         closeApplication: window.electronMainProcess.closeApplication,

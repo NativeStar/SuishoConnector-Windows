@@ -91,7 +91,7 @@ export async function onChangePasswordItemClick(
                 message: "验证失败",
                 autoCloseDelay: 1250
             });
-            console.info("Verify password failed");
+            console.debug("Verify password failed");
             return
         }
     } else {
@@ -110,7 +110,7 @@ export async function onChangePasswordItemClick(
                 });
                 return
             }
-            console.info("Oauth verify failed");
+            console.debug("Oauth verify failed");
         }
         //啥都没有 直接放行
     }
@@ -168,7 +168,7 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
             message: "验证失败",
             autoCloseDelay: 1250
         });
-        console.info("Change protect method verify failed");
+        console.debug("Change protect method verify failed");
         return false;
     }
     if (targetValue === "oauth") {
