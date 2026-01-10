@@ -88,12 +88,12 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
             <DeviceInfoPanel className="top-[9.5%]"/>
-            <DeviceStatePanel state={deviceState} className="top-[42.5%]"/>
-            <ActiveNotifications className="top-[46%] left-[45%]"/>
+            <DeviceStatePanel state={deviceState} className="top-[47.5%]"/>
+            <ActiveNotifications className="top-[45.5%] left-[45%]"/>
             <ApplicationStatesBar states={applicationStates} className="top-[9%] right-[2.3%]"/>
             <MediaControl className="right-[15%] top-[9.5%]"/>
-            <AudioForwardPanel className="top-[68.5%] left-[10%]"/>
-            <FabMenu className="bottom-[2.5%] right-[2.5%]"/>
+            <AudioForwardPanel className="top-[73.5%] left-[10%]"/>
+            <FabMenu className="bottom-[2%] right-[2%]"/>
         </div>
     )
 }

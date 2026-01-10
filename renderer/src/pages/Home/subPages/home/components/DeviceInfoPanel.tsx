@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import type { DeviceBaseInfo } from "~/types/ipc";
-import {getAndroidVersionInfoBySdkVersion} from "~/utils"
+import { getAndroidVersionInfoBySdkVersion } from "~/utils"
 interface DeviceInfoPanelProps {
     className?: string
 }
-export default function DeviceInfoPanel({className}:DeviceInfoPanelProps) {
-    const ipc=useMainWindowIpc();
-    const [androidVersionDisplay, setAndroidVersionDisplay]=useState<string>("Loading");
-    const [deviceInfo, setDeviceInfo]=useState<DeviceBaseInfo>({
+export default function DeviceInfoPanel({ className }: DeviceInfoPanelProps) {
+    const ipc = useMainWindowIpc();
+    const [androidVersionDisplay, setAndroidVersionDisplay] = useState<string>("Loading");
+    const [deviceInfo, setDeviceInfo] = useState<DeviceBaseInfo>({
         androidSdkVersion: 0,
         androidId: "failed",
         model: "Loading",
@@ -17,18 +17,23 @@ export default function DeviceInfoPanel({className}:DeviceInfoPanelProps) {
         protocolVersion: 1,
         sessionId: "Loading"
     });
-    useEffect(() => { 
-        ipc.getDeviceBaseInfo().then(v=>{
+    const [phoneIp, setPhoneIp]=useState<string>("Loading");
+    useEffect(() => {
+        ipc.getDeviceBaseInfo().then(v => {
             setDeviceInfo(v)
-            const androidVersionInfo=getAndroidVersionInfoBySdkVersion(v.androidSdkVersion);
+            const androidVersionInfo = getAndroidVersionInfoBySdkVersion(v.androidSdkVersion);
             setAndroidVersionDisplay(`${androidVersionInfo.semver}-${androidVersionInfo.name}`);
-            console.info("Success show device info");
+            console.debug("Success show device info");
         });
+        ipc.getPhoneIp().then(addr => {
+            setPhoneIp(addr);
+            console.debug("Success get phone address for show");
+        })
     }, []);
     return (
-        <mdui-card className={twMerge("fixed flex flex-col h-[32%] w-[34%]",className)}>
+        <mdui-card className={twMerge("fixed flex flex-col h-[37%] w-[34%]", className)}>
             <small className="text-[gray] ml-1 mt-1">设备信息</small>
-            <mdui-divider/>
+            <mdui-divider />
             <div className="flex mt-1.5 ml-1">
                 <mdui-icon name="propane" />
                 <small className="text-[gray] mt-1">厂商:  {deviceInfo.oem}</small>
@@ -44,6 +49,10 @@ export default function DeviceInfoPanel({className}:DeviceInfoPanelProps) {
             <div className="flex mt-2 ml-1">
                 <mdui-icon name="tag" />
                 <small className="text-[gray] mt-1">设备ID:  {deviceInfo.androidId}</small>
+            </div>
+            <div className="flex mt-2 ml-1">
+                <mdui-icon name="lan" />
+                <small className="text-[gray] mt-1">设备地址:  {phoneIp}</small>
             </div>
             <div className="flex mt-2 ml-1">
                 <mdui-icon name="diversity_2" />

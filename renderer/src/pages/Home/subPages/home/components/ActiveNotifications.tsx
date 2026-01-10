@@ -121,7 +121,7 @@ export default function ActiveNotifications({className}:ActiveNotificationListPr
         }
     }, []);
     return (
-        <mdui-card className={twMerge("fixed h-[40%] flex flex-col max-w-[40%] min-w-[40%]",className)}>
+        <mdui-card className={twMerge("fixed h-[45%] flex flex-col max-w-[40%] min-w-[40%]",className)}>
             <div className="flex items-center px-2 py-1">
                 <small className="text-[gray]">通知列表</small>
                 <div className="ml-auto flex items-center text-[gray]">
