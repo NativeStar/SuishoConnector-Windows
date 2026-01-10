@@ -9,6 +9,7 @@ import AndroidIdContext from "~/context/AndroidIdContext"
 import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteLogsItemClick, onProtectMethodChange, rebootSnackbar } from "./settingActionHandles"
 import type { ProtectMethod } from "~/utils"
 import AboutDialog from "./components/AboutDialog"
+import { alert } from "mdui"
 interface SettingPageProps {
     hidden: boolean
 }
@@ -29,6 +30,17 @@ export default function SettingPage({ hidden }: SettingPageProps) {
             setApplicationConfig(res);
         });
     }, []);
+    function onLogLevelChangeTip(value:string){
+        if (value === "DEBUG") {
+            alert({
+                headline:"调试日志提醒",
+                description:"该等级日志详细程度较高 可能造成额外的性能消耗和磁盘占用 仅建议在需要反馈问题或开发时使用 (重启后生效)",
+                confirmText:"确定",
+            }).catch(()=>{});
+            return
+        }
+        rebootSnackbar();
+    }
     return (
         <>
             { showAboutDialog && <AboutDialog setVisible={setShowAboutDialog}/>}
@@ -37,7 +49,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <mdui-list-subheader className="ml-5 h-10 font-bold">全局</mdui-list-subheader>
                     <SettingItemCommon title="绑定/解绑设备" onClick={() => onBoundDeviceItemClick(androidId, boundDeviceId, setBoundDeviceId, deviceConfig, ipc)} desc={boundDeviceId ? `已绑定设备ID:${boundDeviceId}` : "未绑定"} icon="link" />
                     <SettingItemSelect title="掉线轮询间隔" icon="monitor_heart" desc="降低设备掉线时反应时间 可能影响手机耗电量" items={heartbeatDelayOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="heartBeatDelay" onChange={rebootSnackbar} />
-                    <SettingItemSelect title="日志输出等级" desc="方便调试 可能对性能有微弱影响" icon="library_books" items={logLevelOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="logLevel" onChange={rebootSnackbar} />
+                    <SettingItemSelect title="日志输出等级" desc="方便调试 可能对性能有微弱影响" icon="library_books" items={logLevelOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="logLevel" onChange={onLogLevelChangeTip} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">通知转发</mdui-list-subheader>
                     <SettingItemSwitch title="启用通知转发" icon="fork_right" configs={deviceConfig} configKey="enableNotificationForward" setConfig={ipc.setDeviceConfig} />
                     <SettingItemSwitch title="计算机锁屏后继续推送转发的通知" desc="开启后即使计算机锁屏也会弹出通知(一般用不上)" icon="close_fullscreen" configs={deviceConfig} configKey="pushNotificationOnLockedScreen" setConfig={ipc.setDeviceConfig} />
