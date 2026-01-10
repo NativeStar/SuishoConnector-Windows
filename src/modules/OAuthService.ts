@@ -12,6 +12,7 @@ class OAuthService {
     private initdCreateCredentialsHandle:boolean=false;
     private initdAuthorizationHandle:boolean=false;
     private tempPromise:{resolve:Function,reject:Function};
+    private readonly LOG_TAG="OAuthService";
     constructor(port:number|null=null) {
         this.tempPromise={resolve:()=>{},reject:()=>{}};
         this.authWindow=null;
@@ -23,17 +24,18 @@ class OAuthService {
         // 直接加载文件没法调用auth 至少要localhost
         this.server=http.createServer(async (req,res)=>{
             if (req.url==="/localAuth"&&req.headers["user-agent"]==="suisho_local_auth_request_window") {
+                logger.writeDebug("OAuth html responded",this.LOG_TAG);
                 res.writeHead(200).end(await fs.readFile(path.join(app.getAppPath(),"res","oauth.html"),"utf-8"));
-                // res.writeHead(200).end(await fs.readFile("./res/oauth.html","utf-8"));
                 return
             }
+            logger.writeDebug(`Invalid OAuth loopback request from ${req.headers["user-agent"]}`,this.LOG_TAG)
             res.destroy();
         });
         //保存原始密钥文件
         ipcMain.handle("oauth_saveRawID",async (_event,buffer:ArrayBuffer)=>{
             this.oauthKeyBinary=buffer;
             await fs.writeFile(`${app.getPath("userData")}/programData/oauth.bin`,new DataView(buffer));
-            logger.writeInfo("Saved oauth key binary");
+            logger.writeInfo("Saved oauth key binary",this.LOG_TAG);
         })
         this.server.listen(this.port,"127.0.0.1");
     }
@@ -43,9 +45,11 @@ class OAuthService {
      */
     createCredentials():Promise<boolean>{
         if (this.tempPromise.resolve!=null) {
+            logger.writeDebug("Rejected exists oauth promise",this.LOG_TAG);
             this.tempPromise.resolve(false);
         }
         return new Promise<boolean>((resolve, reject) => {
+            logger.writeDebug("Create new oauth request promise",this.LOG_TAG);
             this.tempPromise.resolve=resolve;
             this.tempPromise.reject=reject;
             if (this.authWindow!==null) {
@@ -65,7 +69,7 @@ class OAuthService {
             });
             this.authWindow.addListener("ready-to-show",()=>{
                 this.authWindow?.webContents.send("createCredentials");
-                logger.writeDebug("Opened oauth window")
+                logger.writeDebug("Created oauth window",this.LOG_TAG)
             });
             this.authWindow.setMenu(null);
             this.authWindow.webContents.setUserAgent("suisho_local_auth_request_window");
@@ -73,14 +77,14 @@ class OAuthService {
             this.authWindow.addListener("close",()=>{
                 this.authWindow?.destroy();
                 this.authWindow=null;
-                logger.writeDebug("Closed oauth window");
+                logger.writeDebug("Closed oauth window",this.LOG_TAG);
             });
             //要调用resolve 只能在这了
             if (!this.initdCreateCredentialsHandle) {
                 ipcMain.on("oauth_createCredentialsCallback",(event,result:boolean)=>{
                     this.authWindow?.close();
                     this.tempPromise.resolve(result);
-                    logger.writeDebug(`Create key result:${result}`);
+                    logger.writeDebug(`Create key result:${result}`,this.LOG_TAG);
                 });
                 this.initdCreateCredentialsHandle=true;
             }
@@ -88,6 +92,7 @@ class OAuthService {
     }
     startAuthorization(){
         if (this.tempPromise.resolve!=null) {
+            logger.writeDebug("Rejected exists oauth promise",this.LOG_TAG);
             this.tempPromise.resolve(false);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -95,7 +100,7 @@ class OAuthService {
             this.tempPromise.reject=reject;
             //检查key是否存在
             if (this.oauthKeyBinary===null) {
-                logger.writeWarn("Request authentication but none key");
+                logger.writeWarn("Request authentication but none key",this.LOG_TAG);
                 this.tempPromise.resolve(false);
                 return
             }
@@ -117,7 +122,7 @@ class OAuthService {
             });
             this.authWindow.addListener("ready-to-show",()=>{
                 this.authWindow?.webContents.send("startAuthorization",this.oauthKeyBinary);
-                logger.writeDebug("Opened oauth window")
+                logger.writeDebug("Created oauth window",this.LOG_TAG)
             });
             this.authWindow.setMenu(null);
             this.authWindow.webContents.setUserAgent("suisho_local_auth_request_window");
@@ -125,14 +130,14 @@ class OAuthService {
             this.authWindow.addListener("close",()=>{
                 this.authWindow?.destroy();
                 this.authWindow=null;
-                logger.writeDebug("Closed oauth window");
+                logger.writeDebug("Closed oauth window",this.LOG_TAG);
             });
             //要调用resolve 只能在这了
             if (!this.initdAuthorizationHandle) {
                 ipcMain.on("oauth_authorizationCallback",(_event,result:boolean)=>{
                     this.authWindow?.close();
                     this.tempPromise.resolve(result);
-                    logger.writeDebug(`Authentication result:${result}`);
+                    logger.writeDebug(`Authentication result:${result}`,this.LOG_TAG);
                     return
                 });
                 this.initdAuthorizationHandle=true;

@@ -6,17 +6,19 @@ class Broadcaster {
     private socket: Socket;
     private looper: number | null | NodeJS.Timeout;
     private deviceId: string;
+    private readonly LOG_TAG = "Broadcaster";
     constructor(deviceId:string) {
         this.looper = null;
         this.deviceId = deviceId;
         this.socket = createSocket("udp4");
         this.socket.on("error", async (err) => {
-            logger.writeWarn(`Broadcaster socket open error:${err}`);
+            logger.writeWarn(`Socket open error:${err}`,this.LOG_TAG);
             BrowserWindow.getAllWindows().forEach(window=>{
                 window.webContents.send("main_autoConnectError");
             });
             const processInfo = await Util.getUsingPortProcessNameAndPid(60127);
             if (processInfo) {
+                logger.writeWarn(`Process ${processInfo.name} is using port 60127`,this.LOG_TAG);
                 const dialogResult = await dialog.showMessageBox({
                     type: "warning",
                     message: `自动连接未能按预期工作 因为所需的端口被进程"${processInfo.name}"占用\n终止该进程或重启计算机可能解决该问题\n或者通过手动扫码连接\n如选择终止进程 会在尝试杀进程后自动重启本软件\n且必要时会申请管理员权限`,
@@ -26,7 +28,7 @@ class Broadcaster {
                 });
                 //选择了杀进程
                 if (dialogResult.response === 0) {
-                    logger.writeInfo(`Trying kill process ${processInfo.name}:${processInfo.pid}`);
+                    logger.writeInfo(`Trying kill process ${processInfo.name}:${processInfo.pid}`,this.LOG_TAG);
                     try {
                         process.kill(processInfo.pid);
                     } catch (error) {
@@ -40,19 +42,19 @@ class Broadcaster {
                         }
                         return
                     }
-                    logger.writeInfo("Reboot application");
+                    logger.writeInfo("Reboot application",this.LOG_TAG);
                     app.relaunch();
                     app.quit();
                 }
                 return
             }
-            logger.writeError(err);
+            logger.writeError(err,this.LOG_TAG);
             dialog.showErrorBox("自动连接异常", `功能发生未知异常 重启计算机可能解决该问题\n或者尝试手动扫码连接\n详情:${err}`);
         });
     }
     start() {
         //10秒一次循环
-        logger.writeInfo("Start network broadcast");
+        logger.writeInfo("Start network broadcast",this.LOG_TAG);
         this.socket.bind(60127, () => {
             this.socket.setBroadcast(true);
             const msgBuffer = Uint8Array.from(Buffer.from(this.deviceId));
@@ -74,7 +76,7 @@ class Broadcaster {
     close() {
         if (this.looper !== null) clearInterval(this.looper);
         this.socket.close();
-        logger.writeInfo("Stop network broadcast");
+        logger.writeInfo("Stop network broadcast",this.LOG_TAG);
     }
 }
 export default Broadcaster

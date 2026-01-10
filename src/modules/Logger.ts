@@ -33,7 +33,7 @@ class Logger {
         if (!existFile) {
             this.writeStream.write(this.getLogHeaderString());
         }
-        ipcMain.on("appendRendererLog", (event, data:string[]) => {
+        ipcMain.on("appendRendererLog", (_event, data:string[]) => {
             let tempStr = ""
             for (const item of data) {
                 tempStr += `[Renderer] [${this.getTimeString()}] ${item}\n`
@@ -92,10 +92,6 @@ class Logger {
             this.writeStream.write(tempStr + "\n");
             console.log("\x1B[31m" + tempStr + "\x1b[0m");
         }
-    }
-    // 渲染进程专用
-    writeLogArray(data:Array<logInput>):void{
-        
     }
     getLogFileName(): string {
         return this.logFileName;

@@ -34,7 +34,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
     let imageUrl: string;
     function onAudioMetadataLoaded() {
         setDuration(() => audioRef.current?.duration ?? 0);
-        console.debug(`Audio "${metadata?.title}" metadata duration:${audioRef.current?.duration}`);
+        console.debug(`Audio metadata duration:${audioRef.current?.duration}`);
         audioRef.current?.removeEventListener("loadedmetadata", onAudioMetadataLoaded);
     }
     function onAudioTimeUpdate() {
@@ -48,7 +48,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         audioRef.current!.pause();
         audioRef.current!.currentTime = 0;
         setSliderValue(() => 0);
-        console.debug(`Audio ${metadata?.title} play ended`);
+        console.debug(`Audio play ended`);
     }
     useAsyncEffect(async (isMounted) => {
         let aniIndex = 0;
@@ -109,7 +109,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         }
         await ffmpegInstance.writeFile("tmpAudioInput", new Uint8Array(fileData));
         await ffmpegInstance.exec(["-i", "tmpAudioInput", "-f", "flac", "tmpAudioOutput"]);
-        console.info(`ffmpeg encode "${metadata?.title}" success`);
+        console.info(`ffmpeg encode audio file success`);
         // 释放原始输入 它的任务结束了
         await ffmpegInstance.deleteFile("tmpAudioInput");
         const finalAudioData = await ffmpegInstance.readFile("tmpAudioOutput");

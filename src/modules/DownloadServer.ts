@@ -12,7 +12,7 @@ class DownloadServer {
     private fileData: Buffer | null;
     private fileSize: number;
     private pairToken: string|null;
-    private static readonly LOG_TAG: string = "DownloadServer";
+    private readonly LOG_TAG: string = "DownloadServer";
     constructor(file: string, port: number | null, label?: string,pairToken?:string) {
         this.port = port;
         this.pairToken = pairToken??null;
@@ -29,10 +29,10 @@ class DownloadServer {
         };
         //小文件直接整个加载 避免某些问题
         if (this.fileSize <= 10240) {
-            logger.writeInfo(`Download server:${this.label || "Not label"} working with blob mode:${this.filePath}`)
+            logger.writeInfo(`Download server:${this.label || "Not label"} working with blob mode:${this.filePath}`,this.LOG_TAG)
             this.fileData = fs.readFileSync(this.filePath);
         } else {
-            logger.writeInfo(`Download server:${this.label || "Not label"} working with stream mode:${this.filePath}`);
+            logger.writeInfo(`Download server:${this.label || "Not label"} working with stream mode:${this.filePath}`,this.LOG_TAG);
         }
         this.server = createServer({
             key: fs.readFileSync(path.join(app.getAppPath(), "res", "cert", "default.key")),
@@ -43,7 +43,7 @@ class DownloadServer {
                 if (this.pairToken&&req.headers["suisho-pair-token"] !== this.pairToken) {
                     res.writeHead(403);
                     res.end("Pair token error");
-                    logger.writeInfo(`Download server:${this.label || "Not label"} verify pair token failed.IP:${req.socket.remoteAddress}`);
+                    logger.writeInfo(`Download server:${this.label || "Not label"} verify pair token failed.IP:${req.socket.remoteAddress}`,this.LOG_TAG);
                     return
                 }
                 res.setHeader("Content-Type", "application/octet-stream");
@@ -58,27 +58,23 @@ class DownloadServer {
                     this.fileStream = fs.createReadStream(this.filePath);
                     this.fileStream?.pipe(res);
                 }
-                logger.writeInfo(`Download server sent file:${this.filePath}`);
+                logger.writeInfo(`Sent file:${this.filePath}`);
                 return
             }
-            logger.writeInfo(`Download server received request from ${req.headers["user-agent"]}`);
+            logger.writeInfo(`Received request from ${req.socket.remoteAddress}`,this.LOG_TAG);
             res.destroy();
         });
         this.server.listen(this.port ?? 0);
         if (this.label) {
-            logger.writeInfo(`Download server:${this.label} launched`);
+            logger.writeInfo(`Download server:${this.label} launched`,this.LOG_TAG);
             return
         };
-        logger.writeInfo("Download server launched");
+        logger.writeInfo("Download server launched",this.LOG_TAG);
     }
     close() {
         this.server?.close();
         this.fileStream?.close();
-        if (this.label) {
-            logger.writeInfo(`Download server:${this.label} closed`);
-            return
-        };
-        logger.writeInfo("Download server closed");
+        logger.writeInfo(`Download server${this.label?`:${this.label} `:" "}closed`,this.LOG_TAG);
     }
     get serverPost(): number {
         return <number>this.port?? (this.server?.address() as AddressInfo).port;

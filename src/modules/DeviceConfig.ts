@@ -5,11 +5,12 @@ type prop = string | boolean | number | null;
 class DeviceConfig {
     private config: IDeviceConfig;
     private configPath: string;
+    private readonly LOG_TAG = "DeviceConfig";
     constructor(configPath: string) {
         this.configPath = configPath;
         if (fs.existsSync(configPath)) {
             try {
-                logger.writeInfo("Loading device config")
+                logger.writeInfo("Loading config",this.LOG_TAG)
                 this.config = fs.readJsonSync(configPath);
                 //更新
                 let hasUpdate = false;
@@ -19,11 +20,13 @@ class DeviceConfig {
                         hasUpdate = true;
                     }
                 }
-                hasUpdate&&this.saveConfig();
-                logger.writeInfo("Device config async success");
-                logger.writeInfo("Device config loaded")
+                if (hasUpdate) {
+                    logger.writeInfo("Config update success",this.LOG_TAG);
+                    this.saveConfig();
+                }
+                logger.writeInfo("Config loaded",this.LOG_TAG)
             } catch (error) {
-                logger.writeWarn(`Device config load failed. recreate\n${error}`)
+                logger.writeWarn(`Config load failed.Recreate\n${error}`,this.LOG_TAG)
                 //json文件炸了
                 //删除并创建
                 fs.removeSync(configPath);
@@ -32,7 +35,7 @@ class DeviceConfig {
             }
         } else {
             //文件不存在
-            logger.writeInfo("Created device config file");
+            logger.writeInfo("Created device config file",this.LOG_TAG);
             //创建
             this.config = structuredClone(deviceConfigTemplate) as IDeviceConfig;
             this.saveConfig();
@@ -43,7 +46,7 @@ class DeviceConfig {
      */
     async saveConfig(): Promise<void> {
         await fs.writeJson(this.configPath, this.config);
-        logger.writeDebug("Saved device config");
+        logger.writeDebug("Saved device config",this.LOG_TAG);
     }
     /**
      * 获取单个配置
@@ -52,10 +55,10 @@ class DeviceConfig {
      */
     getConfigProp(name: string, defaultValue?: string | number | boolean | null): prop {
         if (Object.hasOwn(this.config, name)) {
-            logger.writeDebug(`Get device config prop ${name}`);
+            logger.writeDebug(`Get device config prop ${name}`,this.LOG_TAG);
             return Reflect.get(this.config, name);
         } else {
-            logger.writeWarn(`Set device config prop ${name} not found`);
+            logger.writeWarn(`Set device config prop ${name} not found`,this.LOG_TAG);
             return defaultValue ?? null;
         }
     }
@@ -64,7 +67,7 @@ class DeviceConfig {
      * @returns 配置
      */
     getAllConfig(): IDeviceConfig {
-        logger.writeDebug("Get device all config");
+        logger.writeDebug("Get device all config",this.LOG_TAG);
         return this.config;
     }
     /**
@@ -75,10 +78,10 @@ class DeviceConfig {
     setConfig(prop: string, value: string | number | boolean | null) {
         if (Object.hasOwn(deviceConfigTemplate, prop)) {
             Reflect.set(this.config, prop, value);
-            logger.writeDebug(`Set device config prop ${prop} to ${value}`);
+            logger.writeDebug(`Set device config prop ${prop} to ${value}`,this.LOG_TAG);
             this.saveConfig();
         } else {
-            logger.writeWarn(`Set device config prop ${prop} not found`);
+            logger.writeWarn(`Set device config prop ${prop} not found`,this.LOG_TAG);
         }
     }
     get enableNotification() {

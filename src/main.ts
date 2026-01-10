@@ -1,7 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem } from "electron";
 import path from "path";
-//更改执行路径
-// process.chdir(app.getAppPath());
 import { exec } from "child_process";
 import os from "os";
 import { X509Certificate } from "crypto"
@@ -91,7 +89,6 @@ app.on("ready", async (_event, _info) => {
         connectPhoneWindow.setMaximizable(false);
         logger.writeInfo("Connect phone window created");
         connectPhoneWindow.show();
-        //!需要打包测试
         app.setName("Suisho Connector");
         app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     });
@@ -112,9 +109,10 @@ app.on("ready", async (_event, _info) => {
             const lastArg = args[args.length - 1];
             // console.log(lastArg);
             if (lastArg != null && await fs.exists(lastArg)) {
+                logger.writeDebug("Transmit drag item to app icon");
                 const fileStat = await fs.stat(lastArg);
-                // console.log(lastArg);
                 if (fileStat.isFile()) {
+                    logger.writeInfo(`Transmit file from drag app icon:${lastArg}`);
                     mainWindow?.webContents.send("webviewEvent", "transmitDragFile", { filename: path.basename(lastArg), filePath: lastArg, size: fileStat.size });
                 } else if (fileStat.isDirectory()) {
                     mainWindow.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "暂不支持上传文件夹" });
@@ -129,6 +127,7 @@ app.on("ready", async (_event, _info) => {
         }
         for (const argString of args) {
             if (argString.startsWith("suisho:")) {
+                logger.writeDebug(`Handle protocol in second instance:${argString}`);
                 if (argString.endsWith("clickNotification")) {
                     connectedDevice?.notificationCore?.onNotificationClick();
                 }
@@ -201,6 +200,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 urls: [`https://${connectedDevice.getPhoneAddress()}:30767/*`],
                 types: ["subFrame"],
             }, (detail, callback) => {
+                logger.writeDebug(`Modify iframe request header:${detail.url}`);
                 callback({
                     requestHeaders: {
                         ...detail.requestHeaders,
@@ -222,7 +222,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 }, 150);
                 logger.writeInfo("Opened main window");
             });
-
             mainWindow.setMenu(null);
             app.isPackaged ? mainWindow.loadFile("./dist/renderer/index.html", { hash: "home" }) : mainWindow.loadURL("http://localhost:5173/#/home");
             mainWindow.setContentProtection(global.config.enableContentProtection);
@@ -232,12 +231,14 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             mainWindow.on("close", (event) => {
                 //断开连接后关闭窗口不保留后台
                 if (connectedDevice.isClosed) {
+                    logger.writeInfo("Close application by main window closed");
                     mainWindow?.destroy();
                     app.quit();
                     return
                 }
                 event.preventDefault();
                 mainWindow?.hide();
+                logger.writeDebug("Hide main window by user close");
             });
             mainWindow.webContents.setWindowOpenHandler(() => { return { action: "deny" } });
             // 鉴权sessionId 文件管理功能用
@@ -258,8 +259,10 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             nativeTheme.addListener("updated", () => {
                 //空对象
                 if (mainWindow == null || mainWindow.isDestroyed()) {
+                    logger.writeDebug("Native theme updated but main window is destroyed");
                     return
                 }
+                logger.writeInfo(`Native theme updated to:${nativeTheme.shouldUseDarkColors?"dark":"light"}`);
                 if (nativeTheme.shouldUseDarkColors) {
                     mainWindow.setTitleBarOverlay({
                         height: 40,
@@ -310,44 +313,13 @@ function initTray() {
     trayInstance.setTitle("Suisho Connector");
     trayInstance.setToolTip("Suisho Connector");
     trayInstance.addListener("double-click", () => {
-        if (mainWindow !== null) {
+        if (mainWindow !== null&&!mainWindow.isDestroyed()) {
+            logger.writeDebug("Show main window by tray double click");
             mainWindow.show();
             if (mainWindow.isMinimized()) {
                 mainWindow.restore();
             }
             mainWindow.focus();
-        } else {
-            //窗口被释放
-            mainWindow = new BrowserWindow({
-                center: true,
-                title: `Suisho Connector:${global.clientMetadata.model}`,
-                resizable: false,
-                autoHideMenuBar: true,
-                frame: true,
-                show: false,
-                // skipTaskbar:true,
-                webPreferences: {
-                    spellcheck: false,
-                    contextIsolation: true,
-                    preload: path.join(__dirname, 'preload/mainPreload.js'),
-                }
-            });
-            mainWindow.setMenu(null);
-            mainWindow.hookWindowMessage(278, () => {
-                mainWindow?.setEnabled(false);
-                setTimeout(() => {
-                    mainWindow?.setEnabled(true);
-                }, 50);
-            });
-            app.isPackaged ? mainWindow.loadFile("./dist/renderer/index.html", { hash: "home" }) : mainWindow.loadURL("http://localhost:5173/#/home");
-            mainWindow.once("ready-to-show", () => {
-                mainWindow?.show();
-                logger.writeInfo("Opened main window");
-                connectedDevice.setWindow(<BrowserWindow>mainWindow);
-            });
-            mainWindow.on("closed", () => {
-                mainWindow = null;
-            });
         }
     })
     const trayMenu: Electron.MenuItemConstructorOptions[] = [
@@ -421,28 +393,33 @@ function initTray() {
 }
 //未捕获异常弹窗 给点功能选择
 process.on("uncaughtException", (error, _origin) => {
-    console.log(error);
     logger.writeError(error);
     dialog.showMessageBox({
         type: "error",
+        title: "应用程序异常",
         message: `主进程发生异常:\n${error.name}:${error.message}\n${error.stack}`,
         buttons: ["忽略", "重启", "退出"],
-        defaultId: 0,
-        title: "应用程序异常"
+        defaultId: 0
     } as MessageBoxOptions).then((result) => {
         switch (result.response) {
             case 0:
                 //忽略
+                logger.writeWarn("User ignored uncaught exception dialog");
+                break;
+            case -1:
+                //取消
+                logger.writeWarn("User cancelled uncaught exception dialog");
                 break;
             case 1:
                 //重启
-                logger.writeInfo("App relaunching because exception");
+                logger.writeWarn("App relaunching because uncaught exception");
                 mainWindow?.destroy();
                 app.relaunch();
                 app.quit();
                 break;
             case 2:
                 //退出
+                logger.writeWarn("App close application because uncaught exception");
                 mainWindow?.destroy();
                 app.quit();
                 break;
@@ -472,6 +449,7 @@ ipcMain.handle("main_openInExplorer", (_event, type, filePath) => {
             const dir = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`;
             //防止首次连接还没有目录时打开报错
             if (!fs.existsSync(dir)) {
+                logger.writeInfo(`Create folder:${dir}`);
                 fs.ensureDirSync(dir);
             }
             shell.openPath(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`.replaceAll("/", "\\"));
@@ -516,14 +494,15 @@ ipcMain.on("reboot_application", (_event): void => {
 });
 //打开代理设置
 ipcMain.on("connectPhone_openProxySetting", (_event) => {
+    logger.writeInfo("Open system proxy setting")
     exec("start ms-settings:network-proxy")
 });
 //局域网扫描绑定设备
 ipcMain.on("main_startAutoConnectBroadcast", () => {
-    logger.writeInfo("Start auto connect broadcast")
     //开始广播
     if (!global.config.boundDeviceKey) {
         // 有设备id但找不到key
+        logger.writeWarn("Device key not found","Auto Connector");
         BrowserWindow.getAllWindows().forEach(window => {
             window.webContents.send("main_autoConnectError");
         });
@@ -531,6 +510,7 @@ ipcMain.on("main_startAutoConnectBroadcast", () => {
     }
     broadcaster = new Broadcaster(global.config.boundDeviceId as any);
     broadcaster.start();
+    logger.writeInfo("Start auto connect broadcast")
 });
 //退出应用
 ipcMain.on("close_application", (_event): void => {
@@ -544,22 +524,27 @@ ipcMain.handle("main_getDeviceDataPath", (_event): string => {
 });
 //代理检测
 ipcMain.handle("connectPhone_detectProxy", async () => {
+    logger.writeDebug("Handle detect proxy");
     return await getProxyWindows() !== null
 })
 //获取主配置
 ipcMain.handle("main_getConfig", (_event, prop: string, defaultValue?: null | string | boolean | number) => {
+    logger.writeDebug(`Handle get config "${prop}" with default value:${defaultValue}`);
     return Reflect.get(global.config, prop) ?? defaultValue ?? null;
 });
 //获取所有配置 方便点
 ipcMain.handle("main_getAllConfig", (_event) => {
+    logger.writeDebug("Handle get all config ");
     return global.config;
 });
 //获取设备配置 加密啥的
 ipcMain.handle("main_getDeviceConfig", (_event, prop: string, defaultValue?: string | boolean | number | null) => {
+    logger.writeDebug(`Handle get device config "${prop}" with default value:${defaultValue}`);
     return global.deviceConfig.getConfigProp(prop, defaultValue);
 });
 //获取设备所有配置
 ipcMain.handle("main_getDeviceAllConfig", () => {
+    logger.writeDebug("Handle get device all config ");
     return global.deviceConfig.getAllConfig();
 });
 //写入配置
@@ -588,17 +573,21 @@ ipcMain.handle("main_setDeviceConfig", (_event, prop: string, value: string | nu
 //创建凭证
 ipcMain.handle("main_createCredentials", async () => {
     if (oauthService === null) {
+        logger.writeInfo("Init oauth service");
         oauthService = new OAuthService();
         await oauthService.init();
     }
+    logger.writeInfo("Request create credentials")
     return await oauthService.createCredentials();
 });
 //验证凭证
 ipcMain.handle("main_startAuthorization", async () => {
     if (oauthService === null) {
+        logger.writeInfo("Init oauth service");
         oauthService = new OAuthService();
         await oauthService.init();
     }
+    logger.writeInfo("Request start authorization")
     return await oauthService.startAuthorization();
 });
 //创建桌面快捷方式
@@ -629,6 +618,7 @@ ipcMain.on("main_openUrl", (_event, url: string) => {
 ipcMain.handle("main_createRightClickMenu", async (_event, list: RightClickMenuItem[] | null) => {
     //虽然基本不可能发生
     if (list == null) return RightClickMenuItemId.Null;
+    logger.writeDebug("Request create right click menu")
     return new Promise<RightClickMenuItemId>((resolve, _reject) => {
         const menu: Menu = new Menu();
         for (const customMenuItem of list) {
@@ -637,6 +627,7 @@ ipcMain.handle("main_createRightClickMenu", async (_event, list: RightClickMenuI
                 label: customMenuItem.label,
                 click: async () => {
                     //返回id
+                    logger.writeDebug(`Right click menu item ${customMenuItem.id} clicked`);
                     resolve(customMenuItem.id);
                 },
                 enabled: customMenuItem.enabled ?? true
@@ -657,9 +648,11 @@ ipcMain.handle("main_startApkDownloadServer", () => {
     if (!apkDownloadServerInstance) {
         apkDownloadServerInstance = new ApkDownloadServer();
         apkDownloadServerInstance.start();
+        logger.writeInfo("Start apk download server")
     }
 });
 ipcMain.handle("main_checkAndroidClientPermission", (_event, permission: string) => {
+    logger.writeDebug(`Request check android client permission:${permission}`)
     return connectedDevice?.checkAndroidClientPermission(permission);
 });
 //获取设备ip
@@ -667,6 +660,7 @@ ipcMain.handle("main_getPhoneIp", () => {
     return connectedDevice?.getPhoneAddress();
 });
 ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) => {
+    logger.writeInfo(`Request download phone file:${downloadFilePath}`);
     phoneFileDownloadPathTemp = downloadFilePath;
     if (!phoneFileDownloadWindow) {
         phoneFileDownloadWindow = new BrowserWindow({
@@ -688,6 +682,7 @@ ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) =>
                 defaultPath: path.join(path.basename(phoneFileDownloadPathTemp))
             });
         });
+        logger.writeInfo("Create download phone file window");
     };
     phoneFileDownloadWindow.loadURL(`https://${connectedDevice?.getPhoneAddress()}:${30767}?filePath=${encodeURIComponent(downloadFilePath)}`);
 });
@@ -708,7 +703,6 @@ ipcMain.handle("main_deleteLogs", async () => {
     }
     logger.writeInfo("Deleted all logs");
 });
-//TODO 更详细的日志 包括Android端也要加
 //TODO 文件同步功能 使用chokidar的awaitWriteFinish
 app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
     if (localCertFingerprint256 === null) {
@@ -717,9 +711,11 @@ app.on("certificate-error", (event, _webContents, url, _error, cert, callback) =
     }
     const remoteCertFingerprint256 = new X509Certificate(cert.data).fingerprint256;
     if (url.startsWith(`https://${connectedDevice?.getPhoneAddress()}:${30767}`) && localCertFingerprint256 === remoteCertFingerprint256) {
+        logger.writeDebug(`Certificate verified success:${url}`);
         event.preventDefault();
         callback(true);
     } else {
+        logger.writeWarn(`Certificate verified failed:${url}`);
         dialog.showMessageBox({
             type: "error",
             title: "连接失败",
@@ -730,6 +726,7 @@ app.on("certificate-error", (event, _webContents, url, _error, cert, callback) =
     }
 });
 ipcMain.handle("main_setAudioForward", async (_event, enable: boolean) => {
+    logger.writeInfo(`Request set audio forward ${enable?"enable":"disable"}`);
     if (enable) {
         const {iv,key}=Util.createAes128GcmKey();
         const result:any=await connectedDevice.responseManager?.send({ packetType:"main_startAudioForward",key,iv});
@@ -744,6 +741,7 @@ ipcMain.handle("main_setAudioForward", async (_event, enable: boolean) => {
     }
 });
 ipcMain.on("sendMessageToMainWindow", (_event, type: string, message: { [key: string]: string | number | boolean }) => {
+    logger.writeDebug(`Send message to main window:${type}`);
     mainWindow?.webContents.send("webviewEvent", type, message)
 });
 //测试用 有些要保留

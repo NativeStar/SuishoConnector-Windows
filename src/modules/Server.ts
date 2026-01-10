@@ -80,6 +80,7 @@ class Server {
         //使toString无法被枚举 不然炸ipc
         Object.defineProperty(global.clientMetadata, "toString", {
             value: (): string => {
+                logger.writeDebug("Client metadata custom toString called");
                 let temp = "{"
                 for (const key of Object.keys(global.clientMetadata)) {
                     if (key !== "toString") temp += `${key}:${global.clientMetadata[key as keyof typeof global.clientMetadata]},`
@@ -112,12 +113,15 @@ class Server {
             //严重错误处理
             logger.writeError(error);
             dialog.showMessageBox(this.appWindow, {
-                title: "发生内部异常",
-                message: `程序致命异常,无法继续运行\n${error.stack}`,
+                title: "发生异常",
+                message: `出现致命异常,无法继续运行\n${error.stack}`,
                 buttons: ["重启", "关闭"],
                 cancelId: 1
             }).then(value => {
-                if (value.response === 0) app.relaunch();
+                if (value.response === 0) {
+                    logger.writeInfo("App relaunching because fatal error");
+                    app.relaunch();
+                }
                 app.exit();
             })
         };
@@ -201,7 +205,7 @@ class Server {
         if (!this.isConnectVerified) {
             //如果不是握手包
             if (jsonObj.packetType !== "connect_handshake") {
-                logger.writeError("Not a handshake packet");
+                logger.writeWarn("Not a handshake packet");
                 this.close(false);
                 clearTimeout(<number>this.connectTimeoutTimer);
                 this.appWindow.webContents.send("connectPhone_connectFailed", "未按协议进行数据提交");
@@ -236,10 +240,11 @@ class Server {
                 socket.send(JSON.stringify({ packetType: "connect_ping", msg: global.config.deviceId, name: os.hostname(), time: Date.now() }));
                 //重设定时器
                 this.connectTimeoutTimer = setTimeout(() => {
-                    logger.writeError("Device handshake timeout")
+                    logger.writeWarn("Device handshake timeout")
                     this.close(false);
                     this.appWindow.webContents.send("connectPhone_connectFailed", "设备响应超时");
                 }, 8000);
+                logger.writeInfo("Device handshake start");
                 break
             case "connect_handshake_pong":
                 //清除定时器
@@ -250,6 +255,7 @@ class Server {
                 if (!/^[A-Za-z0-9_-]{8,64}$/.test(jsonObj.androidId)) {
                     this.close(false);
                     this.appWindow.webContents.send("connectPhone_connectFailed", "设备ID异常");
+                    logger.writeWarn("Device androidId invalid");
                     return
                 }
                 global.clientMetadata.androidSdkVersion = jsonObj.androidVersion
@@ -287,7 +293,7 @@ class Server {
                 this.notificationCore = new NotificationCore(this);
                 break
             case "action_transmit":
-                logger.writeDebug(`A transmit message packet type is ${jsonObj.messageType}`);
+                logger.writeDebug(`Received a new transmit packet.Type:${jsonObj.messageType}`);
                 //处理文件等
                 switch (jsonObj.messageType) {
                     case "planeText":
@@ -317,12 +323,13 @@ class Server {
                                     //无后缀名
                                     jsonObj.name = jsonObj.name + Date.now().toString();
                                 }
+                                logger.writeDebug(`Transmit file auto rename because file name repeat:"${jsonObj.displayName}"=>"${jsonObj.name}"`)
                                 //检查文件名长度
                                 if (jsonObj.name.length > 255) {
                                     //直接改成时间戳文件名 不管打开了
                                     jsonObj.name = Date.now().toString();
+                                    logger.writeInfo(`Transmit file name too long:"${jsonObj.displayName}"=>"${jsonObj.name}"`)
                                 }
-                                logger.writeDebug(`Transmit file auto rename because file name repeat:"${jsonObj.displayName}"=>"${jsonObj.name}"`)
                                 break
                             }
                         }
@@ -334,7 +341,7 @@ class Server {
                         }
                         //文件大小检查 -1为无效
                         if (jsonObj.size === -1) {
-                            logger.writeWarn("Receive file size error");
+                            logger.writeWarn("Receive file size error:-1");
                             this.appWindow.webContents.send("webviewEvent", "showAlert", { title: "接收文件异常", content: "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug" });
                             socket.send(JSON.stringify({ _responseId: jsonObj._requestId, _result: "ERROR", msg: "异常文件\n请检查文件是否存在或为特殊类型\n也可能是软件Bug" }));
                             return
@@ -356,42 +363,12 @@ class Server {
                         break;
                 }
                 break
-            case "action_createFile":
-                //创建文件
-                //互传创建
-                if (jsonObj.createType === "transmit") {
-                    (async () => {
-                        await fs.ensureDir(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`);
-                        //检查重名
-                        const fileList = await fs.readdir(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`);
-                        if (fileList.some((value) => {
-                            return jsonObj.name === value
-                        })) {
-                            logger.writeInfo("Cannot create name repeated file");
-                            socket.send(JSON.stringify({ _responseId: jsonObj._requestId, state: false, msg: "无法传输重名的空文件" }));
-                            return
-                        }
-                        try {
-                            jsonObj.name = path.basename(jsonObj.name);
-                            await fs.createFile(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${jsonObj.name}`);
-                            socket.send(JSON.stringify({ _responseId: jsonObj._requestId, state: true }));
-                            logger.writeInfo(`Transmit success create file:${jsonObj.name}`)
-                        } catch (error: any) {
-                            //创建失败
-                            logger.writeError(`Transmit failed create file:${jsonObj.name}`)
-                            socket.send(JSON.stringify({ _responseId: jsonObj._requestId, state: false, msg: error.message }));
-                        }
-                    })();
-                    //自由创建 用于后面文件管理
-                } else if (jsonObj.createType === "empty") {
-                    //*预留
-                }
-                break
             case "action_notificationForward":
                 if (!global.deviceConfig.enableNotification) break
                 this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing);
                 break
             case "syncIconPack"://同步应用图标资源包
+                logger.writeDebug("Request sync icon pack");
                 const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconArchive`;
                 const extractDir = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconCache/`;
                 //检查摘要
@@ -428,6 +405,7 @@ class Server {
                             logger.writeWarn(`Failed to download application icons pack\n${err}`);
                         },
                         onSuccess: async (file: string) => {
+                            logger.writeInfo("Success download icons pack.Waiting verify and extract");
                             //计算hash
                             const packHash: string = await Util.getSHA256(file, true);
                             logger.writeDebug(`Success download icon pack.Hash:${packHash}`);
@@ -483,15 +461,19 @@ class Server {
                 this.appWindow.webContents.send("webviewEvent", "updateDeviceState", jsonObj);
                 break
             case "edit_state":
+                logger.writeDebug(`New edit state packet:${jsonObj.type} ${jsonObj.name}`);
                 this.appWindow.webContents.send("webviewEvent", "editState", { type: jsonObj.type, id: jsonObj.name });
                 break
             case "removeActiveNotification":
+                logger.writeDebug(`New remove active notification packet:${jsonObj.key}`);
                 this.appWindow.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "remove", key: jsonObj.key });
                 break
             case "updateMediaSessionMetadata":
+                logger.writeDebug(`New update media session metadata packet:${jsonObj.title} ${jsonObj.artist} ${jsonObj.album}`);
                 this.appWindow.webContents.send("webviewEvent", "updateMediaSessionMetadata", jsonObj);
                 break
             case "updateMediaSessionPlaybackState":
+                logger.writeDebug(`New update media session playback state packet`);
                 this.appWindow.webContents.send("webviewEvent", "updateMediaSessionPlaybackState", jsonObj);
                 break
             case undefined:
@@ -502,12 +484,8 @@ class Server {
             default:
                 //检查协议版本
                 logger.writeWarn(`Invalid packet type:${jsonObj.packetType}`);
-                console.log(jsonObj);
-            //握手完成后pc发送一个包含时间戳的包检查延迟并带有消息 安卓端也返回时间戳和一段消息 就此完成连接 打开主界面
         }
         /* 要在clients里挨个调用close手机端才能不报错 */
-        /* 连接成功由手机端发送首次握手消息 包含协议版本 安卓版本等 超过8秒无响应主动断开连接
-        握手成功则转入主界面 */
 
     }
     /**
@@ -527,9 +505,9 @@ class Server {
         logger.writeInfo(`Server socket closed`);
         //检查窗口是否显示 不可显示则发送通知
         if (!this.appWindow.isDestroyed() && !this.appWindow.isVisible()) {
-            logger.writeInfo(`Post device disconnect notification`);
             //直接用Electron自带通知
             const canSendXmlNotification = Util.hasStartMenuShortcut();
+            logger.writeInfo(`Post device disconnect notification with ${canSendXmlNotification ? "xml" : "vanilla"}`);
             const notification = new Notification({
                 title: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : "连接中断",
                 body: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : `${global.clientMetadata.model}已断开连接`,
@@ -559,7 +537,7 @@ class Server {
                     window.close();
                 }
             });
-            !canSendXmlNotification&&notification.on("click", _event => {
+            !canSendXmlNotification && notification.on("click", _event => {
                 if (this.appWindow !== null && !this.appWindow.isDestroyed()) {
                     this.appWindow.show();
                     if (this.appWindow.isMinimized()) {
@@ -605,8 +583,9 @@ class Server {
             //延迟
             await Util.delay(this.heartBeatDelay[global.config.heartBeatDelay as keyof typeof this.heartBeatDelay] ?? 60000);
             //设置计时器
+            logger.writeDebug("Received pong packet")
             beatTimer = setTimeout(() => {
-                logger.writeInfo("Android client dead");
+                logger.writeInfo("Pong packet timeout.Android client dead");
                 //关闭连接
                 this.close();
                 //移除监听
@@ -621,7 +600,7 @@ class Server {
         //设置回调
         socket.on("pong", onPong);
         //发起首次ping
-        logger.writeDebug("first heartbeat polling start");
+        logger.writeDebug("Heartbeat polling start");
         socket.ping();
     }
 
@@ -649,7 +628,6 @@ class Server {
             try {
                 return await this.responseManager?.send({ packetType: "main_getDeviceDetailInfo" });
             } catch (error) {
-                // console.log(error);
                 logger.writeError(`Failed init webview handle:${error}`)
                 return new Promise((_resolve, reject) => {
                     reject(error);
@@ -683,27 +661,32 @@ class Server {
                     onCancel: () => {
                         this.responseManager?.cancel(RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE);
                         uploader = null;
+                        logger.writeWarn("Transmit upload file canceled");
                     },
                     onProgress: (value: number) => {
-                        // logger.writeDebug(`Upload file progress update:${value}`);
                         this.appWindow.webContents.send("fileUploadProgressUpdate", value);
                     },
                     //完成 只需要释放资源
                     onSuccess: () => {
                         uploader = null;
-                        logger.writeInfo("Upload file success");
+                        logger.writeInfo("Transmit upload file success");
                         this.appWindow.webContents.send("webviewEvent", "transmitFileUploadSuccess", name, name, 1, form === undefined ? 0 : form);
                     },
                     //失败时执行 throw可能抓不到
-                    onError: (error: { message: any; }) => this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message })
+                    onError: (error: { message: any; }) => {
+                        logger.writeError(`Transmit upload file failed:${error}`);
+                        this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message })
+                    }
                 });
                 const uploaderPort = await uploader.init();
                 await this.responseManager?.send({ packetType: "transmit_uploadFile", port: uploaderPort, fileName: name, _request_id: RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE, fileSize: size });
+                logger.writeInfo("Transmit upload file start");
             } catch (error: any) {
                 logger.writeError(`Upload file failed:${error}`);
                 this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message });
             }
         });
+        //TODO 可以直接在渲染进程发包的...以后再改吧
         ipcMain.handle("file_listDir", async (_event, dirPath) => {
             return await this.responseManager?.send({ packetType: "file_getFilesList", msg: dirPath });
         });
@@ -713,12 +696,15 @@ class Server {
                 return this.appListCache;
             }
             await this.createAppListCache();
+            logger.writeDebug("Load package list from realtime")
             return this.appListCache;
         });
         ipcMain.handle("mediaSession_appendAction", (_event, action, time) => {
+            logger.writeDebug(`Media session append action:${action}`)
             socket.send(JSON.stringify({ packetType: "appendMediaSessionControl", msg: action, time }))
         })
     }
+    // TODO 这个也是。。。改成直接发包
     async checkAndroidClientPermission(permission: string) {
         return await this.responseManager?.send({ packetType: "main_checkPermission", name: permission });
     }
@@ -743,6 +729,7 @@ class Server {
             const onError = (err: Error) => { cleanup(); reject(err); };
             this.websocket.once("listening", onListening);
             this.websocket.once("error", onError);
+            logger.writeDebug("Waiting for server to start to get port");
         });
         const newInfo = this.getAddressInfo();
         if (!newInfo) throw new Error("Server listening but address unavailable");

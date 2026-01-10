@@ -48,7 +48,7 @@ class ManualConnect {
                         success: false,
                         message: "该地址验证失败过多 请重启PC端后重试或使用扫码连接"
                     }));
-                    logger.writeDebug(`IP ${ip} blocked by too many verify failed`, ManualConnect.LOG_TAG)
+                    logger.writeDebug(`Address "${ip}" blocked by too many verify failed`, ManualConnect.LOG_TAG)
                     return
                 }
                 const pairCode = req.headers["suisho-pair-code"];
@@ -57,13 +57,13 @@ class ManualConnect {
                     if (pairCode === this.pairCode) {
                         res.writeHead(200);
                         res.end(this.successResponseObjectString);
-                        logger.writeInfo(`IP ${ip} connect verify success`, ManualConnect.LOG_TAG)
+                        logger.writeInfo(`Address "${ip}" connect verify success`, ManualConnect.LOG_TAG)
                         return
                     }
                     if (ip) {
                         this.ipConnectCounter.has(ip) ? this.ipConnectCounter.set(ip, this.ipConnectCounter.get(ip)! + 1) : this.ipConnectCounter.set(ip, 1);
                     }
-                    logger.writeInfo(`IP ${ip} connect verify failed`, ManualConnect.LOG_TAG)
+                    logger.writeInfo(`Address "${ip}" connect verify failed`, ManualConnect.LOG_TAG)
                     res.writeHead(200);
                     res.end(this.failedResponseObjectString);
                     return
@@ -72,13 +72,13 @@ class ManualConnect {
                     if (autoConnectorKey === global.config.boundDeviceKey) {
                         res.writeHead(200);
                         res.end(this.successResponseObjectString);
-                        logger.writeInfo(`IP ${ip} connect verify success`, ManualConnect.LOG_TAG)
+                        logger.writeInfo(`Address "${ip}" connect verify success`, ManualConnect.LOG_TAG)
                         return
                     }
                     if (ip) {
                         this.ipConnectCounter.has(ip) ? this.ipConnectCounter.set(ip, this.ipConnectCounter.get(ip)! + 1) : this.ipConnectCounter.set(ip, 1);
                     }
-                    logger.writeInfo(`IP ${ip} connect verify failed`, ManualConnect.LOG_TAG)
+                    logger.writeInfo(`Address "${ip}" connect verify failed`, ManualConnect.LOG_TAG)
                     res.writeHead(200);
                     res.end(this.failedResponseObjectString);
                     return
@@ -89,7 +89,7 @@ class ManualConnect {
         this.server.listen(39865)
     }
     close() {
-        logger.writeDebug("Manual connect server closed")
+        logger.writeDebug("Manual connect server closed",ManualConnect.LOG_TAG)
         this.server?.close();
     }
 }

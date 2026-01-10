@@ -73,6 +73,8 @@ function useLogger() {
             console.error(event.reason);
             appendLog("ERROR", `${event.reason}`);
         }));
+        window.addEventListener("beforeunload",flushLog);
+        window.addEventListener("pagehide",flushLog);
         console.info("Logger initd");
     });
 }

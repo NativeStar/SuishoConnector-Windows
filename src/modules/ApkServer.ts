@@ -9,12 +9,14 @@ class ApkServer{
     server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     indexHtml:string;
     private packageSize:number;
+    private readonly LOG_TAG="ApkServer";
     constructor(){
         this.htmlPath=path.join(app.getAppPath(),"res","android","apkDownload.html");
         this.packagePath=path.join(app.getAppPath(),"res","android","package.apk");
         if (fs.existsSync(this.htmlPath)) {
             this.indexHtml=fs.readFileSync(this.htmlPath,{encoding:"utf-8"});
         }else{
+            logger.writeWarn("HTML file not found",this.LOG_TAG);
             this.indexHtml=`
                 <html>
                     <body>
@@ -37,10 +39,12 @@ class ApkServer{
                         </body>
                     </html>    
                     `);
+                    logger.writeWarn("Package file not found",this.LOG_TAG);
                     return
                 }
                 res.writeHead(200,{"Content-Type":"application/vnd.android.package-archive","Content-Length":this.packageSize,"Content-Disposition": 'attachment; filename="SuishoConnectorAndroid.apk"'});
                 fs.createReadStream(this.packagePath).pipe(res);
+                logger.writeInfo(`Download request received from ${req.socket.address()}`,this.LOG_TAG);
                 /* 
                 用于给客户端判定
                 避免某些人想更新软件什么的结果拿装好的客户端扫这个码或者纯粹没分清
@@ -52,6 +56,7 @@ class ApkServer{
                 }).end(this.indexHtml);
             }else{
                 //拒绝连接
+                logger.writeDebug(`Invalid request received from ${req.socket.remoteAddress}`,this.LOG_TAG);
                 res.destroy();
             }
         });
@@ -60,11 +65,11 @@ class ApkServer{
         if(this.initd) return;
         this.server.listen(25120);
         this.initd=true;
-        logger.writeInfo("Apk download server started");
+        logger.writeInfo("Apk download server started",this.LOG_TAG);
     }
     close(){
         this.server.close();
-        logger.writeDebug("Apk download server closed");
+        logger.writeDebug("Apk download server closed",this.LOG_TAG);
     }
 }
 export default ApkServer;

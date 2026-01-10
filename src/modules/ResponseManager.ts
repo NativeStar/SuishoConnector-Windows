@@ -17,6 +17,7 @@ interface requestObject {
 class ResponseManager {
     private socket: ws;
     private responseMap: Map<string, requestObject>;
+    private readonly LOG_TAG = "ResponseManager";
     constructor(socket: ws) {
         this.socket = socket;
         /**
@@ -24,7 +25,7 @@ class ResponseManager {
          */
         this.responseMap = new Map();
         this.initTimeoutClearer();
-        logger.writeInfo("Response manager init success!");
+        logger.writeInfo("Response manager init success!",this.LOG_TAG);
     }
     /**
      * 发送数据并异步等待 返回Promise
@@ -51,7 +52,7 @@ class ResponseManager {
         });
         //推入map
         this.responseMap.set(id, putObj);
-        logger.writeDebug(`Send request packet type"${data.packetType}" with id:${id}`)
+        logger.writeDebug(`Send request packet type"${data.packetType}" with id:${id}`,this.LOG_TAG)
         this.socket.send(JSON.stringify(data));
         //返回 用于await
         return <Promise<requestObject>>exec
@@ -68,7 +69,7 @@ class ResponseManager {
         if (reject && this.responseMap.has(id)) {
             this.responseMap.get(id)?.reject(new Error("Request Cancel"));
         }
-        logger.writeDebug(`Canceled request packet. id:${id}`)
+        logger.writeDebug(`Canceled request packet. id:${id}`,this.LOG_TAG)
         return this.responseMap.delete(id);
     }
     /**
@@ -84,7 +85,7 @@ class ResponseManager {
             (targetResponse as requestObject).resolve(data);
             this.responseMap.delete(id);
         }else{
-            logger.writeInfo(`Packet id:${id} not found`);
+            logger.writeWarn(`Packet id:${id} not found`,this.LOG_TAG);
         }
     }
 
@@ -98,7 +99,7 @@ class ResponseManager {
             for (const waitingResponse of this.responseMap) {
                 //超时60s
                 if (Date.now() - waitingResponse[1].time >= 60000) {
-                    logger.writeWarn(`Packet id:${waitingResponse[1].id} request failed by timeout`);
+                    logger.writeWarn(`Packet id:${waitingResponse[1].id} request failed by timeout`,this.LOG_TAG);
                     //执行失败方法
                     waitingResponse[1].reject("RequestTimeout");
                     //在队列中删除
