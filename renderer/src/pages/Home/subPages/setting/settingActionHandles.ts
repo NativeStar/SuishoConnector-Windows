@@ -40,7 +40,14 @@ export async function onBoundDeviceItemClick(
                     console.info("Unbound device");
                 } else {
                     const key = cryptRandomString({ length: 256 });
-                    await ipc.sendRequestPacket<void>({ packetType: "main_bindDevice", msg: key });
+                    const result = await ipc.sendRequestPacket<{ success: boolean }>({ packetType: "main_bindDevice", msg: key });
+                    if (!result.success) {
+                        snackbar({
+                            message: "移动端发生异常 绑定失败",
+                            autoCloseDelay: 1000
+                        });
+                        return
+                    }
                     ipc.setConfig("boundDeviceId", androidId);
                     ipc.setConfig("boundDeviceKey", key);
                     setBoundDeviceId(androidId);
@@ -62,12 +69,19 @@ export async function onBoundDeviceItemClick(
             onConfirm: async () => {
                 //发送绑定请求
                 const key = cryptRandomString({ length: 256 });
-                await ipc.sendRequestPacket<void>({ packetType: "main_bindDevice", msg: key });
+                const result = await ipc.sendRequestPacket<{ success: boolean }>({ packetType: "main_bindDevice", msg: key });
+                if (!result.success) {
+                    snackbar({
+                        message: "移动端发生异常 绑定失败",
+                        autoCloseDelay: 1000
+                    });
+                    return
+                }
                 ipc.setConfig("boundDeviceId", androidId);
                 ipc.setConfig("boundDeviceKey", key);
                 setBoundDeviceId(androidId);
                 snackbar({
-                    message: "绑定完成",
+                    message: "绑定成功",
                     autoCloseDelay: 2000
                 });
                 console.info(`Bound device:${androidId}`);
