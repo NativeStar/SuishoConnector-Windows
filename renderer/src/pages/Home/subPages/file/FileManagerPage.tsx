@@ -33,9 +33,9 @@ interface DirectoryListProps {
     setCurrentPath: React.Dispatch<React.SetStateAction<string[] | null>>
     staredDirectories: string[]
     setStaredDirectories: React.Dispatch<React.SetStateAction<string[]>>
-    createRightClickMenu:typeof window.electronMainProcess.createRightClickMenu
+    createRightClickMenu: typeof window.electronMainProcess.createRightClickMenu
 }
-function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories ,createRightClickMenu}: DirectoryListProps) {
+function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories, createRightClickMenu }: DirectoryListProps) {
     const [collapsed, setCollapsed] = useState(false);
     useEffect(() => {
         const rawStaredDir = localStorage.getItem("fileManagerStaredDirectory");
@@ -45,11 +45,11 @@ function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories
             console.debug(`Stared directories raw data:${rawStaredDir}`);
         }
     }, []);
-    function onContextMenu(path:string){
-        createRightClickMenu(FileManagerUnStarDirectory).then(result=>{
-            if (result===RightClickMenuItemId.Delete) {
-                localStorage.setItem("fileManagerStaredDirectory", JSON.stringify(staredDirectories.filter(value=>value!==path)));
-                setStaredDirectories(staredDirectories.filter(value=>value!==path));
+    function onContextMenu(path: string) {
+        createRightClickMenu(FileManagerUnStarDirectory).then(result => {
+            if (result === RightClickMenuItemId.Delete) {
+                localStorage.setItem("fileManagerStaredDirectory", JSON.stringify(staredDirectories.filter(value => value !== path)));
+                setStaredDirectories(staredDirectories.filter(value => value !== path));
                 console.debug(`Remove stared directory:${path}`);
             }
         })
@@ -66,7 +66,7 @@ function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories
                     </mdui-list-item>
                     {
                         staredDirectories.map(value => (
-                            <mdui-list-item icon="star_outline" key={value} onClick={() => setCurrentPath(value.split("/"))} onContextMenu={()=>onContextMenu(value)}>{value.slice(value.lastIndexOf("/") + 1)}</mdui-list-item>
+                            <mdui-list-item icon="star_outline" key={value} onClick={() => setCurrentPath(value.split("/"))} onContextMenu={() => onContextMenu(value)}>{value.slice(value.lastIndexOf("/") + 1)}</mdui-list-item>
                         ))
                     }
                 </mdui-collapse-item>
@@ -101,7 +101,7 @@ function FileList({
                 description: "请给予安卓端'管理所有文件'权限",
                 confirmText: "刷新",
                 onConfirm: () => {
-                    ipc.checkAndroidClientPermission("android.permission.MANAGE_EXTERNAL_STORAGE").then(({ result }) => {
+                    ipc.sendRequestPacket<{ result: boolean }>({ packetType: "main_checkPermission", name: "android.permission.MANAGE_EXTERNAL_STORAGE" }).then(({ result }) => {
                         setHasPermission(result);
                     })
                 }
@@ -112,7 +112,7 @@ function FileList({
         setLoading(true);
         // 更改目录趁机释放ffmpeg
         releaseFfmpeg();
-        ipc.getPhoneDirectoryFiles(`/storage/emulated/0/${currentPath.join("/")}/`).then(result => {
+        ipc.sendRequestPacket<{ code: number, files: FileItem[] }>({ packetType: "file_getFilesList", msg: `/storage/emulated/0/${currentPath.join("/")}/` }).then(result => {
             if (result.code !== FileManagerResultCode.CODE_NORMAL) {
                 snackbar({
                     message: FileManagerResultCodeMessage[result.code as keyof typeof FileManagerResultCodeMessage],
@@ -124,7 +124,7 @@ function FileList({
                 console.info(`Get phone directory files failed with code:${result.code}`);
                 return
             }
-            console.debug(`Got phone file list:${JSON.stringify(result.files??[])}`);
+            console.debug(`Got phone file list:${JSON.stringify(result.files ?? [])}`);
             setFileList(result.files);
             setLoading(false);
         })
@@ -151,7 +151,7 @@ function FileList({
                 console.info(`Request download phone file:${file.name}`);
             } else if (result === RightClickMenuItemId.Star) {
                 const joinedPath = currentPath!.join("/");
-                const finalPath=`${joinedPath!==""?`${joinedPath}/`:""}${file.name}`;
+                const finalPath = `${joinedPath !== "" ? `${joinedPath}/` : ""}${file.name}`;
                 // 避免重复
                 if (staredDirectories.includes(finalPath)) return;
                 setStaredDirectories([...staredDirectories, finalPath]);
@@ -236,18 +236,18 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     const [audioPlayerVisible, setAudioPlayerVisible] = useState(false);
     const fileUrl = useRef<string>("");
     useEffect(() => {
-        ipc.checkAndroidClientPermission("android.permission.MANAGE_EXTERNAL_STORAGE").then(({ result }) => {
+        ipc.sendRequestPacket<{ result: boolean }>({ packetType: "main_checkPermission", name: "android.permission.MANAGE_EXTERNAL_STORAGE" }).then(({ result }) => {
             setHasPermission(result);
         })
     }, []);
-    useUpdateEffect(()=>{
+    useUpdateEffect(() => {
         // 保存数据
         const dataString = JSON.stringify(staredDirectories);
         localStorage.setItem("fileManagerStaredDirectory", dataString);
-    },[staredDirectories]);
+    }, [staredDirectories]);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
-            {audioPlayerVisible && <AudioModal setVisible={setAudioPlayerVisible} src={fileUrl.current}/>}
+            {audioPlayerVisible && <AudioModal setVisible={setAudioPlayerVisible} src={fileUrl.current} />}
             <ModalVideo classNames={ModalVideoClassNames} channel="custom" url={fileUrl.current} isOpen={videoViewerVisible} onClose={() => setVideoViewerVisible(false)} />
             <PhotoSlider
                 maskOpacity={0.8}
@@ -258,7 +258,7 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
                 loop={false}
                 portalContainer={document.body}
             />
-            <DirectoryList setCurrentPath={setCurrentPath} setStaredDirectories={setStaredDirectories} staredDirectories={staredDirectories} createRightClickMenu={ipc.createRightClickMenu}/>
+            <DirectoryList setCurrentPath={setCurrentPath} setStaredDirectories={setStaredDirectories} staredDirectories={staredDirectories} createRightClickMenu={ipc.createRightClickMenu} />
             {loading && <div className="absolute top-0 w-full h-full opacity-75 bg-[gray] text-center pt-[37%] z-10">
                 <mdui-linear-progress className="w-[25%]"></mdui-linear-progress>
             </div>}

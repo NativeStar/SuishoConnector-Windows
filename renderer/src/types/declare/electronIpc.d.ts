@@ -41,8 +41,6 @@ declare global {
             readonly createStartMenuShortcut: () => Promise<boolean>;
             readonly openUrl: (url: string) => Promise<void>;
             readonly getFilePath: (file: File) => string;
-            readonly checkAndroidClientPermission: (permission: string) => Promise<{ result: boolean }>;
-            readonly getPhoneDirectoryFiles: (path: string) => Promise<{code:number,files:FileItem[]}>
             readonly getPhoneIp: () => Promise<string>;
             readonly downloadPhoneFile: (path: string) => Promise<void>;
             readonly deleteLogs: () => Promise<void>;

@@ -686,10 +686,6 @@ class Server {
                 this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message });
             }
         });
-        //TODO 可以直接在渲染进程发包的...以后再改吧
-        ipcMain.handle("file_listDir", async (_event, dirPath) => {
-            return await this.responseManager?.send({ packetType: "file_getFilesList", msg: dirPath });
-        });
         ipcMain.handle("notificationForward_getPackageList", async (_event, forceRefresh: boolean = false) => {
             if (!forceRefresh && this.appListCache) {
                 logger.writeDebug("Load package list from cache")
@@ -703,10 +699,6 @@ class Server {
             logger.writeDebug(`Media session append action:${action}`)
             socket.send(JSON.stringify({ packetType: "appendMediaSessionControl", msg: action, time }))
         })
-    }
-    // TODO 这个也是。。。改成直接发包
-    async checkAndroidClientPermission(permission: string) {
-        return await this.responseManager?.send({ packetType: "main_checkPermission", name: permission });
     }
     get clients() {
         return this.websocket?.clients

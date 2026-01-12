@@ -57,10 +57,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     openUrl:(url)=>{ipcRenderer.send("main_openUrl",url)},
     //获取文件路径
     getFilePath:(file)=>{return webUtils.getPathForFile(file)},
-    //检查安卓端权限
-    checkAndroidClientPermission:(permission)=>{return ipcRenderer.invoke("main_checkAndroidClientPermission",permission)},
-    //获取目录文件列表
-    getPhoneDirectoryFiles:(path)=>{return ipcRenderer.invoke("file_listDir",path)},
     //获取手机ip
     getPhoneIp:()=>{return ipcRenderer.invoke("main_getPhoneIp")},
     //下载手机文件

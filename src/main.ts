@@ -651,10 +651,6 @@ ipcMain.handle("main_startApkDownloadServer", () => {
         logger.writeInfo("Start apk download server")
     }
 });
-ipcMain.handle("main_checkAndroidClientPermission", (_event, permission: string) => {
-    logger.writeDebug(`Request check android client permission:${permission}`)
-    return connectedDevice?.checkAndroidClientPermission(permission);
-});
 //获取设备ip
 ipcMain.handle("main_getPhoneIp", () => {
     return connectedDevice?.getPhoneAddress();
