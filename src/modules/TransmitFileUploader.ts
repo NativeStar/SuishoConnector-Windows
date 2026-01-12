@@ -85,7 +85,6 @@ class TransmitFileUploader {
         });
     }
     #close() {
-        // this.uploadSocket.close();
         logger.writeDebug("Uploader socket closed",this.LOG_TAG);
         this.fileStream?.close();
     }

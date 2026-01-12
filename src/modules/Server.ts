@@ -385,7 +385,7 @@ class Server {
                     }
                 }
                 logger.writeDebug("Starting download icon pack");
-                const fileSocket = new SocketFileWriter(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`, null);
+                const fileSocket = new SocketFileWriter(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`, null,jsonObj.key, jsonObj.iv);
                 try {
                     await fileSocket.init();
                     //不放在这发送事件时窗口更替还没完成 会崩溃
