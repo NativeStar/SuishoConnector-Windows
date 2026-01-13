@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ConnectQrcode } from "./components/ConnectQrcode";
 import useDevMode from "~/hooks/useDevMode";
 import { type InitServerResult } from "~/types/ipc"
-import * as mdui from "mdui";
+import {alert,confirm} from "mdui";
 import "mdui/mdui.css"
 import "~/styles/global.css"
 import "~/styles/outline_icon.css"
@@ -29,7 +29,7 @@ export default function ConnectPhone() {
         connectPhoneWindowIpc.initServer().then(value => {
             //异常检测
             if (value instanceof Error) {
-                mdui.alert({
+                alert({
                     headline: "发生异常",
                     description: "初始化失败 可能是启用了虚拟网卡(TUN)类程序\n" + value.stack,
                     confirmText: "重启",
@@ -41,7 +41,7 @@ export default function ConnectPhone() {
             const { pairCode:code, ...data } = value;
             //空地址检测
             if (data.address === null) {
-                mdui.alert({
+                alert({
                     headline: "发生异常",
                     description: "无法获取本机IP地址\n请检查网卡及网络连接是否正常\n或向开发者反馈此问题",
                     confirmText: "重启",
@@ -63,7 +63,7 @@ export default function ConnectPhone() {
     useEffect(() => {
         (async () => {
             if (await connectPhoneWindowIpc.detectProxy()) {
-                mdui.confirm({
+                confirm({
                     headline: "检测到系统代理",
                     description: "应用可能无法正常工作\n请检查代理设置",
                     confirmText: "打开设置",
@@ -80,7 +80,7 @@ export default function ConnectPhone() {
         setIsConnecting(true);
     });
     connectPhoneWindowIpc.on("connectFailed", (_event: never, reason: string, title: string = "连接失败") => {
-        mdui.alert({
+        alert({
             headline: title,
             description: reason,
             confirmText: "重启",
@@ -90,12 +90,9 @@ export default function ConnectPhone() {
     connectPhoneWindowIpc.on("autoConnectorError", () => {
         setIsAutoConnectorError(true);
     });
-    function openProjectUrl() {
-        connectPhoneWindowIpc.openUrl("https://github.com/NativeStar/SuishoConnector-Windows");
-    }
     function showManualConnectDialog() {
         // 39865固定的手动连接中转端口
-        mdui.alert({
+        alert({
             headline: "手动连接",
             description: `请在手机端对应位置内输入以下信息\n
             IP:${qrcodeData?.address ?? "发生异常!"}\n
@@ -115,9 +112,9 @@ export default function ConnectPhone() {
                     <small className="text-[gray] mt-0.5">使用浏览器扫描下方二维码下载</small>
                     <QRCodeSVG className="mt-6" value={`http://${qrcodeData?.address ?? "ERROR"}:25120/suishoPkgDownload`} size={150} bgColor="#fdf7fe" fgColor="#707070" />
                     <span className="text-[gray] mt-5">
-                        或者手机访问官方
-                        <a className="text-[gray] underline" style={{cursor:"pointer"}} onClick={openProjectUrl}> Github仓库 </a>
-                        下载安卓端
+                        或者访问
+                        <a className="text-[gray] underline" style={{cursor:"pointer"}} onClick={()=>connectPhoneWindowIpc.openUrl("https://github.com/NativeStar/SuishoConnector-Android")}> Android端仓库 </a>
+                        下载客户端
                     </span>
                     <mdui-tooltip content="返回">
                         <mdui-button-icon className="mt-6" icon="close" onClick={() => setInApkDownloadPage(false)}></mdui-button-icon>
@@ -150,7 +147,13 @@ export default function ConnectPhone() {
                             }}></mdui-button-icon>
                         </mdui-tooltip>
                         <mdui-tooltip content="帮助">
-                            <mdui-button-icon icon="help" onClick={() => alert("TODO")}></mdui-button-icon>
+                            <mdui-button-icon icon="help" onClick={() => confirm({
+                                headline: "帮助",
+                                description:"该软件需要配套Android端才能工作 你可以点击页面中的'下载'按钮后扫码下载(需要在局域网内) 如需获取更多帮助 请前往项目Github页面",
+                                confirmText:"前往",
+                                cancelText:"取消",
+                                onConfirm:()=>connectPhoneWindowIpc.openUrl("https://github.com/NativeStar/SuishoConnector-Windows"),
+                            }).catch(()=>{})}></mdui-button-icon>
                         </mdui-tooltip>
                     </div>
                 </div>}

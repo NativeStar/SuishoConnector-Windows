@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,14 +16,18 @@
         <span>即将开始下载</span><br>
         <span>如无反应请尝试更换浏览器</span>
     </div>
+    <br />
+    <span>或</span>
+    <a href="https://github.com/NativeStar/SuishoConnector-Android/releases">前往Github下载</a>
 </body>
 <script>
     //检测微信
     if (navigator.userAgent.includes("MicroMessenger")) {
-        document.getElementById("openInOtherBrowserTip").hidden=false;
+        document.getElementById("openInOtherBrowserTip").hidden = false;
     } else {
-        document.getElementById("successTip").hidden=false;
+        document.getElementById("successTip").hidden = false;
         window.location.href = "/dlPackage";
     }
 </script>
+
 </html>
