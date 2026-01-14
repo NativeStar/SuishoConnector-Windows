@@ -18,7 +18,7 @@ interface ActiveNotification {
     appName: string,
     key: string,
     isOngoing: boolean,
-    progress:number
+    progress: number
 }
 type ActiveNotificationReducerAction = [{
     type: "add" | "remove" | "set" | "clear",
@@ -26,7 +26,12 @@ type ActiveNotificationReducerAction = [{
     notification?: ActiveNotification,
     initNotificationList?: ActiveNotification[]
 }];
-
+const ActiveNotificationResultCode={
+    NORMAL:0,
+    UNTRUSTED:1,
+    NOT_PERMiSSION:2,
+    FUNCTION_DISABLED:3
+} as const;
 function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotificationCardProp) {
     const [defaultIsOverflow, contentRef] = useTextTruncated(-10);
     const [spread, setSpread] = useState<boolean>(false);
@@ -42,7 +47,7 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
                 <small className="block ml-0.5 mt-0.5 max-w-[99.6%] text-xs">{notification.appName}</small>
                 <b className="block ml-0.5 truncate max-w-[99.6%]">{notification.title}</b>
                 <div ref={contentRef} className={twMerge("block ml-0.5 text-sm max-w-[99.6%] truncate")}>{notification.content}</div>
-                {notification.progress>0&&<mdui-linear-progress max={100} value={notification.progress} className="mt-2 w-11/12" />}
+                {notification.progress > 0 && <mdui-linear-progress max={100} value={notification.progress} className="mt-2 w-11/12" />}
             </div>
             {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} onClick={() => {
                 setSpread(!spread)
@@ -51,10 +56,25 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
         </mdui-card>
     )
 }
-export default function ActiveNotifications({className}:ActiveNotificationListProp) {
+export default function ActiveNotifications({ className }: ActiveNotificationListProp) {
     function updateNotification() {
-        ipc.sendRequestPacket<{ list: ActiveNotification[] }>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
-            activeNotificationDispatch({ type: "set", initNotificationList: value.list });
+        ipc.sendRequestPacket<{ list: ActiveNotification[], code: number}>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
+            switch (value.code) {
+                case ActiveNotificationResultCode.NORMAL:
+                    setTipText("");
+                    activeNotificationDispatch({ type: "set", initNotificationList: value.list });
+                    break
+                case ActiveNotificationResultCode.NOT_PERMiSSION:
+                    setTipText("需要授予通知读取权限");
+                    break
+                case ActiveNotificationResultCode.UNTRUSTED:
+                    setTipText("计算机不被信任")
+                    break
+                case ActiveNotificationResultCode.FUNCTION_DISABLED:
+                    setTipText("通知转发被禁用");
+                    break
+
+            }
             setEnableInteraction(true);
         })
     }
@@ -88,18 +108,19 @@ export default function ActiveNotifications({className}:ActiveNotificationListPr
         }
     }, []);
     const [enableInteraction, setEnableInteraction] = useState<boolean>(true);
+    const [tipText, setTipText] = useState<string>("");
     // 初始化
     useEffect(() => {
         setTimeout(() => {
             updateNotification();
         }, 1500);
-        const updateNotificationCleanup=ipc.on("currentNotificationUpdate", data => {
+        const updateNotificationCleanup = ipc.on("currentNotificationUpdate", data => {
             //点击通知导致的移除无title content属性
             if (data.type === "remove") {
                 activeNotificationDispatch({ type: "remove", key: data.key });
                 return
             }
-            if (!data.title&&!data.content) {
+            if (!data.title && !data.content) {
                 return
             }
             activeNotificationDispatch({
@@ -112,7 +133,7 @@ export default function ActiveNotifications({className}:ActiveNotificationListPr
                     key: data.key,
                     packageName: data.packageName,
                     title: data.title,
-                    progress:data.progress
+                    progress: data.progress
                 }
             })
         });
@@ -121,7 +142,7 @@ export default function ActiveNotifications({className}:ActiveNotificationListPr
         }
     }, []);
     return (
-        <mdui-card className={twMerge("fixed h-[45%] flex flex-col max-w-[40%] min-w-[40%]",className)}>
+        <mdui-card className={twMerge("fixed h-[45%] flex flex-col max-w-[40%] min-w-[40%]", className)}>
             <div className="flex items-center px-2 py-1">
                 <small className="text-[gray]">通知列表</small>
                 <div className="ml-auto flex items-center text-[gray]">
@@ -144,6 +165,8 @@ export default function ActiveNotifications({className}:ActiveNotificationListPr
             </div>
             <mdui-divider />
             <div className="flex-1 overflow-hidden">
+                {tipText!==""&& <div className="text-center text-[gray]">{tipText}</div>}
+                {tipText!==""&&<div className="text-center text-[gray]">请在手机上修改相关设置后点击刷新按钮</div>}
                 <div className="h-full overflow-y-scroll pr-1 activeNotificationsList">
                     {
                         activeNotification.map(value => (

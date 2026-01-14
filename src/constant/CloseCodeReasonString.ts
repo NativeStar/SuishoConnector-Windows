@@ -6,6 +6,8 @@ const CloseReason={
     1006:"由于响应超时或未知异常 连接被关闭",
     1007:"手机端程序崩溃 连接中断",
     1008:"计算机已有连接",
-    1009:"鉴权失败"
+    1009:"鉴权失败",
+    // 执行清除数据 彩蛋
+    1010:"Goodbye World"
 };
 export default CloseReason;
