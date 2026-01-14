@@ -20,6 +20,9 @@ export const FileManagerResultCode = {
      */
     CODE_DEVICE_NOT_TRUSTED: 4
 } as const;
+export function isDotPopPathResultCode(code:number){
+    return code===FileManagerResultCode.CODE_NOT_PERMISSION||code===FileManagerResultCode.CODE_DEVICE_NOT_TRUSTED||code===FileManagerResultCode.CODE_FUNCTION_DISABLED
+}
 export const FileManagerResultCodeMessage={
     [FileManagerResultCode.CODE_NORMAL]:"正常",
     [FileManagerResultCode.CODE_NOT_DIR]:"无法打开该目录",

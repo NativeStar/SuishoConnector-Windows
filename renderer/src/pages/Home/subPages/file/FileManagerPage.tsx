@@ -5,7 +5,7 @@ import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import useUpdateEffect from "~/hooks/useUpdateEffect";
 import { FileManagerDownload, FileManagerStarDirectory, FileManagerUnStarDirectory } from "~/types/contextMenus";
 import "react-modal-video/css/modal-video.css"
-import { FileManagerResultCode, FileManagerResultCodeMessage } from "~/types/fileManagerResultCodes";
+import { FileManagerResultCode, FileManagerResultCodeMessage, isDotPopPathResultCode } from "~/types/fileManagerResultCodes";
 import type { FileItem } from "~/types/ipc";
 import ModalVideo from 'react-modal-video';
 import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constance";
@@ -120,7 +120,7 @@ function FileList({
                 });
                 setLoading(false);
                 // 将添加的path弹出 否则目录会乱
-                setCurrentPath(currentPath!.slice(0, -1));
+                if(!isDotPopPathResultCode(result.code)) setCurrentPath(currentPath!.slice(0, -1));
                 console.info(`Get phone directory files failed with code:${result.code}`);
                 return
             }
