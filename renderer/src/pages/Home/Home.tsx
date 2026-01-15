@@ -54,7 +54,7 @@ export default function Home() {
       console.debug("Show reboot confirm by ipc message");
       confirm({
         headline: "重启程序",
-        description: "确认重启程序?连接将关闭",
+        description: "确认重启程序?",
         confirmText: "重启",
         cancelText: "取消",
         onOpened() {

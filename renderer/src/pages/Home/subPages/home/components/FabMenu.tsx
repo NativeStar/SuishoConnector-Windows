@@ -22,7 +22,7 @@ export default function FabMenu({ className }: FabMenuProps) {
         console.debug("Show reboot application dialog by fab menu");
         confirm({
             headline: "重启程序",
-            description: "确认重启程序?连接将关闭",
+            description: "确认重启程序?",
             confirmText: "重启",
             cancelText: "取消",
             onConfirm: () => {
