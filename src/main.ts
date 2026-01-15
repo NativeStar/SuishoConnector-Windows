@@ -63,7 +63,7 @@ app.on("ready", async (_event, _info) => {
     connectPhoneWindow = new BrowserWindow({
         titleBarStyle: "hidden",
         center: true,
-        title: "Electron Application",
+        title: "Suisho Connector Main Window",
         resizable: false,
         autoHideMenuBar: true,
         frame: false,
