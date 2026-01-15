@@ -6,6 +6,13 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["@ffmpeg/ffmpeg","@ffmpeg/core"]
   },
+  build:{
+    target:"chrome142",
+    sourcemap:false,
+    minify:"esbuild",
+    cssCodeSplit: true,
+    reportCompressedSize: false
+  },
   plugins: [react(), tailwindcss()],
   base: "./",
   resolve: {

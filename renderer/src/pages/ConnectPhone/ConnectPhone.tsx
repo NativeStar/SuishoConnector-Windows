@@ -4,10 +4,6 @@ import { ConnectQrcode } from "./components/ConnectQrcode";
 import useDevMode from "~/hooks/useDevMode";
 import { type InitServerResult } from "~/types/ipc"
 import {alert,confirm} from "mdui";
-import "mdui/mdui.css"
-import "~/styles/global.css"
-import "~/styles/outline_icon.css"
-import "~/styles/blockWebAction.css"
 import 'mdui/components/icon';
 import "mdui/components/tooltip"
 import "mdui/components/button-icon"

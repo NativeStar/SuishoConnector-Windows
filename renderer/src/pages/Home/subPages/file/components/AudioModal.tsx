@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import "mdui/components/slider"
 import { ensureFfmpegLoaded, time2str } from "~/utils";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
+import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import { parseBuffer } from "music-metadata"
 import { useAsyncEffect } from "use-async-effect"
 import AutoScrollLyric, { type LyricItemType } from "./AutoScrollLyric";
