@@ -131,54 +131,45 @@ module.exports = {
   },
   makers: [
     {
-      name: '@electron-forge/maker-wix',
-      platforms:["win32"],
+      name: '@felixrieseberg/electron-forge-maker-nsis',
       config: {
-        icon: path.resolve(__dirname, 'res', 'icon.ico'),
-        language: 2052,
-        manufacturer: 'Suisho Apps',
-        upgradeCode: '4D4B78B7-820E-4470-BE1F-B9E669575049',
-        appUserModelId: 'com.suisho.connector',
-        // 与 package.json:interactive-notifications.toast-activator-clsid 保持一致
-        toastActivatorClsid: '171807FD-769F-4129-A8C2-C603F8F125C8',
-        ui: { chooseDirectory: true ,localizations: [path.resolve(__dirname,'WixUI_zh-CN.wxl')]},
-        defaultInstallMode: 'perMachine',
-        // 让快捷方式直接指向真实主程序
-        beforeCreate: (creator) => {
-          const versionedExeTarget = '[APPLICATIONROOTDIRECTORY]app-{{SemanticVersion}}\\{{ApplicationBinary}}.exe';
-          // 禁用 stub 启动器
-          creator.getSpecialFiles = async () => [];
-          creator.exeFilePath = path.join(creator.appDirectory, `${creator.exe}.exe`);
+        getAppBuilderConfig: () => {
+          return {
+            productName: "Suisho Connector",  // 安装时显示的名称（顶层配置）
+            artifactName: "Suisho Connector Setup ${version}.${ext}",
+            nsis: {
+              installerIcon: path.resolve(__dirname, 'res', 'icon.ico'),
+              uninstallerIcon: path.resolve(__dirname, 'res', 'icon.ico'),
+              shortcutName: "Suisho Connector",
+              uninstallDisplayName: "Suisho Connector",  // 控制面板中显示的名称
+              // 安装模式配置
+              oneClick: false,
+              perMachine: false,
+              allowToChangeInstallationDirectory: true,
 
-          const originalGetRegistryKeys = creator.getRegistryKeys.bind(creator);
-          creator.getRegistryKeys = function () {
-            const registry = originalGetRegistryKeys();
-            for (const item of registry) {
-              if (typeof item.value === 'string') {
-                item.value = item.value.replace(
-                  '[APPLICATIONROOTDIRECTORY]{{ApplicationBinary}}.exe',
-                  versionedExeTarget
-                );
-              }
+              // 中文界面
+              installerLanguages: ['zh_CN'],
+              language: '2052',
+
+              // 快捷方式
+              createDesktopShortcut: 'always',
+              createStartMenuShortcut: true,
+              runAfterFinish: false,
+
+              // 应用标识
+              guid: '4d4b78b7-820e-4470-be1f-b9e669575049',
+
+              // 自定义NSIS脚本
+              include: path.resolve(__dirname, 'build', 'installer.nsh'),
             }
-            return registry;
           };
-
-          if (typeof creator.wixTemplate === 'string') {
-            creator.wixTemplate = creator.wixTemplate
-              .replaceAll('[APPLICATIONROOTDIRECTORY]{{ApplicationBinary}}.exe', versionedExeTarget)
-              .replaceAll('{{ApplicationName}} (Machine - MSI)', '{{ApplicationName}}')
-              .replaceAll('{{ApplicationName}} (User - MSI)', '{{ApplicationName}}')
-              .replaceAll('{{ApplicationName}} (Machine)', '{{ApplicationName}}')
-              .replaceAll('{{ApplicationName}} (User)', '{{ApplicationName}}');
-          }
-        },
-      },
-    },
-    {
-      name: '@electron-forge/maker-zip',
-      platforms: ['win32'],
+        }
+      }
     }
+    // {
+    //   name: '@electron-forge/maker-zip',
+    //   platforms: ['win32'],
+    // }
   ],
   plugins: [
     {
