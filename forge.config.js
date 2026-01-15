@@ -142,34 +142,21 @@ module.exports = {
               uninstallerIcon: path.resolve(__dirname, 'res', 'icon.ico'),
               shortcutName: "Suisho Connector",
               uninstallDisplayName: "Suisho Connector",  // 控制面板中显示的名称
-              // 安装模式配置
               oneClick: false,
               perMachine: false,
               allowToChangeInstallationDirectory: true,
-
-              // 中文界面
               installerLanguages: ['zh_CN'],
               language: '2052',
-
-              // 快捷方式
               createDesktopShortcut: 'always',
               createStartMenuShortcut: true,
               runAfterFinish: false,
-
-              // 应用标识
               guid: '4d4b78b7-820e-4470-be1f-b9e669575049',
-
-              // 自定义NSIS脚本
               include: path.resolve(__dirname, 'build', 'installer.nsh'),
             }
           };
         }
       }
     }
-    // {
-    //   name: '@electron-forge/maker-zip',
-    //   platforms: ['win32'],
-    // }
   ],
   plugins: [
     {
