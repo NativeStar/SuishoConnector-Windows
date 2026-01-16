@@ -385,7 +385,7 @@ class Server {
                     }
                 }
                 logger.writeDebug("Starting download icon pack");
-                const fileSocket = new SocketFileWriter(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`, null,jsonObj.key, jsonObj.iv);
+                const fileSocket = new SocketFileWriter(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`, null, jsonObj.key, jsonObj.iv);
                 try {
                     await fileSocket.init();
                     //不放在这发送事件时窗口更替还没完成 会崩溃
@@ -523,20 +523,6 @@ class Server {
             </toast>
             `
             });
-            //关闭除主窗口和调试窗口外所有窗口
-            BrowserWindow.getAllWindows().forEach(window => {
-                if (!window.title.startsWith("Suisho Connector:")) {
-                    //如果这些窗口在焦点 则将主窗口拉起
-                    if (window.isFocused()) {
-                        this.appWindow.show();
-                        if (this.appWindow.isMinimized()) {
-                            this.appWindow.restore();
-                        }
-                        this.appWindow.focus();
-                    }
-                    window.close();
-                }
-            });
             !canSendXmlNotification && notification.on("click", _event => {
                 if (this.appWindow !== null && !this.appWindow.isDestroyed()) {
                     this.appWindow.show();
@@ -549,6 +535,20 @@ class Server {
             });
             notification.show();
         }
+        //只留下主窗口
+        BrowserWindow.getAllWindows().forEach(window => {
+            if (!window.title.startsWith("Suisho Connector:")) {
+                //如果这些窗口在焦点 则将主窗口拉起
+                if (window.isFocused()) {
+                    this.appWindow.show();
+                    if (this.appWindow.isMinimized()) {
+                        this.appWindow.restore();
+                    }
+                    this.appWindow.focus();
+                }
+                window.close();
+            }
+        });
         //关闭窗口时会触发 但窗口已经关闭了 所以会报错
         //判断窗口
         if (this.isInMainWindow) {
