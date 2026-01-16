@@ -137,6 +137,7 @@ module.exports = {
           return {
             productName: "Suisho Connector",  // 安装时显示的名称（顶层配置）
             artifactName: "Suisho Connector Setup ${version}.${ext}",
+            appId:"com.suisho.connector",
             nsis: {
               installerIcon: path.resolve(__dirname, 'res', 'icon.ico'),
               uninstallerIcon: path.resolve(__dirname, 'res', 'icon.ico'),
@@ -149,7 +150,7 @@ module.exports = {
               language: '2052',
               createDesktopShortcut: 'always',
               createStartMenuShortcut: true,
-              runAfterFinish: false,
+              runAfterFinish: true,
               guid: '4d4b78b7-820e-4470-be1f-b9e669575049',
               include: path.resolve(__dirname, 'build', 'installer.nsh'),
             }
