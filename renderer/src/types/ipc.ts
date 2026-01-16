@@ -35,8 +35,7 @@ export type TextFilterConfig = {
 }
 export type ApplicationListData = {
     appName: string,
-    packageName: string,
-    isSystemApp: boolean
+    packageName: string
 }
 export type FileItem = {
     type: "folder" | "file",

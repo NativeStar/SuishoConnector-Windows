@@ -1,5 +1,5 @@
 import { alert, snackbar } from "mdui";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import useUpdateEffect from "~/hooks/useUpdateEffect";
@@ -12,6 +12,7 @@ import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constan
 import { PhotoSlider } from "react-photo-view";
 import AudioModal from "./components/AudioModal";
 import { releaseFfmpeg } from "~/utils";
+import AndroidIdContext from "~/context/AndroidIdContext";
 
 interface FileManagerPageProps {
     hidden: boolean
@@ -37,8 +38,9 @@ interface DirectoryListProps {
 }
 function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories, createRightClickMenu }: DirectoryListProps) {
     const [collapsed, setCollapsed] = useState(false);
+    const {androidId}=useContext(AndroidIdContext);
     useEffect(() => {
-        const rawStaredDir = localStorage.getItem("fileManagerStaredDirectory");
+        const rawStaredDir = localStorage.getItem(`fileManagerStaredDirectory_${androidId}`);
         if (rawStaredDir !== null) {
             const staredDir: string[] = JSON.parse(rawStaredDir);
             setStaredDirectories(staredDir);
@@ -48,7 +50,7 @@ function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories
     function onContextMenu(path: string) {
         createRightClickMenu(FileManagerUnStarDirectory).then(result => {
             if (result === RightClickMenuItemId.Delete) {
-                localStorage.setItem("fileManagerStaredDirectory", JSON.stringify(staredDirectories.filter(value => value !== path)));
+                localStorage.setItem(`fileManagerStaredDirectory_${androidId}`, JSON.stringify(staredDirectories.filter(value => value !== path)));
                 setStaredDirectories(staredDirectories.filter(value => value !== path));
                 console.debug(`Remove stared directory:${path}`);
             }
@@ -235,6 +237,7 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     const [videoViewerVisible, setVideoViewerVisible] = useState(false);
     const [audioPlayerVisible, setAudioPlayerVisible] = useState(false);
     const fileUrl = useRef<string>("");
+    const {androidId}=useContext(AndroidIdContext);
     useEffect(() => {
         ipc.sendRequestPacket<{ result: boolean }>({ packetType: "main_checkPermission", name: "android.permission.MANAGE_EXTERNAL_STORAGE" }).then(({ result }) => {
             setHasPermission(result);
@@ -243,7 +246,7 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     useUpdateEffect(() => {
         // 保存数据
         const dataString = JSON.stringify(staredDirectories);
-        localStorage.setItem("fileManagerStaredDirectory", dataString);
+        localStorage.setItem(`fileManagerStaredDirectory_${androidId}`, dataString);
     }, [staredDirectories]);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
