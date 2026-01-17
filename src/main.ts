@@ -53,6 +53,8 @@ if (!app.requestSingleInstanceLock()) {
     //还没初始化日志模块 没必要输出
     app.quit();
 }
+//阻止媒体控制
+app.commandLine.appendSwitch('disable-features', 'MediaSessionService,HardwareMediaKeyHandling');
 app.on("ready", async (_event, _info) => {
     global.logger = new Logger(`${app.getPath("userData")}/programData/logs`);
     //检查并获取配置文件
