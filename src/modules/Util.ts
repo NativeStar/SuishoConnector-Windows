@@ -73,7 +73,7 @@ class Util {
      * @memberof Util
      */
     static get isDeveloping(): boolean {
-        return !app.isPackaged;
+        return !app.isPackaged||process.argv.includes("--enable-debug-mode");
     }
     /**
      * @static

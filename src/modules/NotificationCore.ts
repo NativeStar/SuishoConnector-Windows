@@ -433,7 +433,7 @@ class NotificationCore {
             //直接打开指定软件设置
             if (pkgName !== null && appName !== null) {
                 logger.writeInfo(`Request open target package notification setting:${pkgName}`, this.LOG_TAG);
-                app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash: "notification-filter", query: { pkgName, appName } }) : this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
+                app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash: `notification-filter?pkgName=${pkgName}&appName=${appName}`}) : this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
             } else {
                 app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash: "notification-filter" }) : this.configWindow.loadURL("http://localhost:5173/#/notification-filter");
             }
@@ -450,7 +450,7 @@ class NotificationCore {
             });
         } else if (pkgName !== null && appName !== null) {
             logger.writeInfo(`Request change to target package notification setting:${pkgName}`, this.LOG_TAG);
-            app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash: "notification-filter", query: { pkgName, appName } }) : this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
+            app.isPackaged ? this.configWindow.loadFile("./dist/renderer/index.html", { hash:`notification-filter?pkgName=${pkgName}&appName=${appName}`}) : this.configWindow.loadURL(`http://localhost:5173/#/notification-filter?pkgName=${pkgName}&appName=${appName}`);
             if (this.configWindow.isMinimized()) {
                 this.configWindow.restore();
             }

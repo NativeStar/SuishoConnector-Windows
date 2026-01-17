@@ -51,7 +51,7 @@ declare global {
 //阻止多实例
 if (!app.requestSingleInstanceLock()) {
     //还没初始化日志模块 没必要输出
-    app.quit();
+    app.exit(0);
 }
 //阻止媒体控制
 app.commandLine.appendSwitch('disable-features', 'MediaSessionService,HardwareMediaKeyHandling');
@@ -377,7 +377,7 @@ function initTray() {
             }
         }
     ];
-    if (!app.isPackaged) {
+    if (Util.isDeveloping) {
         trayMenu.push({
             label: "调试功能",
             submenu: [
