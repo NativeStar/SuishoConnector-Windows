@@ -106,6 +106,11 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         const progressListener = (_event: never, progress: number) => {
             setProgressValue(progress);
         }
+        if (!data.isDeleted && data.from === "phone") {
+            ipc.generateTransmitFileURL(data.name).then(fullPath => {
+                fileFullPathRef.current = fullPath;
+            })
+        }
         if (hasProgress) {
             ipc.registerFileUploadProgressListener(progressListener);
             ipc.on("transmitFileUploadSuccess", () => {
@@ -124,11 +129,6 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                 ipc.unregisterFileUploadProgressListener(progressListener);
                 console.debug(`Unmount transmit file progress listener:${data.name}`);
             }
-        }
-        if (!data.isDeleted && data.from === "phone") {
-            ipc.generateTransmitFileURL(data.name).then(fullPath => {
-                fileFullPathRef.current = fullPath;
-            })
         }
     }, []);
     function onContextMenu(event: React.MouseEvent<HTMLElement, MouseEvent>) {
@@ -167,9 +167,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         })
     }
     function onDragStart(event: React.DragEvent<HTMLElement>) {
-        if (data.from === "phone") {
-            event.dataTransfer.setData("DownloadURL", `application/x-www-form-urlencoded:${data.displayName}:${fileFullPathRef.current}`);
-        }
+        if (data.from === "phone") event.dataTransfer.setData("DownloadURL", `application/x-www-form-urlencoded:${data.displayName}:${fileFullPathRef.current}`);
         event.dataTransfer.setData("from_self", "true");
         console.debug(`Start drag file message:${data.name}`);
     }
