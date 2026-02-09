@@ -26,6 +26,12 @@ const States = {
         content: "将只运行基础功能",
         clickable: false
     },
+    info_device_idle:{
+        level: ApplicationStateLevel.Info,
+        title: "Doze模式",
+        content: "设备已进入低功耗模式 数据同步可能延迟",
+        clickable: false
+    },
     warn_xml_notification_cannot_show: {
         level: ApplicationStateLevel.Warn,
         title: "通知显示异常",

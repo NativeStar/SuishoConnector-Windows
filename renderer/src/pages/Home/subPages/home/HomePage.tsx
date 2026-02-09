@@ -35,6 +35,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             console.debug(`Init device state:${JSON.stringify(value)}`);
         })
         const updateDeviceStateCleanup = ipc.on("updateDeviceState", async (value) => {
+            applicationStatesDispatch({ type: value.inDoze?"add":"remove", id: "info_device_idle" })
             if (value.charging && value.batteryLevel === 100) {
                 if (batteryFullState.current === false && await ipc.getDeviceConfig("enableBatteryFullNotification",false)) {
                     batteryFullState.current = true;
