@@ -138,7 +138,7 @@ class Util {
         }
         //crt和key文件
         logger.writeInfo("Generating certificate",this.LOG_TAG);
-        const forge=await import("node-forge")
+        const forge=(await import("node-forge")).default
         const randomBytes = forge.random.getBytesSync(16);
         const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
         const cert = forge.pki.createCertificate();
