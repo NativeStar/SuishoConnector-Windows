@@ -12,6 +12,7 @@ import LoadingScreen from "./subPages/home/components/LoadingScreen";
 import { setColorScheme } from "mdui";
 import { releaseFfmpeg } from "~/utils";
 import useLogger from "~/hooks/useLogger";
+import ApplicationVersion from "shared/const/ApplicationVersion"
 export type StatesListObject = { [key in States]?: ApplicationState };
 export type StateAction = [{
   type: "add" | "remove"
@@ -92,7 +93,7 @@ export default function Home() {
       alert({
         headline: "通讯中断",
         description: reason ?? "由于未知原因 连接断开",
-        confirmText:"重启应用",
+        confirmText: "重启应用",
         onConfirm() {
           ipc.rebootApplication();
         },
@@ -151,6 +152,34 @@ export default function Home() {
       const target = event.target as HTMLElement;
       if (target.nodeName === "#text") event.preventDefault();
     });
+    //自动检查更新
+    ipc.getConfig("autoCheckUpdate", true).then(value => {
+      if (value) {
+        console.debug("Enabled auto check update.Waiting idle");
+        requestIdleCallback(async () => {
+          console.log("Start check update");
+          try {
+            type UpdateJson = {
+              versionName: string,
+              versionCode: number,
+            }
+            const updateJson: UpdateJson = await (await fetch("https://raw.githubusercontent.com/NativeStar/SuishoConnector-Windows/master/update.json")).json();
+            if (ApplicationVersion.APPLICATION_VERSION_CODE < updateJson.versionCode) {
+              console.log(`Find new version:${updateJson.versionCode}`);
+              applicationStatesDispatch({
+                type: "add",
+                id: "info_update_available"
+              })
+            } else {
+              console.log(`Current is latest version:${updateJson.versionCode}`);
+            }
+          } catch (error) {
+            console.error("Check update error");
+            console.error(error);
+          }
+        }, { timeout: 60000 })
+      }
+    })
   }, []);
   function setPageHandle(targetPage: PageRouteProps["page"]) {
     if (page === targetPage) {

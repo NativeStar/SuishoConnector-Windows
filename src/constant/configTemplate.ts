@@ -6,4 +6,5 @@ export default {
     heartBeatDelay:"MEDIUM",
     logLevel:"INFO",
     enableContentProtection:false,
+    autoCheckUpdate:true
 }

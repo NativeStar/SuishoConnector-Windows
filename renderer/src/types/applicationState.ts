@@ -20,6 +20,15 @@ const States = {
         content: "这会需要一段时间",
         clickable: false,
     },
+    info_update_available:{
+        level: ApplicationStateLevel.Info,
+        title: "发现新版本",
+        content: "点击跳转至Github下载",
+        clickable: true,
+        onClick() {
+            window.electronMainProcess.openUrl("https://github.com/NativeStar/SuishoConnector-Windows/releases")
+        }
+    },
     info_device_not_trusted: {
         level: ApplicationStateLevel.Info,
         title: "此计算机不被信任",
