@@ -13,7 +13,7 @@ import fs from "fs-extra";
 import xmlEscape from "xml-escape";
 import Util from "./Util";
 import NotificationProfileType from "../interface/INotificationProfile";
-import Server from "./Server";
+import type Server from "./Server";
 declare global {
     var clientMetadata: {
         androidId: string | "failed",
