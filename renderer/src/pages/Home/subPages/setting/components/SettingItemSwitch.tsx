@@ -10,8 +10,9 @@ interface SettingItemSelectProps {
     configs: { [key: string]: string | number | boolean; }
     configKey: string,
     setConfig: (key: string, value: string | number | boolean) => void
+    disabled?: boolean
 }
-export default function SettingItemSwitch({ icon, title, desc, className, onChange, configKey, configs, setConfig }: SettingItemSelectProps) {
+export default function SettingItemSwitch({ icon, title, desc, className, onChange, configKey, configs, setConfig ,disabled=false}: SettingItemSelectProps) {
     const [switchChecked, setSwitchChecked] = useState(false);
     useEffect(() => {
         setSwitchChecked(configs[configKey] as boolean)
@@ -32,7 +33,7 @@ export default function SettingItemSwitch({ icon, title, desc, className, onChan
     }
     return (
         <mdui-list-item onClick={() => switchRef.current?.click()} className={twMerge(className)} headline={title} description={desc} icon={icon}>
-            <mdui-switch ref={switchRef} checked-icon="" slot="end-icon" checked={switchChecked} onChange={internalOnChange} onClick={e => e.stopPropagation()} />
+            <mdui-switch disabled={disabled} ref={switchRef} checked-icon="" slot="end-icon" checked={switchChecked} onChange={internalOnChange} onClick={e => e.stopPropagation()} />
         </mdui-list-item>
     )
 }
