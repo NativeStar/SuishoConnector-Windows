@@ -19,4 +19,6 @@ export default{
     enableBatteryFullNotification:false,
     //解锁屏幕时提示通知数量 只在关闭pushNotificationOnLockedScreen时才有效
     showBlockedNotificationCountOnUnlockScreen:true,
+    //手机解锁时不推送通知
+    blockNotificationOnDeviceUnlock:false
 }

@@ -117,8 +117,9 @@ class NotificationCore {
  
      * @returns 
      */
-    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, forwardToRendererProcess: boolean = true): void {
+    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, isLockedScreen:boolean): void {
         let blockedByLockScreen = false;
+        let forwardToRendererProcess=true;
         logger.writeDebug(`New notification from ${packageName}`, this.LOG_TAG);
         //检测
         //单配置检测(优先级最高 强制绕检测等)
@@ -142,12 +143,17 @@ class NotificationCore {
             logger.writeDebug(`A notification blocked because is ongoing`, this.LOG_TAG);
             return
         }
-        //熄屏检测
+        //计算机熄屏检测
         if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen", false) && windowsNotificationStateCode.isLockedScreen(windowsNotificationState.shQueryUserNotificationState())) {
             logger.writeDebug(`Hide notification because in lock screen:${packageName}`, this.LOG_TAG);
             // 只标记 等待后面处理以免漏处理步骤
             blockedByLockScreen = true;
         };
+        //手机锁屏检测
+        if(!isLockedScreen&&global.deviceConfig.getConfigProp("blockNotificationOnDeviceUnlock",false)){
+            logger.writeDebug(`Hide notification because device screen unlock:${packageName}`, this.LOG_TAG);
+            result.show = false;
+        }
         //全屏检测
         if (!global.deviceConfig.getConfigProp("pushNotificationOnFullScreen", true) && windowsNotificationStateCode.isFullscreen(windowsNotificationState.shQueryUserNotificationState())) {
             logger.writeDebug(`Hide notification because in full screen:${packageName}`, this.LOG_TAG);
@@ -228,7 +234,6 @@ class NotificationCore {
                     break;
             }
         }
-        
         //文本检测 要求开启总过滤开关 如有单独配置则需要开启进行过滤
         if (this.config.enableTextFilter && (!result.useProfile || result.enableTextFilter)) {
             //根据模式处理

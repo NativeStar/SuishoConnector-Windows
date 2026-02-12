@@ -365,7 +365,7 @@ class Server {
                 break
             case "action_notificationForward":
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing,jsonObj.isLockScreen);
                 break
             case "syncIconPack"://同步应用图标资源包
                 logger.writeDebug("Request sync icon pack");
