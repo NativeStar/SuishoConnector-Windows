@@ -496,7 +496,7 @@ ipcMain.on("reboot_application", (_event): void => {
 //打开代理设置
 ipcMain.on("connectPhone_openProxySetting", (_event) => {
     logger.writeInfo("Open system proxy setting");
-    import("child_process").then(mod=>{
+    import("child_process").then(mod => {
         mod.exec("start ms-settings:network-proxy")
     })
 });
@@ -651,7 +651,7 @@ ipcMain.handle("main_createRightClickMenu", async (_event, list: RightClickMenuI
 //开启apk下载服务器
 ipcMain.handle("main_startApkDownloadServer", async () => {
     if (!apkDownloadServerInstance) {
-        const apkDownloadModule=(await import("./modules/ApkServer.js")).default
+        const apkDownloadModule = (await import("./modules/ApkServer.js")).default
         apkDownloadServerInstance = new apkDownloadModule.default();
         apkDownloadServerInstance.start();
         logger.writeInfo("Start apk download server")
@@ -746,6 +746,33 @@ ipcMain.on("sendMessageToMainWindow", (_event, type: string, message: { [key: st
     logger.writeDebug(`Send message to main window:${type}`);
     mainWindow?.webContents.send("webviewEvent", type, message)
 });
+ipcMain.handle("main_archiveLogs", async () => {
+    logger.writeDebug("Show save log file archive dialog")
+    const result = await dialog.showSaveDialog(mainWindow!, {
+        title: "导出程序日志",
+        buttonLabel: "保存",
+        defaultPath: path.join(app.getPath("home"), `Logs-${Date.now()}.zip`)
+    });
+    if (result.canceled) return false;
+    const archiver = (await import("archiver")).default
+    const archiverInstance = archiver("zip", {
+        zlib: {
+            level: 6
+        },
+    });
+    const fileOutStream=fs.createWriteStream(result.filePath);
+    archiverInstance.pipe(fileOutStream);
+    const logPath = `${app.getPath("userData")}/programData/logs`;
+    const filesList = await fs.readdir(logPath);
+    logger.writeDebug(`Find ${filesList.length} log files`)
+    for (const logFile of filesList) {
+        const data=await fs.readFile(`${app.getPath("userData")}/programData/logs/${logFile}`);
+        archiverInstance.append(data,{name:logFile})
+    };
+    await archiverInstance.finalize();
+    logger.writeInfo("Archive log file success")
+    return true
+})
 //测试用 有些要保留
 app.on("before-quit", () => {
     //异常时为null

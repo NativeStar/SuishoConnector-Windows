@@ -246,3 +246,11 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
         return true;
     }
 }
+export function onRequestArchiveLogsItemClick(ipc: ReturnType<typeof useMainWindowIpc>) {
+    ipc.requestArchiveLog().then((value) => {
+        value&&snackbar({
+            message: "打包完成",
+            autoCloseDelay: 3500
+        });
+    })
+}

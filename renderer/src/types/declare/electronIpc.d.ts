@@ -55,6 +55,7 @@ declare global {
             readonly appendMediaSessionControl:(action:"changePlayState"|"next"|"previous"|"seek",time?:number)=>void
             readonly setAudioForwardEnable:(enable:boolean)=>Promise<AudioForwardResponse>
             readonly appendLog:(log:string[])=>Promise<void>
+            readonly requestArchiveLog:()=>Promise<boolean>
         }
     }
 }

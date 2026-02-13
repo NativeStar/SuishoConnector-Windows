@@ -6,7 +6,7 @@ import SettingItemSwitch from "./components/SettingItemSwitch"
 import { useContext, useEffect, useState } from "react"
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import AndroidIdContext from "~/context/AndroidIdContext"
-import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteLogsItemClick, onProtectMethodChange, rebootSnackbar } from "./settingActionHandles"
+import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteLogsItemClick, onProtectMethodChange, onRequestArchiveLogsItemClick, rebootSnackbar } from "./settingActionHandles"
 import type { ProtectMethod } from "~/utils"
 import AboutDialog from "./components/AboutDialog"
 import { alert } from "mdui"
@@ -76,6 +76,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSwitch title="电池满电提醒" desc="手机电量充满时发出通知" icon="battery_4_bar" configs={deviceConfig} configKey="enableBatteryFullNotification" setConfig={wrappedSetDeviceConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">杂项</mdui-list-subheader>
                     <SettingItemCommon title="关于" icon="info" onClick={() => setShowAboutDialog(true)} />
+                    <SettingItemCommon title="打包日志" desc="将日志打为压缩包以便发送" icon="send_and_archive" onClick={() => onRequestArchiveLogsItemClick(ipc)} />
                     <SettingItemCommon title="清除日志" icon="delete_sweep" onClick={() => onDeleteLogsItemClick(ipc)} />
                 </mdui-list>
             </div>
