@@ -14,7 +14,6 @@ import os from "os";
 import ConnectionCloseCode from "../enum/ConnectionCloseCode";
 import ConnectionCloseReasonString from "../constant/CloseCodeReasonString";
 import path from "path";
-import nodeStreamZip from "node-stream-zip";
 import { SocketFileWriter } from "./SocketFileWriter";
 declare global {
     var serverAddress: string | null
@@ -364,6 +363,7 @@ class Server {
                 }
                 break
             case "action_notificationForward":
+                // TODO 发版前更新内置APK!!!!!!!!!!
                 if (!global.deviceConfig.enableNotification) break
                 this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing,jsonObj.isLockScreen);
                 break
@@ -410,7 +410,8 @@ class Server {
                             const packHash: string = await Util.getSHA256(file, true);
                             logger.writeDebug(`Success download icon pack.Hash:${packHash}`);
                             //解压
-                            const zipFile = new nodeStreamZip.async({ file: file });
+                            const NodeStreamZip=(await import("node-stream-zip")).default
+                            const zipFile = new NodeStreamZip.async({ file: file });
                             //创建目录
                             //删除旧目录重新创建
                             await fs.remove(extractDir);
@@ -698,7 +699,7 @@ class Server {
         ipcMain.handle("mediaSession_appendAction", (_event, action, time) => {
             logger.writeDebug(`Media session append action:${action}`)
             socket.send(JSON.stringify({ packetType: "appendMediaSessionControl", msg: action, time }))
-        })
+        });
     }
     get clients() {
         return this.websocket?.clients

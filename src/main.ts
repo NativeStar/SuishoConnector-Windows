@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem } from "electron";
 import path from "path";
-import { exec } from "child_process";
 import os from "os";
 import { X509Certificate } from "crypto"
 import fs from "fs-extra";
@@ -11,12 +10,12 @@ import { Config as TypeConfig } from "./modules/Util"
 import { Logger, LogLevel } from "./modules/Logger";
 import { getProxyWindows } from "get-proxy-settings";
 import ManualConnect from "./modules/ManualConnect";
-import OAuthService from "./modules/OAuthService";
+import type OAuthService from "./modules/OAuthService";
 import DeviceConfig from "./modules/DeviceConfig";
 import Broadcaster from "./modules/Broadcaster";
 import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
-import ApkDownloadServer from "./modules/ApkServer";
+import type ApkDownloadServer from "./modules/ApkServer";
 import AudioForward from "./modules/AudioForward";
 import configTemplate from "./constant/configTemplate";
 let connectedDevice: PhoneServer;
@@ -264,7 +263,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                     logger.writeDebug("Native theme updated but main window is destroyed");
                     return
                 }
-                logger.writeInfo(`Native theme updated to:${nativeTheme.shouldUseDarkColors?"dark":"light"}`);
+                logger.writeInfo(`Native theme updated to:${nativeTheme.shouldUseDarkColors ? "dark" : "light"}`);
                 if (nativeTheme.shouldUseDarkColors) {
                     mainWindow.setTitleBarOverlay({
                         height: 40,
@@ -286,7 +285,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     });
     //SSL证书下载服务器
     if (certDownloadServer === null) {
-        certDownloadServer = new DownloadServer(`${path.resolve(`${app.getPath("userData")}/programData/cert/certs.pak`)}`, 6735, "SSLCertDownload",connectedDevice.pairToken);
+        certDownloadServer = new DownloadServer(`${path.resolve(`${app.getPath("userData")}/programData/cert/certs.pak`)}`, 6735, "SSLCertDownload", connectedDevice.pairToken);
         await certDownloadServer.init();
         logger.writeInfo(`Cert download server started at port:${certDownloadServer.serverPost}`);
     } else {
@@ -294,7 +293,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     }
     const serverPort = await connectedDevice.getPortAsync();
     //手动连接服务
-    manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId,connectedDevice.pairToken);
+    manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId, connectedDevice.pairToken);
     manualConnectRedirectServer.init();
     global.serverAddress = Util.getIPAdress(os.networkInterfaces());
     //将服务器地址打进全局
@@ -304,8 +303,8 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
         port: serverPort,
         certDownloadPort: certDownloadServer.serverPost,
         id: global.config.deviceId,
-        token:connectedDevice.pairToken,
-        pairCode:manualConnectRedirectServer.pairCode
+        token: connectedDevice.pairToken,
+        pairCode: manualConnectRedirectServer.pairCode
     }
 });
 function initTray() {
@@ -315,7 +314,7 @@ function initTray() {
     trayInstance.setTitle("Suisho Connector");
     trayInstance.setToolTip("Suisho Connector");
     trayInstance.addListener("double-click", () => {
-        if (mainWindow !== null&&!mainWindow.isDestroyed()) {
+        if (mainWindow !== null && !mainWindow.isDestroyed()) {
             logger.writeDebug("Show main window by tray double click");
             mainWindow.show();
             if (mainWindow.isMinimized()) {
@@ -496,15 +495,17 @@ ipcMain.on("reboot_application", (_event): void => {
 });
 //打开代理设置
 ipcMain.on("connectPhone_openProxySetting", (_event) => {
-    logger.writeInfo("Open system proxy setting")
-    exec("start ms-settings:network-proxy")
+    logger.writeInfo("Open system proxy setting");
+    import("child_process").then(mod=>{
+        mod.exec("start ms-settings:network-proxy")
+    })
 });
 //局域网扫描绑定设备
 ipcMain.on("main_startAutoConnectBroadcast", () => {
     //开始广播
     if (!global.config.boundDeviceKey) {
         // 有设备id但找不到key
-        logger.writeWarn("Device key not found","Auto Connector");
+        logger.writeWarn("Device key not found", "Auto Connector");
         BrowserWindow.getAllWindows().forEach(window => {
             window.webContents.send("main_autoConnectError");
         });
@@ -576,7 +577,8 @@ ipcMain.handle("main_setDeviceConfig", (_event, prop: string, value: string | nu
 ipcMain.handle("main_createCredentials", async () => {
     if (oauthService === null) {
         logger.writeInfo("Init oauth service");
-        oauthService = new OAuthService();
+        const oauthModule = (await import("./modules/OAuthService.js")).default
+        oauthService = new oauthModule.default();
         await oauthService.init();
     }
     logger.writeInfo("Request create credentials")
@@ -586,7 +588,8 @@ ipcMain.handle("main_createCredentials", async () => {
 ipcMain.handle("main_startAuthorization", async () => {
     if (oauthService === null) {
         logger.writeInfo("Init oauth service");
-        oauthService = new OAuthService();
+        const oauthModule = (await import("./modules/OAuthService.js")).default
+        oauthService = new oauthModule.default();
         await oauthService.init();
     }
     logger.writeInfo("Request start authorization")
@@ -646,9 +649,10 @@ ipcMain.handle("main_createRightClickMenu", async (_event, list: RightClickMenuI
     })
 });
 //开启apk下载服务器
-ipcMain.handle("main_startApkDownloadServer", () => {
+ipcMain.handle("main_startApkDownloadServer", async () => {
     if (!apkDownloadServerInstance) {
-        apkDownloadServerInstance = new ApkDownloadServer();
+        const apkDownloadModule=(await import("./modules/ApkServer.js")).default
+        apkDownloadServerInstance = new apkDownloadModule.default();
         apkDownloadServerInstance.start();
         logger.writeInfo("Start apk download server")
     }
@@ -724,16 +728,16 @@ app.on("certificate-error", (event, _webContents, url, _error, cert, callback) =
     }
 });
 ipcMain.handle("main_setAudioForward", async (_event, enable: boolean) => {
-    logger.writeInfo(`Request set audio forward ${enable?"enable":"disable"}`);
+    logger.writeInfo(`Request set audio forward ${enable ? "enable" : "disable"}`);
     if (enable) {
-        const {iv,key}=Util.createAes128GcmKey();
-        const result:any=await connectedDevice.responseManager?.send({ packetType:"main_startAudioForward",key,iv});
+        const { iv, key } = Util.createAes128GcmKey();
+        const result: any = await connectedDevice.responseManager?.send({ packetType: "main_startAudioForward", key, iv });
         if (result.result) {
-            AudioForward.start(connectedDevice.getPhoneAddress(),key,iv);
+            AudioForward.start(connectedDevice.getPhoneAddress(), key, iv);
         }
         return result;
     } else {
-        const result:any=await connectedDevice.responseManager?.send({ packetType:"main_stopAudioForward"});
+        const result: any = await connectedDevice.responseManager?.send({ packetType: "main_stopAudioForward" });
         AudioForward.stop();
         return result;
     }
