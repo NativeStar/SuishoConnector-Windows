@@ -56,6 +56,8 @@ declare global {
             readonly setAudioForwardEnable:(enable:boolean)=>Promise<AudioForwardResponse>
             readonly appendLog:(log:string[])=>Promise<void>
             readonly requestArchiveLog:()=>Promise<boolean>
+            readonly setEnableFileContextMenu:(enabled:boolean)=>Promise<void>
+            readonly isEnabledFileContextMenu:()=>Promise<boolean>
         }
     }
 }

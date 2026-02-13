@@ -14,6 +14,8 @@
 !macroend
 
 !macro customUnInstall
+  ; 无条件清理文件右键菜单（删除父键即可）
+  DeleteRegKey HKCU "Software\Classes\*\shell\SuishoConnector.TransmitUploadFile"
   ; 询问是否删除应用数据
   MessageBox MB_YESNO "是否删除应用数据?$\n$\n包括应用设置 互传和通知记录 接收的文件等" \
     /SD IDNO IDYES PL_DeleteAppData_Accepted IDNO PL_DeleteAppData_Skipped

@@ -10,6 +10,7 @@ import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteLogsItemClic
 import type { ProtectMethod } from "~/utils"
 import AboutDialog from "./components/AboutDialog"
 import { alert } from "mdui"
+import CommonMduiListItemSwitch from "~/components/CommonMduiListItemSwitch"
 interface SettingPageProps {
     hidden: boolean
 }
@@ -20,6 +21,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
     const [applicationConfig, setApplicationConfig] = useState<{ [key: string]: string | number | boolean; }>({});
     const [boundDeviceId, setBoundDeviceId] = useState<string | null>(null);
     const [showAboutDialog, setShowAboutDialog] = useState(false);
+    const [isFileContextMenuEnabled,setIsFileContextMenuEnabled]=useState<boolean|null>(null);
     useEffect(() => {
         ipc.getDeviceAllConfig().then(res => {
             setDeviceConfig(res);
@@ -29,6 +31,10 @@ export default function SettingPage({ hidden }: SettingPageProps) {
             setBoundDeviceId(res.boundDeviceId as string);
             setApplicationConfig(res);
         });
+        ipc.isEnabledFileContextMenu().then(value=>{
+            console.log(value);
+            setIsFileContextMenuEnabled(value);
+        })
     }, []);
     //便于在需要时disabled组件
     function wrappedSetDeviceConfig(key: string, value: string | number | boolean){
@@ -59,6 +65,8 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSelect title="掉线轮询间隔" icon="monitor_heart" desc="降低设备掉线时反应时间 可能影响手机耗电量" items={heartbeatDelayOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="heartBeatDelay" onChange={rebootSnackbar} />
                     <SettingItemSelect title="日志输出等级" desc="方便调试 可能对性能有微弱影响" icon="library_books" items={logLevelOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="logLevel" onChange={onLogLevelChangeTip} />
                     <SettingItemSwitch title="自动检查更新" desc="在连接设备后联网检查软件更新" icon="update" configs={applicationConfig} configKey="autoCheckUpdate" setConfig={ipc.setConfig} />
+                    {/* 避免外部数据更新后内部状态不会同步 */}
+                    {isFileContextMenuEnabled!==null&&<CommonMduiListItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" checked={isFileContextMenuEnabled} onChange={(state)=>ipc.setEnableFileContextMenu(state)}/>}
                     <mdui-list-subheader className="ml-5 h-10 font-bold">通知转发</mdui-list-subheader>
                     <SettingItemSwitch title="启用通知转发" icon="fork_right" configs={deviceConfig} configKey="enableNotificationForward" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="计算机锁屏后继续推送通知" desc="即使计算机锁屏也会弹出通知(锁屏时通知内容可能被系统隐藏)" icon="close_fullscreen" configs={deviceConfig} configKey="pushNotificationOnLockedScreen" setConfig={wrappedSetDeviceConfig} />

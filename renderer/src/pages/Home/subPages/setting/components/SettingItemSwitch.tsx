@@ -27,7 +27,7 @@ export default function SettingItemSwitch({ icon, title, desc, className, onChan
             return
         };
         setSwitchChecked((e.target as HTMLInputElement).checked);
-        console.info(`Setting "${configKey}" select change to "${(e.target as HTMLInputElement).checked}"`);
+        console.info(`Setting "${configKey}" switch change to "${(e.target as HTMLInputElement).checked}"`);
         // 此时state还没变更
         setConfig(configKey, !switchChecked);
     }

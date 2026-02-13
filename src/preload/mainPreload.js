@@ -67,6 +67,12 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     deleteLogs:()=>{return ipcRenderer.invoke("main_deleteLogs")},
     //发送媒体会话控制
     appendMediaSessionControl:(action,time)=>{return ipcRenderer.invoke("mediaSession_appendAction",action,time)},
+    //追加渲染进程日志
     appendLog:(logs)=>ipcRenderer.send("appendRendererLog",logs),
-    requestArchiveLog:()=>ipcRenderer.invoke("main_archiveLogs")
+    //请求打包日志
+    requestArchiveLog:()=>ipcRenderer.invoke("main_archiveLogs"),
+    //控制系统右键菜单
+    setEnableFileContextMenu:(enable)=>ipcRenderer.invoke("main_setEnableFileContextMenu",enable),
+    //是否已注册系统右键菜单
+    isEnabledFileContextMenu:()=>ipcRenderer.invoke("main_isEnabledFileContextMenu")
 })

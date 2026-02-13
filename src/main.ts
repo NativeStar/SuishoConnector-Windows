@@ -747,7 +747,7 @@ ipcMain.on("sendMessageToMainWindow", (_event, type: string, message: { [key: st
     mainWindow?.webContents.send("webviewEvent", type, message)
 });
 ipcMain.handle("main_archiveLogs", async () => {
-    logger.writeDebug("Show save log file archive dialog")
+    logger.writeDebug("Show save log file archive dialog");
     const result = await dialog.showSaveDialog(mainWindow!, {
         title: "导出程序日志",
         buttonLabel: "保存",
@@ -772,6 +772,12 @@ ipcMain.handle("main_archiveLogs", async () => {
     await archiverInstance.finalize();
     logger.writeInfo("Archive log file success")
     return true
+});
+ipcMain.handle("main_setEnableFileContextMenu",(_event,enable)=>{
+    enable?Util.registerContextMenu():Util.unregisterContextMenu();
+});
+ipcMain.handle("main_isEnabledFileContextMenu",()=>{
+    return Util.hasSystemContextMenu();
 })
 //测试用 有些要保留
 app.on("before-quit", () => {

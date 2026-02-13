@@ -18,7 +18,7 @@ class Util {
     private static checkNetworkDriverName(name: string) {
         for (const virtualName of VirtualNetworkDriverName) {
             if (name.toLowerCase().includes(virtualName.toLowerCase())) {
-                logger.writeInfo(`Found virtual network driver:${name}`,this.LOG_TAG);
+                logger.writeInfo(`Found virtual network driver:${name}`, this.LOG_TAG);
                 return true;
             }
         }
@@ -42,7 +42,7 @@ class Util {
         for (let devName in interfaces) {
             //跳过虚拟网卡 仅排查我碰到过的
             if (this.checkNetworkDriverName(devName)) {
-                logger.writeDebug(`Skipping virtual network device:${devName}`,this.LOG_TAG);
+                logger.writeDebug(`Skipping virtual network device:${devName}`, this.LOG_TAG);
                 continue
             }
             let iface = interfaces[devName];
@@ -73,7 +73,7 @@ class Util {
      * @memberof Util
      */
     static get isDeveloping(): boolean {
-        return !app.isPackaged||process.argv.includes("--enable-debug-mode");
+        return !app.isPackaged || process.argv.includes("--enable-debug-mode");
     }
     /**
      * @static
@@ -86,15 +86,15 @@ class Util {
         const configFile = `${app.getPath("userData")}/programData/appCfg.json`;
         if (await fs.exists(configFile)) {
             //存在
-            logger.writeInfo("Config file loaded",this.LOG_TAG);
+            logger.writeInfo("Config file loaded", this.LOG_TAG);
             try {
                 return await fs.readJSON(configFile, { encoding: "utf-8" });
             } catch (error) {
-                logger.writeError(`Load config file error:${error}`,this.LOG_TAG);
+                logger.writeError(`Load config file error:${error}`, this.LOG_TAG);
                 dialog.showErrorBox("配置文件损坏", "将会重置配置以尝试修复 请在之后重新进行部分设置\n带来不便深感抱歉\n如该情况频繁发生请发送反馈");
                 const baseConfig = structuredClone(configTemp);
                 baseConfig.deviceId = v4().replaceAll("-", "");
-                logger.writeInfo("Trying recreate config file",this.LOG_TAG);
+                logger.writeInfo("Trying recreate config file", this.LOG_TAG);
                 fs.writeJSON(configFile, baseConfig);
                 return baseConfig
             }
@@ -103,7 +103,7 @@ class Util {
             //生成设备id(卸载丢失)
             baseConfig.deviceId = v4().replaceAll("-", "");
             fs.writeJson(configFile, baseConfig);
-            logger.writeInfo("Config file created",this.LOG_TAG)
+            logger.writeInfo("Config file created", this.LOG_TAG)
             return baseConfig;
         }
     }
@@ -133,12 +133,12 @@ class Util {
         const certPath: string = `${app.getPath("userData")}/programData/cert/`;
         await fs.ensureDir(certPath);
         if (await fs.exists(`${certPath}cert.crt`) && await fs.exists(`${certPath}cert.key`) && await fs.exists(`${certPath}cert.p12`) && await fs.exists(`${certPath}certs.pak`)) {
-            logger.writeInfo("Certificate exists",this.LOG_TAG);
+            logger.writeInfo("Certificate exists", this.LOG_TAG);
             return;
         }
         //crt和key文件
-        logger.writeInfo("Generating certificate",this.LOG_TAG);
-        const forge=(await import("node-forge")).default
+        logger.writeInfo("Generating certificate", this.LOG_TAG);
+        const forge = (await import("node-forge")).default
         const randomBytes = forge.random.getBytesSync(16);
         const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
         const cert = forge.pki.createCertificate();
@@ -163,14 +163,14 @@ class Util {
             { name: "extKeyUsage", serverAuth: true },
             { name: "subjectKeyIdentifier" },
         ]);
-        logger.writeDebug("Generating certificate .crt and .key",this.LOG_TAG);
+        logger.writeDebug("Generating certificate .crt and .key", this.LOG_TAG);
         cert.sign(keyPair.privateKey, forge.md.sha256.create());
         const certPem = forge.pki.certificateToPem(cert);
         const keyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
         await fs.writeFile(`${certPath}cert.crt`, certPem);
         await fs.writeFile(`${certPath}cert.key`, keyPem);
         //p12文件
-        logger.writeDebug("Generating certificate .p12",this.LOG_TAG);
+        logger.writeDebug("Generating certificate .p12", this.LOG_TAG);
         const p12 = forge.pkcs12.toPkcs12Asn1(keyPair.privateKey, cert, "SuishoConnectorPwd", {
             algorithm: "3des",
             generateLocalKeyId: true,
@@ -179,13 +179,13 @@ class Util {
         const p12DerBytes = forge.asn1.toDer(p12).getBytes();
         await fs.writeFile(`${certPath}cert.p12`, Buffer.from(p12DerBytes, "binary"));
         //pak文件
-        logger.writeDebug("Creating certificate pack",this.LOG_TAG);
+        logger.writeDebug("Creating certificate pack", this.LOG_TAG);
         const crtData = await fs.readFile(`${certPath}cert.crt`);
         const p12Data = await fs.readFile(`${certPath}cert.p12`);
         const lenBuf = Buffer.alloc(2);
         lenBuf.writeUInt16BE(crtData.length, 0);
         await fs.writeFile(`${certPath}certs.pak`, Buffer.concat([lenBuf, crtData, p12Data]));
-        logger.writeInfo("Certificate generated",this.LOG_TAG);
+        logger.writeInfo("Certificate generated", this.LOG_TAG);
     }
     /**
      * @description 创建桌面快捷方式
@@ -194,7 +194,7 @@ class Util {
      */
     static createDesktopShortcut(): void {
         shell.writeShortcutLink(path.resolve(app.getPath("desktop"), `${build.APPLICATION_SHORTCUT_NAME}.lnk`), "create", { target: process.execPath });
-        logger.writeInfo("Create desktop shortcut",this.LOG_TAG);
+        logger.writeInfo("Create desktop shortcut", this.LOG_TAG);
     }
     static hasDesktopShortcut(): boolean {
         return fs.existsSync(path.resolve(app.getPath("desktop"), `${build.APPLICATION_SHORTCUT_NAME}.lnk`));
@@ -204,7 +204,7 @@ class Util {
     }
     static createStartMenuShortcut(): void {
         shell.writeShortcutLink(path.resolve(app.getPath("appData"), `Microsoft/Windows/Start Menu/Programs/${build.APPLICATION_SHORTCUT_NAME}.lnk`), "create", { target: process.execPath });
-        logger.writeInfo("Created start menu shortcut",this.LOG_TAG);
+        logger.writeInfo("Created start menu shortcut", this.LOG_TAG);
     }
     static async updateConfig() {
         logger.writeInfo("Loading main config file");
@@ -217,13 +217,13 @@ class Util {
             }
         }
         if (hasUpdate) {
-            logger.writeInfo("Config format sync success",this.LOG_TAG);
+            logger.writeInfo("Config format sync success", this.LOG_TAG);
             await this.saveConfig();
         }
     }
     static async saveConfig() {
         await fs.writeJSON(`${app.getPath("userData")}/programData/appCfg.json`, global.config);
-        logger.writeDebug("Saving config file success",this.LOG_TAG);
+        logger.writeDebug("Saving config file success", this.LOG_TAG);
     }
     /**
      * 检测url合规性
@@ -232,7 +232,7 @@ class Util {
      */
     static checkUrl(url: string): boolean {
         const result = this.urlRegexp.test(url);
-        logger.writeDebug(`Checked url return ${result}:${url}`,this.LOG_TAG);
+        logger.writeDebug(`Checked url return ${result}:${url}`, this.LOG_TAG);
         return result;
     }
     /**
@@ -243,26 +243,26 @@ class Util {
         return new Promise(async (resolve) => {
             child_process.exec(`netstat -ano | findstr "${port}"`, (err, stdout) => {
                 if (err) {
-                    logger.writeError(`Get using port process id error:${err}`,this.LOG_TAG);
+                    logger.writeError(`Get using port process id error:${err}`, this.LOG_TAG);
                     resolve(null);
                     return;
                 }
                 const pid = stdout.slice(stdout.length - 12, stdout.length).replaceAll(" ", "");
                 child_process.exec(`tasklist | findstr "${pid}"`, (err2, stdout2) => {
                     if (err) {
-                        logger.writeError(`Get using port process name error:${err}`,this.LOG_TAG);
+                        logger.writeError(`Get using port process name error:${err}`, this.LOG_TAG);
                         resolve(null);
                         return;
                     }
                     const processName = stdout2.slice(0, stdout2.indexOf(".exe") + 4);
-                    logger.writeInfo(`Port ${port} is using by ${processName}`,this.LOG_TAG);
+                    logger.writeInfo(`Port ${port} is using by ${processName}`, this.LOG_TAG);
                     resolve({ name: processName, pid: parseInt(pid) });
                 });
             });
         });
     }
     static async execTaskWithAutoRetry(func: () => boolean, delay: number, maxRetryCount: number, taskName?: string) {
-        logger.writeDebug(`New retry task "${taskName??"Not name"}" started`,"Retry task");
+        logger.writeDebug(`New retry task "${taskName ?? "Not name"}" started`, "Retry task");
         for (let index = 0; index < maxRetryCount; index++) {
             const result = func();
             if (!result) {
@@ -278,7 +278,26 @@ class Util {
     static createAes128GcmKey() {
         const key = crypto.randomBytes(16);
         const iv = crypto.randomBytes(12);
-        return { key:key.toString("base64"), iv:iv.toString("base64") };
+        return { key: key.toString("base64"), iv: iv.toString("base64") };
+    }
+    static registerContextMenu() {
+        // 选项
+        child_process.execFileSync("reg", ["add", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile", "/f", "/t", "REG_SZ", "/d", "发送到手机", "/ve"]);
+        //图标
+        child_process.execFileSync("reg", ["add", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile", "/f", "/t", "REG_SZ", "/d", process.execPath, "/v", "Icon"]);
+        //执行
+        child_process.execFileSync("reg", ["add", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile\\command", "/f", "/t", "REG_SZ", "/d", `"${process.execPath}" "%1"`]);
+    }
+    static unregisterContextMenu() {
+        child_process.execFileSync("reg", ["delete", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile", "/f"]);
+    }
+    static hasSystemContextMenu() {
+        try {
+            child_process.execFileSync("reg", ["query", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile"])
+            return true
+        } catch {
+            return false
+        }
     }
 }
 export default Util;
