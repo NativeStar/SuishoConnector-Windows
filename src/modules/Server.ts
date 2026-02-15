@@ -363,7 +363,6 @@ class Server {
                 }
                 break
             case "action_notificationForward":
-                // TODO 发版前更新内置APK!!!!!!!!!!
                 if (!global.deviceConfig.enableNotification) break
                 this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing,jsonObj.isLockScreen);
                 break
