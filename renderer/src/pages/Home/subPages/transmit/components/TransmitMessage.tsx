@@ -196,6 +196,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                 <b className="whitespace-nowrap text-ellipsis overflow-hidden mt-1.5 ml-15px" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{data.displayName}</b>
                 <div className={twMerge("mt-5", isDeleted ? "text-red-500" : "")} style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{isDeleted ? "文件被删除" : parseFileSize(data.size)}</div>
                 {progressing && <mdui-linear-progress max={data.size} value={progressValue} className="mt-2 w-11/12" />}
+                {/* 文件接收完毕后才显示时间 */}
                 {!progressing&&<span className="text-gray-400 text-xs">{new Date(data.timestamp).toLocaleString()}</span>}
             </div>
         </mdui-card>

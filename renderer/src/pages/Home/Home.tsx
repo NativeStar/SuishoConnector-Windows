@@ -153,6 +153,10 @@ export default function Home() {
       const target = event.target as HTMLElement;
       if (target.nodeName === "#text") event.preventDefault();
     });
+    //屏蔽按下中键的滚动功能
+    document.addEventListener("mousedown", event => {
+      if (event.button === 1) event.preventDefault();
+    });
     //自动检查更新
     ipc.getConfig("autoCheckUpdate", true).then(value => {
       if (value) {
