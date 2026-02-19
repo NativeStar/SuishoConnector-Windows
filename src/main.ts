@@ -96,6 +96,14 @@ app.on("ready", async (_event, _info) => {
     connectPhoneWindow.setContentProtection(global.config.enableContentProtection);
     app.isPackaged ? connectPhoneWindow.loadFile("./dist/renderer/index.html", { hash: "connect-phone" }) : connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone");
     connectPhoneWindow.setMenu(null);
+    //还没连接设备就拖动上传文件
+    const lastArg = process.argv[process.argv.length - 1] ?? null;
+    if (lastArg != null && lastArg !== process.execPath && await fs.exists(lastArg)) {
+        dialog.showMessageBox({
+            type: "info",
+            message: "你需要先连接设备才能进行此操作"
+        });
+    }
     //阻止多开
     app.on("second-instance", async (_event, args, _dir, _data) => {
         //主窗口
@@ -760,23 +768,23 @@ ipcMain.handle("main_archiveLogs", async () => {
             level: 6
         },
     });
-    const fileOutStream=fs.createWriteStream(result.filePath);
+    const fileOutStream = fs.createWriteStream(result.filePath);
     archiverInstance.pipe(fileOutStream);
     const logPath = `${app.getPath("userData")}/programData/logs`;
     const filesList = await fs.readdir(logPath);
     logger.writeDebug(`Find ${filesList.length} log files`)
     for (const logFile of filesList) {
-        const data=await fs.readFile(`${app.getPath("userData")}/programData/logs/${logFile}`);
-        archiverInstance.append(data,{name:logFile})
+        const data = await fs.readFile(`${app.getPath("userData")}/programData/logs/${logFile}`);
+        archiverInstance.append(data, { name: logFile })
     };
     await archiverInstance.finalize();
     logger.writeInfo("Archive log file success")
     return true
 });
-ipcMain.handle("main_setEnableFileContextMenu",(_event,enable)=>{
-    enable?Util.registerContextMenu():Util.unregisterContextMenu();
+ipcMain.handle("main_setEnableFileContextMenu", (_event, enable) => {
+    enable ? Util.registerContextMenu() : Util.unregisterContextMenu();
 });
-ipcMain.handle("main_isEnabledFileContextMenu",()=>{
+ipcMain.handle("main_isEnabledFileContextMenu", () => {
     return Util.hasSystemContextMenu();
 })
 //测试用 有些要保留
