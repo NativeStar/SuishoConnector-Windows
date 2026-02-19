@@ -73,3 +73,12 @@ mdui-select::part(text-field){
 .easterEggText:hover{
   opacity: 1;
 }
+/* 修复react-photo-view工具栏样式 */
+.PhotoView-Slider__BannerWrap{
+    margin-top: 5%;
+    background-color: unset;
+}
+/* 隐藏图片数文本 项目里只会显示一张图片 */
+.PhotoView-Slider__Counter{
+    opacity: 0;
+}

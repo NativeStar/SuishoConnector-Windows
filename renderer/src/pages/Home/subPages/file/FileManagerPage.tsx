@@ -38,7 +38,7 @@ interface DirectoryListProps {
 }
 function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories, createRightClickMenu }: DirectoryListProps) {
     const [collapsed, setCollapsed] = useState(false);
-    const {androidId}=useContext(AndroidIdContext);
+    const { androidId } = useContext(AndroidIdContext);
     useEffect(() => {
         const rawStaredDir = localStorage.getItem(`fileManagerStaredDirectory_${androidId}`);
         if (rawStaredDir !== null) {
@@ -122,7 +122,7 @@ function FileList({
                 });
                 setLoading(false);
                 // 将添加的path弹出 否则目录会乱
-                if(!isDotPopPathResultCode(result.code)) setCurrentPath(currentPath!.slice(0, -1));
+                if (!isDotPopPathResultCode(result.code)) setCurrentPath(currentPath!.slice(0, -1));
                 console.info(`Get phone directory files failed with code:${result.code}`);
                 return
             }
@@ -237,7 +237,7 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     const [videoViewerVisible, setVideoViewerVisible] = useState(false);
     const [audioPlayerVisible, setAudioPlayerVisible] = useState(false);
     const fileUrl = useRef<string>("");
-    const {androidId}=useContext(AndroidIdContext);
+    const { androidId } = useContext(AndroidIdContext);
     useEffect(() => {
         ipc.sendRequestPacket<{ result: boolean }>({ packetType: "main_checkPermission", name: "android.permission.MANAGE_EXTERNAL_STORAGE" }).then(({ result }) => {
             setHasPermission(result);
