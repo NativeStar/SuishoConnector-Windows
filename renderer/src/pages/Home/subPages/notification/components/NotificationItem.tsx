@@ -68,7 +68,10 @@ export default function NotificationItem({ dataPath, notification, createRightCl
                 (e.target as HTMLImageElement).src = "/app_icon_unknown.png"
             }} />
             <div className="flex flex-col ml-1.5 overflow-hidden">
-                <small className="whitespace-nowrap max-w-[99.6%]">{notification.appName}</small>
+                <div className="flex flex-row">
+                    <small className="whitespace-nowrap max-w-[99.6%]">{notification.appName}</small>
+                    <small className="text-gray-400 ml-2.5 text-xs mt-0.5">{new Date(notification.timestamp).toLocaleString()}</small>
+                </div>
                 <b className="whitespace-nowrap max-w-[99.6%] selectable">{notification.title}</b>
                 <div ref={contentRef} className="selectable wrap-break-word block max-w-full truncate">{notification.content}</div>
             </div>

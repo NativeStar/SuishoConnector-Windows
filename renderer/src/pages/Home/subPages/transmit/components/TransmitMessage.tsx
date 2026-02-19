@@ -90,9 +90,10 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
     }
     return (
         <mdui-card onContextMenu={onContextMenu} className={twMerge("w-10/12 mt-1", from === "phone" ? "bg-[rgb(var(--mdui-color-surface-container-highest))]" : "bg-[rgb(var(--mdui-color-surface-container-low))] ml-28")} variant="filled">
-            <div style={{ userSelect: "text" }} className="whitespace-normal wrap-break-word text-wrap pl-2 pt-0.5 pb-0.5">
+            <div style={{ userSelect: "text" }} className="whitespace-normal wrap-break-word text-wrap pl-2 pt-0.5">
                 {text}
             </div>
+            <span className="pl-2 text-gray-400 text-xs">{new Date(timestamp).toLocaleString()}</span>
         </mdui-card>
     )
 }
@@ -195,6 +196,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                 <b className="whitespace-nowrap text-ellipsis overflow-hidden mt-1.5 ml-15px" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{data.displayName}</b>
                 <div className={twMerge("mt-5", isDeleted ? "text-red-500" : "")} style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{isDeleted ? "文件被删除" : parseFileSize(data.size)}</div>
                 {progressing && <mdui-linear-progress max={data.size} value={progressValue} className="mt-2 w-11/12" />}
+                {!progressing&&<span className="text-gray-400 text-xs">{new Date(data.timestamp).toLocaleString()}</span>}
             </div>
         </mdui-card>
     )

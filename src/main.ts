@@ -98,7 +98,7 @@ app.on("ready", async (_event, _info) => {
     connectPhoneWindow.setMenu(null);
     //还没连接设备就拖动上传文件
     const lastArg = process.argv[process.argv.length - 1] ?? null;
-    if (lastArg != null && lastArg !== process.execPath && await fs.exists(lastArg)) {
+    if (app.isPackaged && lastArg !== process.execPath && await fs.exists(lastArg)) {
         dialog.showMessageBox({
             type: "info",
             message: "你需要先连接设备才能进行此操作"
