@@ -35,7 +35,7 @@ class Server {
     mainHandle: MainHandle;
     notificationCore: NotificationCore | null;
     socket: ws | null;
-    heartBeatDelay: { VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number; REALTIME: number; };
+    heartBeatDelay: { VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number;};
     websocket: ws.Server<typeof ws, typeof IncomingMessage> | null = null;
     responseManager: ResponseManager | null = null;
     connectTimestamp: number = -1;
@@ -96,8 +96,6 @@ class Server {
             MEDIUM: 30 * 1000,
             HIGH: 15 * 1000,
             VERY_HIGH: 5 * 1000,
-            // 暂时不用
-            REALTIME: 1 * 1000
         }
         try {
             //检查证书
@@ -592,7 +590,7 @@ class Server {
                 socket.removeListener("pong", onPong);
                 //手动触发回调
                 this.onSocketClose(ConnectionCloseCode.CloseHeartBeatTimeout, Buffer.allocUnsafe(1));
-            }, 5 * 1000);
+            }, 10 * 1000);
             //发起ping
             pingTime = Date.now();
             socket.ping();
