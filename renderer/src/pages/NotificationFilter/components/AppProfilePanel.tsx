@@ -126,7 +126,11 @@ function ProfileSettingPanel({ packageName, packageList, dataPath, appName }: Pr
                 <div className="flex flex-col h-full w-full">
                     {/* 应用信息顶栏 */}
                     <div className="flex mt-2 ml-3">
-                        <mdui-avatar src={`${dataPath}assets/iconCache/${packageName}`} className="mduiAvatarBorder" onDragStart={event => event.preventDefault()} />
+                        <mdui-avatar className="mduiAvatarBorder" onDragStart={event => event.preventDefault()}>
+                            <img src={`${dataPath}assets/iconCache/${packageName}`} onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/app_icon_unknown.png"
+                            }} />
+                        </mdui-avatar>
                         <span className="mt-1.5 ml-1">{appName}</span>
                     </div>
                     <mdui-divider className="mt-2 w-full" />
@@ -154,7 +158,7 @@ function ProfileSettingPanel({ packageName, packageList, dataPath, appName }: Pr
                                 icon="adjust"
                                 variant="outlined"
                                 className="w-[98%] ml-1"
-                                onChange={value => 
+                                onChange={value =>
                                     onProfileEdit("detailShowMode", value as ApplicationNotificationProfile["detailShowMode"])}
                                 value={profile.detailShowMode}
                                 items={showModeOptions} />
@@ -212,7 +216,11 @@ export default function AppProfilePanel({ packageName, appName }: AppProfilePane
                             setCurrentAppPackageName(pkgInfo.packageName)
                             setCurrentAppName(pkgInfo.appName)
                         }}>
-                            <mdui-avatar slot="icon" src={`${dataPath}assets/iconCache/${pkgInfo.packageName}`} />
+                            <mdui-avatar slot="icon">
+                                <img src={`${dataPath}assets/iconCache/${pkgInfo.packageName}`} onError={(e) => {
+                                    (e.target as HTMLImageElement).src = "/app_icon_unknown.png"
+                                }} />
+                            </mdui-avatar>
                         </mdui-list-item>
                     ))
                 }

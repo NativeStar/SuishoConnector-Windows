@@ -26,11 +26,11 @@ type ActiveNotificationReducerAction = [{
     notification?: ActiveNotification,
     initNotificationList?: ActiveNotification[]
 }];
-const ActiveNotificationResultCode={
-    NORMAL:0,
-    UNTRUSTED:1,
-    NOT_PERMiSSION:2,
-    FUNCTION_DISABLED:3
+const ActiveNotificationResultCode = {
+    NORMAL: 0,
+    UNTRUSTED: 1,
+    NOT_PERMiSSION: 2,
+    FUNCTION_DISABLED: 3
 } as const;
 function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotificationCardProp) {
     const [defaultIsOverflow, contentRef] = useTextTruncated(-10);
@@ -42,7 +42,9 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
     }, [spread])
     return (
         <mdui-card className="flex mt-1 mb-0.5 ml-1.5 pb-0.5 min-w-[98%] max-w-[98%]">
-            <img className="w-5 h-5 mt-0.5 ml-0.5" src={`${dataPath}assets/iconCache/${notification.packageName}`} />
+            <img className="w-5 h-5 mt-0.5 ml-0.5" src={`${dataPath}assets/iconCache/${notification.packageName}`} onError={(e) => {
+                (e.target as HTMLImageElement).src = "/app_icon_unknown.png"
+            }} />
             <div className="relative flex flex-col flex-1 select-none overflow-hidden">
                 <small className="block ml-0.5 mt-0.5 max-w-[99.6%] text-xs">{notification.appName}</small>
                 <b className="block ml-0.5 truncate max-w-[99.6%]">{notification.title}</b>
@@ -58,7 +60,7 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
 }
 export default function ActiveNotifications({ className }: ActiveNotificationListProp) {
     function updateNotification() {
-        ipc.sendRequestPacket<{ list: ActiveNotification[], code: number}>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
+        ipc.sendRequestPacket<{ list: ActiveNotification[], code: number }>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
             switch (value.code) {
                 case ActiveNotificationResultCode.NORMAL:
                     setTipText("");
@@ -137,6 +139,11 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
                 }
             })
         });
+        ipc.on("updatedIconPack", () => {
+            activeNotificationDispatch({ type: "clear" });
+            updateNotification();
+            console.info("Refresh active notification by updated icon pack");
+        });
         return () => {
             updateNotificationCleanup();
         }
@@ -165,8 +172,8 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
             </div>
             <mdui-divider />
             <div className="flex-1 overflow-hidden">
-                {tipText!==""&& <div className="text-center text-[gray]">{tipText}</div>}
-                {tipText!==""&&<div className="text-center text-[gray]">请在手机上修改相关设置后点击刷新按钮</div>}
+                {tipText !== "" && <div className="text-center text-[gray]">{tipText}</div>}
+                {tipText !== "" && <div className="text-center text-[gray]">请在手机上修改相关设置后点击刷新按钮</div>}
                 <div className="h-full overflow-y-scroll pr-1 activeNotificationsList">
                     {
                         activeNotification.map(value => (

@@ -6,6 +6,7 @@ interface IpcEvents {
     updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean ,inDoze:boolean};
     updateNetworkLatency: number,
     editState: { type: "add" | "remove", id: States },
+    updatedIconPack:void,
     trustModeChange: boolean,
     currentNotificationUpdate: { type: "add" | "remove", key: string, packageName: string, appName: string, title: string, content: string, time: number, ongoing: boolean,progress: number }
     rebootConfirm: void,

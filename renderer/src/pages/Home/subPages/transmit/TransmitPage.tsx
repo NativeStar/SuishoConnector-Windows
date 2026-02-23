@@ -98,14 +98,20 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         })
     }
     function onPagePaste() {
+        console.debug("User paste data in transmit input area");
         navigator.clipboard.read().then(async (clipboardItems) => {
-            if (clipboardItems.length === 0 || !clipboardItems[0].types.some(value => value.startsWith("image/"))) return
+            if (clipboardItems.length === 0 || !clipboardItems[0].types.some(value => value.startsWith("image/"))) {
+                console.debug("Paste non image data,Skip");
+                return
+            }
             const targetItem = clipboardItems[0];
             const imageBlob = await targetItem.getType(targetItem.types[0]);
+            console.debug(`Pasted data type:${targetItem.types[0]}`);
             setPreviewImage(imageBlob)
         })
     }
     async function uploadClipboardImage() {
+        console.debug("User upload image from clipboard");
         const imageArrayBuffer = await previewImage?.arrayBuffer();
         if(!imageArrayBuffer){
             console.warn("Failed to get image array buffer on clipboard!");
@@ -119,6 +125,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         setPreviewImage(null);
         const fileName = `ClipboardImage-${Date.now()}.png`;
         const tempImageFilePath=await ipc.createCacheFile(fileName,imageArrayBuffer);
+        console.debug("Upload clipboard image file");
         uploadTransmitFile({ name: fileName, size: imageArrayBuffer.byteLength, path: tempImageFilePath });
     }
     const ipc = useMainWindowIpc();

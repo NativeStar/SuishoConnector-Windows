@@ -792,7 +792,8 @@ ipcMain.handle("main_isEnabledFileContextMenu", () => {
 ipcMain.handle("main_createCacheFile", async (_event, name: string, data: ArrayBuffer) => {
     const filePath = path.join(app.getPath("temp"), name);
     await fs.writeFile(filePath, new DataView(data));
-    cacheFilesList.add(filePath)
+    cacheFilesList.add(filePath);
+    logger.writeInfo(`Created cache file ${filePath}`);
     return filePath;
 })
 //测试用 有些要保留

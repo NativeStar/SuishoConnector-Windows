@@ -22,6 +22,7 @@ export default function UploadImagePreviewDialog({ imageBlob, setImageBlob, uplo
         <div className="w-full h-full fixed bg-black/50 left-0 z-10" onClick={() => setImageBlob(null)}>
             <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-highest))] rounded-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
                 {imageUrl && <img onLoad={(event) => {
+                    console.debug(`Image size:${event.currentTarget.naturalWidth}x${event.currentTarget.naturalHeight}`);
                     setImageSize({ w: event.currentTarget.naturalWidth, h: event.currentTarget.naturalHeight });
                 }} src={imageUrl} className="w-10/12 h-10/12 object-cover mt-3 self-center" />}
                 <div className="flex mt-2 justify-end mr-4 gap-1">
