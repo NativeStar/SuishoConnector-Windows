@@ -107,6 +107,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             const targetItem = clipboardItems[0];
             const imageBlob = await targetItem.getType(targetItem.types[0]);
             console.debug(`Pasted data type:${targetItem.types[0]}`);
+            // 等待用户确认上传
             setPreviewImage(imageBlob)
         })
     }
