@@ -100,7 +100,8 @@ function useMainWindowIpc() {
         setAudioForwardEnable:window.electronMainProcess.setAudioForwardEnable,
         requestArchiveLog:window.electronMainProcess.requestArchiveLog,
         setEnableFileContextMenu:window.electronMainProcess.setEnableFileContextMenu,
-        isEnabledFileContextMenu:window.electronMainProcess.isEnabledFileContextMenu
+        isEnabledFileContextMenu:window.electronMainProcess.isEnabledFileContextMenu,
+        createCacheFile:window.electronMainProcess.createCacheFile
     }
 }
 export default useMainWindowIpc;

@@ -365,6 +365,7 @@ class Server {
                 this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing,jsonObj.isLockScreen);
                 break
             case "syncIconPack"://同步应用图标资源包
+            // TODO 尝试在更新完成图标包时刷新一些可能受影响的列表
                 logger.writeDebug("Request sync icon pack");
                 const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconArchive`;
                 const extractDir = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconCache/`;

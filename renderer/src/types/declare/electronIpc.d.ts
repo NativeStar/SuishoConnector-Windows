@@ -58,6 +58,7 @@ declare global {
             readonly requestArchiveLog:()=>Promise<boolean>
             readonly setEnableFileContextMenu:(enabled:boolean)=>Promise<void>
             readonly isEnabledFileContextMenu:()=>Promise<boolean>
+            readonly createCacheFile:(name:string,data:ArrayBuffer)=>Promise<string>
         }
     }
 }

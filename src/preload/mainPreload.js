@@ -74,5 +74,7 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     //控制系统右键菜单
     setEnableFileContextMenu:(enable)=>ipcRenderer.invoke("main_setEnableFileContextMenu",enable),
     //是否已注册系统右键菜单
-    isEnabledFileContextMenu:()=>ipcRenderer.invoke("main_isEnabledFileContextMenu")
+    isEnabledFileContextMenu:()=>ipcRenderer.invoke("main_isEnabledFileContextMenu"),
+    //创建缓存文件
+    createCacheFile:(name,data)=>{return ipcRenderer.invoke("main_createCacheFile",name,data)},
 })

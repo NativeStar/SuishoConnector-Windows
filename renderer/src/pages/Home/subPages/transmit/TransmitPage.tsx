@@ -11,6 +11,7 @@ import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import DragFileMark from "./components/DragFileMark";
 import { useFuzzySearchList } from "@nozbe/microfuzz/react"
 import ItemFilterCard from "../../components/ItemFilterCard";
+import UploadImagePreviewDialog from "./components/UploadImagePreviewDialog";
 
 interface TransmitPageProps {
     hidden: boolean,
@@ -38,7 +39,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
         uploadTransmitFile(event.target.files![0]);
     }
-    function uploadTransmitFile(file: File|{name:string,size:number,path:string}) {
+    function uploadTransmitFile(file: File | { name: string, size: number, path: string }) {
         if (hasProgressingFile) {
             snackbar({
                 message: "请等待上一个上传任务完成",
@@ -64,7 +65,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             type: "add",
             messageInstance
         });
-        ipc.transmitUploadFile(file.name, file instanceof File?ipc.getFilePath(file):file.path, file.size);
+        ipc.transmitUploadFile(file.name, file instanceof File ? ipc.getFilePath(file) : file.path, file.size);
         listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
         console.info("Transmit start upload a file");
     }
@@ -87,19 +88,44 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             description: "确认清空消息列表?\n接收的文件不会从硬盘中删除",
             confirmText: "确认",
             cancelText: "取消",
-            onConfirm:async ()=>{
+            onConfirm: async () => {
                 await db.clearData()
                 messageListDispatch({
-                    type:"clear"
+                    type: "clear"
                 });
                 console.info("Clean all transmit history");
             },
         })
     }
+    function onPagePaste() {
+        navigator.clipboard.read().then(async (clipboardItems) => {
+            if (clipboardItems.length === 0 || !clipboardItems[0].types.some(value => value.startsWith("image/"))) return
+            const targetItem = clipboardItems[0];
+            const imageBlob = await targetItem.getType(targetItem.types[0]);
+            setPreviewImage(imageBlob)
+        })
+    }
+    async function uploadClipboardImage() {
+        const imageArrayBuffer = await previewImage?.arrayBuffer();
+        if(!imageArrayBuffer){
+            console.warn("Failed to get image array buffer on clipboard!");
+            alert({
+                headline: "上传失败",
+                description: "获取数据时发生异常",
+                confirmText: "确认",
+            });
+            return
+        }
+        setPreviewImage(null);
+        const fileName = `ClipboardImage-${Date.now()}.png`;
+        const tempImageFilePath=await ipc.createCacheFile(fileName,imageArrayBuffer);
+        uploadTransmitFile({ name: fileName, size: imageArrayBuffer.byteLength, path: tempImageFilePath });
+    }
     const ipc = useMainWindowIpc();
     const [showFileDragMark, setShowFileDragMark] = useState(false);
     const [showFilterCard, setShowFilterCard] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [previewImage, setPreviewImage] = useState<Blob | null>(null);
     const [searchCapsSensitive, setSearchCapsSensitive] = useState(false);
     const db = useDatabase("transmit");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -220,9 +246,9 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         });
         const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", data => {
             uploadTransmitFile({
-                name:data.filename,
-                size:data.size,
-                path:data.filePath
+                name: data.filename,
+                size: data.size,
+                path: data.filePath
             });
             console.debug(`Transmit drag a new file`);
         });
@@ -258,54 +284,57 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         };
     }, [hidden])
     return (
-        <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
-            {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
-            {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock"/>}
-            {/* 列表内容 */}
-            {sortedMessageList.length===0 &&<div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}
-            <Virtuoso
-                className="w-full"
-                ref={listRef}
-                style={{ height: window.innerHeight * 0.85 }}
-                data={sortedMessageList}
-                followOutput={searchText === "" ? "smooth" : "auto"}
-                atBottomThreshold={150}
-                atBottomStateChange={(atBottom) => {
-                    isAtBottom.current = atBottom;
-                    if (atBottom) {
-                        setHasNewTransmitMessage(false);
-                    }
-                }}
-                itemContent={(_index, item) => {
-                    switch (item.type) {
-                        case "text":
-                            return <TextMessage timestamp={item.timestamp} text={item.message} from={item.from} createRightClickMenu={ipc.createRightClickMenu} database={db} messageDispatch={messageListDispatch} openUrl={ipc.openUrl} />
-                        case "file":
-                            return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp.current === item.timestamp} database={db} messageDispatch={messageListDispatch} />
-                        default:
-                            return <div className="text-red-500">Unknown message type:{(item as any)?.type ?? "null"}</div>
-                    }
-                }}
-            />
-            {/* 输入和菜单区 */}
-            <div className="fixed w-full h-[8%] bottom-0 left-[9%] border-r-[5px] bg-[rgb(var(--mdui-color-surface-container-low))]">
-                {/* 文件上传input */}
-                <input type="file" hidden ref={fileInputRef} onChange={onFileInputValueChange} />
-                <TransmitTextInputArea messageDispatch={messageListDispatch} database={db} list={listRef} />
-                <mdui-dropdown>
-                    {/* 菜单按钮 */}
-                    <mdui-button slot="trigger" variant="text" className="ml-2.5">
-                        <img src="./open_in_new.svg" />
-                    </mdui-button>
-                    <mdui-menu>
-                        <mdui-menu-item onClick={onClearMessageList}>清空消息</mdui-menu-item>
-                        <mdui-menu-item onClick={() => setShowFilterCard(state => !state)}>搜索</mdui-menu-item>
-                        <mdui-menu-item onClick={() => fileInputRef.current?.click()}>上传文件</mdui-menu-item>
-                        <mdui-menu-item onClick={() => ipc.openInExplorer("transmitFolder")}>打开文件夹</mdui-menu-item>
-                    </mdui-menu>
-                </mdui-dropdown>
+        <>
+            {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage}/>}
+            <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
+                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
+                {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock" />}
+                {/* 列表内容 */}
+                {sortedMessageList.length === 0 && <div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}
+                <Virtuoso
+                    className="w-full"
+                    ref={listRef}
+                    style={{ height: window.innerHeight * 0.85 }}
+                    data={sortedMessageList}
+                    followOutput={searchText === "" ? "smooth" : "auto"}
+                    atBottomThreshold={150}
+                    atBottomStateChange={(atBottom) => {
+                        isAtBottom.current = atBottom;
+                        if (atBottom) {
+                            setHasNewTransmitMessage(false);
+                        }
+                    }}
+                    itemContent={(_index, item) => {
+                        switch (item.type) {
+                            case "text":
+                                return <TextMessage timestamp={item.timestamp} text={item.message} from={item.from} createRightClickMenu={ipc.createRightClickMenu} database={db} messageDispatch={messageListDispatch} openUrl={ipc.openUrl} />
+                            case "file":
+                                return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp.current === item.timestamp} database={db} messageDispatch={messageListDispatch} />
+                            default:
+                                return <div className="text-red-500">Unknown message type:{(item as any)?.type ?? "null"}</div>
+                        }
+                    }}
+                />
+                {/* 输入和菜单区 */}
+                <div className="fixed w-full h-[8%] bottom-0 left-[9%] border-r-[5px] bg-[rgb(var(--mdui-color-surface-container-low))]" onPaste={onPagePaste}>
+                    {/* 文件上传input */}
+                    <input type="file" hidden ref={fileInputRef} onChange={onFileInputValueChange} />
+                    <TransmitTextInputArea messageDispatch={messageListDispatch} database={db} list={listRef} />
+                    <mdui-dropdown>
+                        {/* 菜单按钮 */}
+                        <mdui-button slot="trigger" variant="text" className="ml-2.5">
+                            <img src="./open_in_new.svg" />
+                        </mdui-button>
+                        <mdui-menu>
+                            <mdui-menu-item onClick={onClearMessageList}>清空消息</mdui-menu-item>
+                            <mdui-menu-item onClick={() => setShowFilterCard(state => !state)}>搜索</mdui-menu-item>
+                            <mdui-menu-item onClick={() => fileInputRef.current?.click()}>上传文件</mdui-menu-item>
+                            <mdui-menu-item onClick={() => ipc.openInExplorer("transmitFolder")}>打开文件夹</mdui-menu-item>
+                        </mdui-menu>
+                    </mdui-dropdown>
+                </div>
             </div>
-        </div>
+        </>
     )
 });
 

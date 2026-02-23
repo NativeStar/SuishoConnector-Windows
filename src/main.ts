@@ -42,6 +42,7 @@ let phoneFileDownloadWindow: BrowserWindow | null = null;
 let phoneFileDownloadPathTemp: string = "";
 let trayInstance: Tray | null = null;
 let localCertFingerprint256: string | null = null;
+const cacheFilesList = new Set<string>();
 declare global {
     var logger: Logger
     var config: TypeConfig
@@ -786,9 +787,17 @@ ipcMain.handle("main_setEnableFileContextMenu", (_event, enable) => {
 });
 ipcMain.handle("main_isEnabledFileContextMenu", () => {
     return Util.hasSystemContextMenu();
+});
+// 创建缓存文件
+ipcMain.handle("main_createCacheFile", async (_event, name: string, data: ArrayBuffer) => {
+    const filePath = path.join(app.getPath("temp"), name);
+    await fs.writeFile(filePath, new DataView(data));
+    cacheFilesList.add(filePath)
+    return filePath;
 })
 //测试用 有些要保留
-app.on("before-quit", () => {
+app.on("before-quit", (event) => {
+    event.preventDefault();
     //异常时为null
     for (const client of connectedDevice?.clients || []) {
         client.close(ConnectionCloseCode.CloseFromServer);
@@ -797,6 +806,17 @@ app.on("before-quit", () => {
     AudioForward.stop();
     //发生异常时无法调用close
     connectedDevice?.close();
+    // 清理缓存文件
+    if (cacheFilesList.size > 0) {
+        logger.writeInfo("Cleaning cache files");
+        cacheFilesList.forEach(filePath => {
+            if (fs.existsSync(filePath)) {
+                logger.writeDebug(`Removing cache file:${filePath}`);
+                fs.rmSync(filePath)
+            }
+        });
+    }
     logger?.writeInfo("App quit");
+    app.exit();
     // logger?.closeStream();
 });
