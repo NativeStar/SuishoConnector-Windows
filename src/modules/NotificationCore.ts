@@ -12,7 +12,7 @@ import path from "path";
 import fs from "fs-extra";
 import xmlEscape from "xml-escape";
 import Util from "./Util";
-import NotificationProfileType from "../interface/INotificationProfile";
+import NotificationProfileType, { NotificationDetailShowMode } from "../interface/INotificationProfile";
 import type Server from "./Server";
 declare global {
     var clientMetadata: {
@@ -206,7 +206,7 @@ class NotificationCore {
         }
         //无配置文件
         if (result.show&&!result.useProfile) {
-            switch (global.deviceConfig.getConfigProp("defaultNotificationShowMode", "all")) {
+            switch (global.deviceConfig.getConfigProp<NotificationDetailShowMode>("defaultNotificationShowMode", "all")) {
                 case "all":
                     logger.writeDebug(`Notification pushed all:${packageName}`, this.LOG_TAG);
                     //正常

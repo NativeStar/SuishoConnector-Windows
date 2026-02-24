@@ -105,9 +105,13 @@ class SocketFileWriter {
                     logger.writeInfo(`File writer download success:${this.target}`, this.LOG_TAG);
                 } else {
                     //传输失败 大小不一致
+                    this.fileSocket.close();
                     this.writeStream?.close();
                     fs.remove(this.target);
                     logger.writeWarn(`File download failed: file"${this.target}" raw size is ${this.fileSize} but downloaded size is ${this.writeStream?.bytesWritten}`, this.LOG_TAG)
+                    this.eventHandle?.onError(new Error("FILE_SIZE_MISMATCH"));
+                    app.removeListener("before-quit", this.beforeQuit);
+                    return
                 }
             } else {
                 //?改成hash验证?

@@ -37,6 +37,9 @@ export default function NavigationRail({
             <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="folder_open" value="file" onDragEnter={onRailItemDragEnterHandle}>
                 文件浏览
             </mdui-navigation-rail-item>
+            <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="sync" value="fileSync" onDragEnter={onRailItemDragEnterHandle}>
+                文件同步
+            </mdui-navigation-rail-item>
             <mdui-navigation-rail-item className="-ml-2 pl-[11.8%] w-[60%] whitespace-nowrap" icon="settings" value="setting" onDragEnter={onRailItemDragEnterHandle}>
                 设置
             </mdui-navigation-rail-item>

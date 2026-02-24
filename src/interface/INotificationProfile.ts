@@ -1,3 +1,4 @@
+export type NotificationDetailShowMode = "all" | "nameOnly" | "hide" | "none";
 export default interface INotificationProfile{
     /**
      * @description 是否启用单独配置
@@ -10,7 +11,7 @@ export default interface INotificationProfile{
     /**
      * @description 通知推送时的显示样式
      */
-    detailShowMode:"all"|"nameOnly"|"hide"|"none",
+    detailShowMode:NotificationDetailShowMode,
     /**
      * @description 是否走全局文本过滤器
      */

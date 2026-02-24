@@ -172,9 +172,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     }
     connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
-            logger.writeDebug("Invoke open main window");
-            //初始化设备配置管理器
-            global.deviceConfig = new DeviceConfig(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/device.json`);
+            logger.writeDebug("Invoke open main window");            
             if (!connectPhoneWindow.isDestroyed()) connectPhoneWindow.close();
             mainWindow = new BrowserWindow({
                 center: true,

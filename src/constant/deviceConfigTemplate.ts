@@ -3,8 +3,6 @@ export default{
     protectNotificationForwardPage:false,
     //保护方式
     protectMethod:"none",
-    //密码hash
-    // protectNotificationForwardPagePasswordHash:null,
     //通知转发总开关
     enableNotificationForward:true,
     //锁屏时推送通知
@@ -20,5 +18,11 @@ export default{
     //解锁屏幕时提示通知数量 只在关闭pushNotificationOnLockedScreen时才有效
     showBlockedNotificationCountOnUnlockScreen:true,
     //手机解锁时不推送通知
-    blockNotificationOnDeviceUnlock:false
+    blockNotificationOnDeviceUnlock:false,
+    //文件同步开关
+    enableFileSync:false,
+    //文件同步监听目录
+    fileSyncTargetDirectory:[],
+    //同步文件删除操作
+    fileSyncDeleteOperation:false,
 }

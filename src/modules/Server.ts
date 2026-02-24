@@ -14,6 +14,7 @@ import os from "os";
 import ConnectionCloseCode from "../enum/ConnectionCloseCode";
 import ConnectionCloseReasonString from "../constant/CloseCodeReasonString";
 import path from "path";
+import DeviceConfig from "./DeviceConfig";
 import { SocketFileWriter } from "./SocketFileWriter";
 declare global {
     var serverAddress: string | null
@@ -35,7 +36,7 @@ class Server {
     mainHandle: MainHandle;
     notificationCore: NotificationCore | null;
     socket: ws | null;
-    heartBeatDelay: { VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number;};
+    heartBeatDelay: { VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number; };
     websocket: ws.Server<typeof ws, typeof IncomingMessage> | null = null;
     responseManager: ResponseManager | null = null;
     connectTimestamp: number = -1;
@@ -264,6 +265,8 @@ class Server {
                 //不然一下子闪过去太诡异了
                 /*虽然正常这点东西不会拖那么久的*/
                 const connectTime = Date.now();
+                //设备配置管理器
+                global.deviceConfig = new DeviceConfig(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/device.json`);
                 if ((connectTime - this.handshakeTime) < 350) {
                     logger.writeDebug("Device handshake success in 500ms");
                     setTimeout(() => {
@@ -288,6 +291,10 @@ class Server {
                     }, 350);
                 }
                 this.notificationCore = new NotificationCore(this);
+                import("./FileWatcher.mjs").then(watcherModule => {
+                    const watcherInstance = new watcherModule.FileWatcher();
+                    watcherInstance.init(global.deviceConfig.getConfigProp<string[]>("fileSyncTargetDirectory",[]));
+                })
                 break
             case "action_transmit":
                 logger.writeDebug(`Received a new transmit packet.Type:${jsonObj.messageType}`);
@@ -362,7 +369,7 @@ class Server {
                 break
             case "action_notificationForward":
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing,jsonObj.isLockScreen);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen);
                 break
             case "syncIconPack"://同步应用图标资源包
                 logger.writeDebug("Request sync icon pack");
@@ -407,7 +414,7 @@ class Server {
                             const packHash: string = await Util.getSHA256(file, true);
                             logger.writeDebug(`Success download icon pack.Hash:${packHash}`);
                             //解压
-                            const NodeStreamZip=(await import("node-stream-zip")).default
+                            const NodeStreamZip = (await import("node-stream-zip")).default
                             const zipFile = new NodeStreamZip.async({ file: file });
                             //创建目录
                             //删除旧目录重新创建
