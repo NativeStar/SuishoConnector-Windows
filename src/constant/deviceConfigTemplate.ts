@@ -23,6 +23,4 @@ export default{
     enableFileSync:false,
     //文件同步监听目录
     fileSyncTargetDirectory:[],
-    //同步文件删除操作
-    fileSyncDeleteOperation:false,
 }

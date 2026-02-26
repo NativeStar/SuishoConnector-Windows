@@ -712,7 +712,6 @@ ipcMain.handle("main_deleteLogs", async () => {
     }
     logger.writeInfo("Deleted all logs");
 });
-//TODO 文件同步功能 使用chokidar的awaitWriteFinish
 app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
     if (localCertFingerprint256 === null) {
         const rawLocalCertData = fs.readFileSync(`${app.getPath("userData")}/programData/cert/cert.crt`, { encoding: "utf-8" })
@@ -793,6 +792,14 @@ ipcMain.handle("main_createCacheFile", async (_event, name: string, data: ArrayB
     cacheFilesList.add(filePath);
     logger.writeInfo(`Created cache file ${filePath}`);
     return filePath;
+});
+ipcMain.handle("main_showDirectoryPicker",async ()=>{
+    const result=await dialog.showOpenDialog(mainWindow!,{
+        properties:["openDirectory","dontAddToRecent"],
+        title:"选择目录",
+        buttonLabel:"确定"
+    });
+    return result.canceled?null:result.filePaths[0];
 })
 //测试用 有些要保留
 app.on("before-quit", (event) => {

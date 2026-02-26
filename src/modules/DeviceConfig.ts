@@ -1,7 +1,7 @@
 import IDeviceConfig from "../interface/IDeviceConfig";
 import fs from "fs-extra";
 import deviceConfigTemplate from "../constant/deviceConfigTemplate";
-type Prop = string | boolean | number | string[] | null;
+type ConfigType = string | boolean | number | string[] | null;
 class DeviceConfig {
     private config: IDeviceConfig;
     private configPath: string;
@@ -53,9 +53,9 @@ class DeviceConfig {
      * @param name 配置名
      * @returns 属性
      */
-    getConfigProp<T = Prop>(name: string): T | null;
+    getConfigProp<T = ConfigType>(name: string): T | null;
     getConfigProp<T>(name: string, defaultValue: T): T;
-    getConfigProp<T = Prop>(name: string, defaultValue?: T): T|null {
+    getConfigProp<T = ConfigType>(name: string, defaultValue?: T): T|null {
         if (Object.hasOwn(this.config, name)) {
             logger.writeDebug(`Get device config prop ${name}`, this.LOG_TAG);
             return Reflect.get(this.config, name);
@@ -77,7 +77,7 @@ class DeviceConfig {
      * @param prop 
      * @param value 
      */
-    setConfig(prop: string, value: string | number | boolean | null) {
+    setConfig(prop: string, value: ConfigType) {
         if (Object.hasOwn(deviceConfigTemplate, prop)) {
             Reflect.set(this.config, prop, value);
             logger.writeDebug(`Set device config prop ${prop} to ${value}`, this.LOG_TAG);

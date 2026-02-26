@@ -77,4 +77,10 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     isEnabledFileContextMenu:()=>ipcRenderer.invoke("main_isEnabledFileContextMenu"),
     //创建缓存文件
     createCacheFile:(name,data)=>{return ipcRenderer.invoke("main_createCacheFile",name,data)},
+    //添加路径监听
+    addWatchPath:(path)=>{return ipcRenderer.invoke("fileWatcher_addPath",path)},
+    //移除路径监听
+    removeWatchPath:(path)=>{return ipcRenderer.invoke("fileWatcher_removePath",path)},
+    //打开文件夹选择器
+    showDirectoryPicker:()=>ipcRenderer.invoke("main_showDirectoryPicker"),
 })

@@ -61,7 +61,7 @@ function DirectoryList({ setCurrentPath, setStaredDirectories, staredDirectories
             <mdui-list-item icon="phone_android" onClick={() => setCurrentPath([])}>内部存储</mdui-list-item>
             <mdui-list-item icon="download" onClick={() => setCurrentPath(["Download"])}>Download目录</mdui-list-item>
             <mdui-collapse>
-                <mdui-collapse-item className="fileManagerDirectoryList overflow-y-auto max-h-[calc(100vh-10rem)]">
+                <mdui-collapse-item className="smallScrollBar overflow-y-auto max-h-[calc(100vh-10rem)]">
                     <mdui-list-item onClick={() => setCollapsed(!collapsed)} slot="header" icon="star">
                         收藏目录
                         <mdui-icon slot="end-icon" name={collapsed ? "keyboard_arrow_up" : "keyboard_arrow_down"}></mdui-icon>

@@ -102,7 +102,10 @@ function useMainWindowIpc() {
         requestArchiveLog:window.electronMainProcess.requestArchiveLog,
         setEnableFileContextMenu:window.electronMainProcess.setEnableFileContextMenu,
         isEnabledFileContextMenu:window.electronMainProcess.isEnabledFileContextMenu,
-        createCacheFile:window.electronMainProcess.createCacheFile
+        createCacheFile:window.electronMainProcess.createCacheFile,
+        addWatchPath:window.electronMainProcess.addWatchPath,
+        removeWatchPath:window.electronMainProcess.removeWatchPath,
+        showDirectoryPicker:window.electronMainProcess.showDirectoryPicker,
     }
 }
 export default useMainWindowIpc;

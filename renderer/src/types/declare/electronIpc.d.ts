@@ -12,7 +12,7 @@ declare global {
             readonly onPhoneConnectFailed: (callback: Function) => Promise<void>;
             readonly detectProxy: () => Promise<boolean>;
             readonly openProxySetting: () => Promise<void>;
-            readonly getConfig: (key: string,defaultValue?:null|string|number|boolean) => Promise<null | string | number | boolean>;
+            readonly getConfig: <T=null|string|number|boolean|string[]>(key: string,defaultValue?:T) => Promise<T>;
             readonly startAutoConnectBroadcast: () => Promise<void>;
             readonly startApkDownloadServer: () => Promise<void>;
             readonly autoConnectError: (callback: Function) => Promise<void>;
@@ -33,7 +33,7 @@ declare global {
             readonly getDeviceDataPath: () => Promise<string>;
             readonly getAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
             readonly setConfig: (key: string, value: string | number | boolean|null) => Promise<void>;
-            readonly getDeviceConfig: (key: string,defaultValue?:string|boolean|number) => Promise<null | string | number | boolean>;
+            readonly getDeviceConfig: <T=string|boolean|number|string[]>(key: string,defaultValue?:T) => Promise<T>;
             readonly getDeviceAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
             readonly setDeviceConfig: (key: string, value: string | number | boolean) => Promise<void>;
             readonly createCredentials: () => Promise<boolean>;
@@ -59,6 +59,9 @@ declare global {
             readonly setEnableFileContextMenu:(enabled:boolean)=>Promise<void>
             readonly isEnabledFileContextMenu:()=>Promise<boolean>
             readonly createCacheFile:(name:string,data:ArrayBuffer)=>Promise<string>
+            readonly addWatchPath:(path:string)=>Promise<boolean>
+            readonly removeWatchPath:(path:string)=>Promise<void>
+            readonly showDirectoryPicker:()=>Promise<string|null>
         }
     }
 }
