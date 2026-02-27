@@ -1,6 +1,6 @@
 import ws from "ws";
 import rt from "randomthing-js";
-interface sendableObject {
+interface SendableObject {
     _request_id?: string,
     port?:number
     fileName?:string
@@ -8,7 +8,7 @@ interface sendableObject {
     packetType?:string
     [name: string]:boolean|string|number|undefined|Object
 }
-interface requestObject {
+interface RequestObject {
     resolve: Function;
     reject: Function;
     time: number;
@@ -16,12 +16,12 @@ interface requestObject {
 }
 class ResponseManager {
     private socket: ws;
-    private responseMap: Map<string, requestObject>;
+    private responseMap: Map<string, RequestObject>;
     private readonly LOG_TAG = "ResponseManager";
     constructor(socket: ws) {
         this.socket = socket;
         /**
-         * @type {Map<String,requestObject>}
+         * @type {Map<String,RequestObject>}
          */
         this.responseMap = new Map();
         this.initTimeoutClearer();
@@ -30,10 +30,10 @@ class ResponseManager {
     /**
      * 发送数据并异步等待 返回Promise
      */
-    async send(data: sendableObject): Promise<requestObject> {
+    async send(data: SendableObject): Promise<RequestObject> {
         let id:string;
         //推入的对象
-        const putObj = <requestObject>{};
+        const putObj = <RequestObject>{};
         //检查是否有返回id
         if (!Reflect.has(data, "_request_id")) {
             //无则创建
@@ -55,7 +55,7 @@ class ResponseManager {
         logger.writeDebug(`Send request packet type"${data.packetType}" with id:${id}`,this.LOG_TAG)
         this.socket.send(JSON.stringify(data));
         //返回 用于await
-        return <Promise<requestObject>>exec
+        return <Promise<RequestObject>>exec
     }
     /**
      *
@@ -82,7 +82,7 @@ class ResponseManager {
         if (this.responseMap.has(id)) {
             logger.writeDebug(`Packet id:${id} responded`);
             const targetResponse = this.responseMap.get(id);
-            (targetResponse as requestObject).resolve(data);
+            (targetResponse as RequestObject).resolve(data);
             this.responseMap.delete(id);
         }else{
             logger.writeWarn(`Packet id:${id} not found`,this.LOG_TAG);

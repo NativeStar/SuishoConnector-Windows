@@ -1,29 +1,69 @@
 import { FSWatcher } from "chokidar";
 import { ipcMain } from "electron";
 import fs from "fs-extra";
+import path from "path";
+import TransmitFileUploader from "./TransmitFileUploader.js";
+import ResponseManager from "./ResponseManager.js";
 
 class FileWatcher {
     private watcher: FSWatcher;
-    private LOG_TAG: string = "Server";
-    constructor() {
+    private readonly LOG_TAG: string = "FileWatcher"
+    private responseManager: ResponseManager.default;
+    constructor(responseManager: ResponseManager.default) {
+
+        this.responseManager = responseManager;
         this.watcher = new FSWatcher({
             interval: 750,
             ignoreInitial: true,
             depth: 0,
             awaitWriteFinish: {
-                stabilityThreshold: 750,
+                stabilityThreshold: 1000,
                 pollInterval: 250
             },
 
         });
     }
-    async init(initialPaths: string[]) {
-        this.watcher.on("add", (path, stats) => {
-            if (global.deviceConfig.getConfigProp<boolean>("enableFileSync", false)) {
-                console.log(path, stats?.isFile());
+    private async onNewFile(path: string, fileName: string, fileSize: number) {
+        const uploader = new TransmitFileUploader.default(path, {
+            onError: (err) => {
+                //TODO 通知渲染进程
+                logger.writeError(`Failed to upload file ${fileName}`, this.LOG_TAG);
+                logger.writeError(err, this.LOG_TAG);
+            },
+            onProgress: () => { },
+            onSuccess: () => {
+                logger.writeDebug(`File ${fileName} was uploaded`, this.LOG_TAG);
+                //TODO 通知渲染进程
             }
         });
-        this.watcher.add(initialPaths);
+        const port = await uploader.init();
+        await this.responseManager.send({ packetType: "main_fileSyncDownload", port, fileName, fileSize });
+        //TODO 通知渲染进程
+    }
+    async init(initialPaths: string[]) {
+        this.watcher.on("add", (targetFilePath, stats) => {
+            if (!stats || stats.isDirectory() || stats.size <= 0) return
+            // TODO 可能需要检测设备是否信任
+            if (global.deviceConfig.getConfigProp<boolean>("enableFileSync", false)) {
+                this.onNewFile(targetFilePath, path.basename(targetFilePath), stats.size)
+            }
+        });
+        //检查目录存在
+        const existsPaths=initialPaths.filter((path) => {
+            try {
+                fs.accessSync(path, fs.constants.R_OK);
+                return true;
+            } catch (error) {
+                logger.writeWarn(`Failed to watch target path in accessible test.Maybe target directory is deleted:${path} `, this.LOG_TAG);
+                return false;
+            }
+        });
+        //数据量对不上的话 覆盖配置
+        if (existsPaths.length!==initialPaths.length) {
+            //TODO 可行的话发个状态给渲染进程
+            global.deviceConfig.setConfig("fileSyncTargetDirectory", existsPaths);
+        }
+        this.watcher.add(existsPaths);
         this.ipcInit();
     }
     private async ipcInit() {

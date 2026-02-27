@@ -77,6 +77,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSwitch title="截录屏保护" desc="阻止截图录屏获取软件内容保护隐私 适用于直播或屏幕共享等" icon="shield" configs={applicationConfig} configKey="enableContentProtection" setConfig={ipc.setConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">辅助功能</mdui-list-subheader>
                     <SettingItemSwitch title="电池满电提醒" desc="手机电量充满时发出通知" icon="battery_4_bar" configs={deviceConfig} configKey="enableBatteryFullNotification" setConfig={wrappedSetDeviceConfig} />
+                    <SettingItemSwitch title="开启文件同步" desc="启用文件同步功能 需前往对应页面配置" icon="sync" configs={deviceConfig} configKey="enableFileSync" setConfig={wrappedSetDeviceConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">杂项</mdui-list-subheader>
                     <SettingItemCommon title="关于" icon="info" onClick={() => setShowAboutDialog(true)} />
                     <SettingItemCommon title="打包日志" desc="将日志打为压缩包以便发送" icon="send_and_archive" onClick={() => onRequestArchiveLogsItemClick(ipc)} />

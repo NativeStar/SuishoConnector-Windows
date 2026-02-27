@@ -27,9 +27,9 @@ export default function FileSyncPage({ hidden }: FileSyncPageProps) {
             <div>
                 <TooltipButton icon="add" tooltip="添加目录" onClick={onAddPathButtonClick} />
                 <TooltipButton icon="delete" tooltip="清空记录" />
+                <TooltipButton icon="help_outline" tooltip="帮助" />
             </div>
             <PathList paths={watchingPathsList} setPaths={setWatchingPathsList} />
         </div>
-
     )
 }

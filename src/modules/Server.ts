@@ -292,7 +292,7 @@ class Server {
                 }
                 this.notificationCore = new NotificationCore(this);
                 import("./FileWatcher.mjs").then(watcherModule => {
-                    const watcherInstance = new watcherModule.FileWatcher();
+                    const watcherInstance = new watcherModule.FileWatcher(this.responseManager!);
                     watcherInstance.init(global.deviceConfig.getConfigProp<string[]>("fileSyncTargetDirectory",[]));
                 })
                 break
@@ -662,24 +662,18 @@ class Server {
         //互传pc上传文件
         ipcMain.handle("transmit_uploadFile", async (_event, name, path, size, form) => {
             try {
-                let uploader: TransmitFileUploader | null = new TransmitFileUploader(path, name, {
-                    //发生问题 取消请求并释放资源
-                    onCancel: () => {
-                        this.responseManager?.cancel(RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE);
-                        uploader = null;
-                        logger.writeWarn("Transmit upload file canceled");
-                    },
+                let uploader: TransmitFileUploader | null = new TransmitFileUploader(path, {
                     onProgress: (value: number) => {
                         this.appWindow.webContents.send("fileUploadProgressUpdate", value);
                     },
                     //完成 只需要释放资源
                     onSuccess: () => {
-                        uploader = null;
                         logger.writeInfo("Transmit upload file success");
                         this.appWindow.webContents.send("webviewEvent", "transmitFileUploadSuccess", name, name, 1, form === undefined ? 0 : form);
                     },
                     //失败时执行 throw可能抓不到
                     onError: (error: { message: any; }) => {
+                        this.responseManager?.cancel(RequestId.REQUEST_TRANSMIT_COMPUTER_UPLOAD_FILE);
                         logger.writeError(`Transmit upload file failed:${error}`);
                         this.appWindow.webContents.send("webviewEvent", "transmitFileTransmitFailed", { title: "上传失败", message: error.message })
                     }
