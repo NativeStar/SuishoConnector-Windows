@@ -1,17 +1,18 @@
 import { FSWatcher } from "chokidar";
-import {type BrowserWindow} from "electron"
+import { type BrowserWindow } from "electron"
 import { ipcMain } from "electron";
 import fs from "fs-extra";
 import path from "path";
 import TransmitFileUploader from "./TransmitFileUploader.js";
 import ResponseManager from "./ResponseManager.js";
+import { randomUUID } from "crypto";
 
 class FileWatcher {
     private watcher: FSWatcher;
     private readonly LOG_TAG: string = "FileWatcher"
     private responseManager: ResponseManager.default;
-    private browserWindow:BrowserWindow
-    constructor(responseManager: ResponseManager.default,mainWindow: BrowserWindow) {
+    private browserWindow: BrowserWindow
+    constructor(responseManager: ResponseManager.default, mainWindow: BrowserWindow) {
         this.browserWindow = mainWindow
         this.responseManager = responseManager;
         this.watcher = new FSWatcher({
@@ -25,22 +26,23 @@ class FileWatcher {
 
         });
     }
-    private async onNewFile(path: string, fileName: string, fileSize: number) {
-        const uploader = new TransmitFileUploader.default(path, {
+    private async onNewFile(filePath: string, fileName: string, fileSize: number) {
+        const eventId = randomUUID();
+        const uploader = new TransmitFileUploader.default(filePath, {
             onError: (err) => {
-                //TODO 通知渲染进程
+                this.browserWindow.webContents.send("webviewEvent", "appendFileSyncList", { id: eventId, path: filePath, state: "error" });
                 logger.writeError(`Failed to upload file ${fileName}`, this.LOG_TAG);
                 logger.writeError(err, this.LOG_TAG);
             },
             onProgress: () => { },
             onSuccess: () => {
+                this.browserWindow.webContents.send("webviewEvent", "appendFileSyncList", { id: eventId, path: filePath, state: "success" });
                 logger.writeDebug(`File ${fileName} was uploaded`, this.LOG_TAG);
-                //TODO 通知渲染进程
             }
         });
         const port = await uploader.init();
         await this.responseManager.send({ packetType: "main_fileSyncDownload", port, fileName, fileSize });
-        //TODO 通知渲染进程
+        this.browserWindow.webContents.send("webviewEvent", "appendFileSyncList", { id: eventId, path: filePath,fileName,state: "append" });
     }
     async init(initialPaths: string[]) {
         this.watcher.on("add", (targetFilePath, stats) => {
@@ -51,7 +53,7 @@ class FileWatcher {
             }
         });
         //检查目录存在
-        const existsPaths=initialPaths.filter((path) => {
+        const existsPaths = initialPaths.filter((path) => {
             try {
                 fs.accessSync(path, fs.constants.R_OK);
                 return true;
@@ -61,7 +63,7 @@ class FileWatcher {
             }
         });
         //数据量对不上的话 覆盖配置
-        if (existsPaths.length!==initialPaths.length) {
+        if (existsPaths.length !== initialPaths.length) {
             global.deviceConfig.setConfig("fileSyncTargetDirectory", existsPaths);
             // 确保发送事件时页面已注册好监听器
             setTimeout(() => {

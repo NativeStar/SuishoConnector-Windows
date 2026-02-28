@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { States } from "~/types/applicationState";
 import type { NotificationItem } from "~/types/database";
-import type { MediaSessionMetadata, MediaSessionState } from "~/types/ipc";
+import type { FileSyncAppendEvent, MediaSessionMetadata, MediaSessionState } from "~/types/ipc";
 interface IpcEvents {
     updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean ,inDoze:boolean};
     updateNetworkLatency: number,
@@ -23,6 +23,7 @@ interface IpcEvents {
     updateDeepHideNotificationCache: { packageName: string, value: boolean }
     updateMediaSessionMetadata:MediaSessionMetadata
     updateMediaSessionPlaybackState:MediaSessionState
+    appendFileSyncList:FileSyncAppendEvent
 }
 let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;

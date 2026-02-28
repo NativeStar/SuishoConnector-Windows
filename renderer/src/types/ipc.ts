@@ -1,10 +1,10 @@
-import {TrustMode} from "shared/const/TrustMode"
+import { TrustMode } from "shared/const/TrustMode"
 export type InitServerResult = {
     address: string | null,
     port: number,
     certDownloadPort: number,
     id: string,
-    pairCode:string
+    pairCode: string
 }
 export type DeviceBaseInfo = {
     androidSdkVersion: number//sdk版本
@@ -14,8 +14,8 @@ export type DeviceBaseInfo = {
     protocolVersion: number
     sessionId: string
 }
-export type TrustModeIpc={
-    trustMode:TrustMode
+export type TrustModeIpc = {
+    trustMode: TrustMode
 }
 export type ApplicationNotificationProfile = {
     enableProfile: boolean,
@@ -42,19 +42,25 @@ export type FileItem = {
     name: string,
     size: number
 }
-export type MediaSessionMetadata={
+export type MediaSessionMetadata = {
     title: string
     artist: string
     album: string
     image: string
-    duration:number
+    duration: number
 }
-export type MediaSessionState={
-    hasSession:boolean
-    playing:boolean
-    position:number
+export type MediaSessionState = {
+    hasSession: boolean
+    playing: boolean
+    position: number
 }
-export type AudioForwardResponse={
-    result:boolean
-    exception?:string
+export type AudioForwardResponse = {
+    result: boolean
+    exception?: string
+}
+export type FileSyncAppendEvent = {
+    id: string,
+    path: string,
+    fileName:string
+    state: "append" | "success" | "error"
 }

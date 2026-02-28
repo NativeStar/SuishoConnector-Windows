@@ -3,13 +3,15 @@ import PathList from "./components/PathList";
 import TooltipButton from "./components/TooltipButton";
 import { useState } from "react";
 import { snackbar } from "mdui";
+import type { FileSyncAppendEvent } from "~/types/ipc";
+import SyncLogList from "./components/SyncLogList";
 
 interface FileSyncPageProps {
     hidden: boolean;
 }
 export default function FileSyncPage({ hidden }: FileSyncPageProps) {
     const [watchingPathsList, setWatchingPathsList] = useState<string[]>([]);
-
+    const [fileSyncList, setFileSyncList] = useState<FileSyncAppendEvent[]>([]);
     const ipc = useMainWindowIpc();
     async function onAddPathButtonClick() {
         const selectedPath = await ipc.showDirectoryPicker();
@@ -26,10 +28,19 @@ export default function FileSyncPage({ hidden }: FileSyncPageProps) {
             {/* 按钮 */}
             <div>
                 <TooltipButton icon="add" tooltip="添加目录" onClick={onAddPathButtonClick} />
-                <TooltipButton icon="delete" tooltip="清空记录" />
+                <TooltipButton icon="delete" tooltip="清空记录" onClick={()=>{
+                    setFileSyncList([]);
+                    snackbar({
+                        message: "已清理",
+                        autoCloseDelay: 1500
+                    });
+                }}/>
                 <TooltipButton icon="help_outline" tooltip="帮助" />
             </div>
-            <PathList paths={watchingPathsList} setPaths={setWatchingPathsList} />
+            <div className="flex">
+                <PathList paths={watchingPathsList} setPaths={setWatchingPathsList} />
+                <SyncLogList logs={fileSyncList} setLogs={setFileSyncList}/>
+            </div>
         </div>
     )
 }
