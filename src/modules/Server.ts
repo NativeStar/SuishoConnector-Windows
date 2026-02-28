@@ -291,10 +291,6 @@ class Server {
                     }, 350);
                 }
                 this.notificationCore = new NotificationCore(this);
-                import("./FileWatcher.mjs").then(watcherModule => {
-                    const watcherInstance = new watcherModule.FileWatcher(this.responseManager!);
-                    watcherInstance.init(global.deviceConfig.getConfigProp<string[]>("fileSyncTargetDirectory",[]));
-                })
                 break
             case "action_transmit":
                 logger.writeDebug(`Received a new transmit packet.Type:${jsonObj.messageType}`);

@@ -172,7 +172,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     }
     connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
-            logger.writeDebug("Invoke open main window");            
+            logger.writeDebug("Invoke open main window");
             if (!connectPhoneWindow.isDestroyed()) connectPhoneWindow.close();
             mainWindow = new BrowserWindow({
                 center: true,
@@ -219,6 +219,10 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             mainWindow.on("ready-to-show", () => {
                 mainWindow?.setMaximizable(false);
                 connectedDevice.setWindow(<BrowserWindow>mainWindow);
+                import("./modules/FileWatcher.mjs").then(watcherModule => {
+                    const watcherInstance = new watcherModule.FileWatcher(connectedDevice.responseManager!, mainWindow!);
+                    watcherInstance.init(global.deviceConfig.getConfigProp<string[]>("fileSyncTargetDirectory", []));
+                })
                 //尝试修复窗口不显示
                 mainWindow?.show();
                 if (!trayInitd) {
@@ -793,13 +797,13 @@ ipcMain.handle("main_createCacheFile", async (_event, name: string, data: ArrayB
     logger.writeInfo(`Created cache file ${filePath}`);
     return filePath;
 });
-ipcMain.handle("main_showDirectoryPicker",async ()=>{
-    const result=await dialog.showOpenDialog(mainWindow!,{
-        properties:["openDirectory","dontAddToRecent"],
-        title:"选择目录",
-        buttonLabel:"确定"
+ipcMain.handle("main_showDirectoryPicker", async () => {
+    const result = await dialog.showOpenDialog(mainWindow!, {
+        properties: ["openDirectory", "dontAddToRecent"],
+        title: "选择目录",
+        buttonLabel: "确定"
     });
-    return result.canceled?null:result.filePaths[0];
+    return result.canceled ? null : result.filePaths[0];
 })
 //测试用 有些要保留
 app.on("before-quit", (event) => {

@@ -1,4 +1,5 @@
 import { FSWatcher } from "chokidar";
+import {type BrowserWindow} from "electron"
 import { ipcMain } from "electron";
 import fs from "fs-extra";
 import path from "path";
@@ -9,8 +10,9 @@ class FileWatcher {
     private watcher: FSWatcher;
     private readonly LOG_TAG: string = "FileWatcher"
     private responseManager: ResponseManager.default;
-    constructor(responseManager: ResponseManager.default) {
-
+    private browserWindow:BrowserWindow
+    constructor(responseManager: ResponseManager.default,mainWindow: BrowserWindow) {
+        this.browserWindow = mainWindow
         this.responseManager = responseManager;
         this.watcher = new FSWatcher({
             interval: 750,
@@ -60,8 +62,11 @@ class FileWatcher {
         });
         //数据量对不上的话 覆盖配置
         if (existsPaths.length!==initialPaths.length) {
-            //TODO 可行的话发个状态给渲染进程
             global.deviceConfig.setConfig("fileSyncTargetDirectory", existsPaths);
+            // 确保发送事件时页面已注册好监听器
+            setTimeout(() => {
+                this.browserWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "warn_watch_directory_missing" });
+            }, 1500);
         }
         this.watcher.add(existsPaths);
         this.ipcInit();

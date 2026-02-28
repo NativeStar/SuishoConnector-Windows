@@ -2,7 +2,7 @@ import "mdui/components/dropdown";
 import "mdui/components/chip";
 import "mdui/components/menu";
 import "mdui/components/card";
-import type { StatesListObject } from "~/pages/Home/Home";
+import type { StateAction, StatesListObject } from "~/pages/Home/Home";
 import { ApplicationStateLevel, type ApplicationState, type States } from "~/types/applicationState";
 import { twMerge } from "tailwind-merge";
 const LevelIcon = {
@@ -21,10 +21,12 @@ const LevelText = {
 } as const;
 interface ApplicationStateCardProps {
     stateInstance: ApplicationState
+    dispatch: React.ActionDispatch<StateAction>
 };
 interface ApplicationStateBarProps {
     states: StatesListObject
     className?: string
+    dispatch: React.ActionDispatch<StateAction>
 }
 function getStateLevel(states: StatesListObject): number {
     const keys = Reflect.ownKeys(states);
@@ -44,10 +46,10 @@ function getCurrentStateLevelText(states: StatesListObject): string {
     const currentLevel = getStateLevel(states);
     return LevelText[currentLevel as keyof typeof LevelText];
 }
-function ApplicationStateCard({ stateInstance }: ApplicationStateCardProps) {
+function ApplicationStateCard({ stateInstance ,dispatch}: ApplicationStateCardProps) {
     return (
         <mdui-card className="flex items-center min-h-16.5 min-w-65 mt-2" clickable={stateInstance.clickable}
-            onClick={stateInstance.onClick}>
+            onClick={()=>stateInstance.onClick?.(dispatch)}>
             <mdui-icon name={LevelIcon[stateInstance.level]} className="ml-3" />
             <div className="flex flex-col ml-2">
                 <b>{stateInstance.title}</b>
@@ -56,7 +58,7 @@ function ApplicationStateCard({ stateInstance }: ApplicationStateCardProps) {
         </mdui-card>
     )
 }
-export default function ApplicationStatesBar({ states ,className}: ApplicationStateBarProps) {
+export default function ApplicationStatesBar({ states ,className ,dispatch}: ApplicationStateBarProps) {
     return (
         <mdui-dropdown placement="left-start">
             <mdui-chip slot="trigger" elevated icon={getCurrentStateLevelIcon(states)} end-icon="more_vert" className={twMerge("fixed",className)}>{getCurrentStateLevelText(states)}</mdui-chip>
@@ -65,7 +67,7 @@ export default function ApplicationStatesBar({ states ,className}: ApplicationSt
                     Reflect.ownKeys(states).map((stateId) => {
                         const state = states[stateId as States]!;
                         return (
-                            <ApplicationStateCard key={stateId as string} stateInstance={state} />
+                            <ApplicationStateCard key={stateId as string} stateInstance={state} dispatch={dispatch}/>
                         )
                     })
                 }

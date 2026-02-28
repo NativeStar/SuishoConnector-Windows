@@ -1,4 +1,5 @@
 import { confirm } from "mdui";
+import type { StateAction } from "~/pages/Home/Home";
 export const ApplicationStateLevel = {
     Checked: 0,
     Busy: 1,
@@ -11,7 +12,7 @@ export interface ApplicationState {
     title: string,
     content: string,
     clickable: boolean,
-    onClick?: () => void
+    onClick?: (dispatch:React.ActionDispatch<StateAction>) => void
 }
 const States = {
     busy_waiting_icon_pack: {
@@ -47,7 +48,6 @@ const States = {
         content: "通知内容可能不全\n请检查桌面或开始菜单是否有该软件快捷方式\n(系统限制)",
         clickable: true,
         onClick() {
-            console.log("click");
             confirm({
                 headline: "创建开始菜单快捷方式?",
                 description: "由于系统限制,无快捷方式的应用可能无法显示通知",
@@ -59,6 +59,16 @@ const States = {
                 }
             })
         },
+    },
+    warn_watch_directory_missing:{
+        level: ApplicationStateLevel.Warn,
+        title: "已取消同步异常的文件夹",
+        content: "部分目录无法读取\n可能是目录被删除或发生权限变更\n点击关闭该通知",
+        clickable: true,
+        onClick(dispatch){
+            //只是提醒用状态 移除自身
+            dispatch({type:"remove",id:"warn_watch_directory_missing"})
+        }
     },
     error_phone_file_server: {
         level: ApplicationStateLevel.Error,
