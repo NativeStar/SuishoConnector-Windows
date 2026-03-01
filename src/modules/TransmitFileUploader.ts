@@ -44,7 +44,6 @@ class TransmitFileUploader {
         }, 8000);
         //发来数据 只有刚连上会有一次 验证用
         //验证并发送消息
-        //TODO 去掉那些从js迁移来的 #开头变量和函数
         socket.on("message", (data) => {
             clearTimeout(verifyTimer);
             if (data.toString("utf-8") === global.clientMetadata.sessionId) {

@@ -30,8 +30,8 @@ class NotificationCore {
     private configPath: string;
     private configSaverTimer: NodeJS.Timeout | number | string | null = null;
     private configSaving: boolean = false;
-    #hasNotificationPermission;
-    #hasXmlPermission: boolean;
+    private hasNotificationPermission;//虽然用不到 暂时留着吧
+    private hasXmlPermission: boolean;
     private blockedNotificationInLockScreenCount: number = 0;
     config: config;
     filterText: Set<string>;
@@ -99,8 +99,8 @@ class NotificationCore {
         //初始化过滤
         this.filterText = new Set<string>(this.config.filterText);
         //通知配置文件加载等
-        this.#hasNotificationPermission = this.checkNotificationPermission();
-        this.#hasXmlPermission = this.checkXmlPermission();
+        this.hasNotificationPermission = this.checkNotificationPermission();
+        this.hasXmlPermission = this.checkXmlPermission();
         this.ipcInit();
         this.initLockScreenListener();
         logger.writeInfo("Notification manager init success", this.LOG_TAG);
@@ -271,7 +271,7 @@ class NotificationCore {
         }
         //弹窗 根据配置进行过滤
         logger.writeDebug(`A notification pushed to system:${packageName}`, this.LOG_TAG);
-        if (!this.#hasXmlPermission) {
+        if (!this.hasXmlPermission) {
             this.showCommonNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
         } else {
             this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName)
@@ -375,7 +375,7 @@ class NotificationCore {
         logger.writeDebug("Set main window instance", this.LOG_TAG);
         //拿到窗口对象 检测通知权限
         //xml格式通知
-        if (!this.#hasXmlPermission) {
+        if (!this.hasXmlPermission) {
             setTimeout(() => {
                 this.window?.webContents.send("webviewEvent", "editState", { type: "add", id: "warn_xml_notification_cannot_show" });
             }, 550);
@@ -509,8 +509,8 @@ class NotificationCore {
         })
     }
     recheckXmlPermission(): void {
-        this.#hasXmlPermission = this.checkXmlPermission();
-        logger.writeInfo(`Recheck xml notification permission result: ${this.#hasXmlPermission}`, this.LOG_TAG)
+        this.hasXmlPermission = this.checkXmlPermission();
+        logger.writeInfo(`Recheck xml notification permission result: ${this.hasXmlPermission}`, this.LOG_TAG)
     }
 }
 export default NotificationCore;
