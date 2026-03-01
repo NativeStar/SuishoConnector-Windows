@@ -123,8 +123,8 @@ Platform:${os.platform()}
 Arch:${os.arch()}
 Execute Path:${process.execPath}
 Current working directory:${process.cwd()}
-Application Version:${ApplicationVersion.APPLICATION_VERSION_CODE}
-Application Version Name:${ApplicationVersion.APPLICATION_VERSION_NAME}
+Application version code:${ApplicationVersion.APPLICATION_VERSION_CODE}
+Application version name:${ApplicationVersion.APPLICATION_VERSION_NAME}
 ()=>     ${this.getRandomEasterEggText()}     <=()
 ------------------------LOG HEADER END ------------------------\n`;
     }

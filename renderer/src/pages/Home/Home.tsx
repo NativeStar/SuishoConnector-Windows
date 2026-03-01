@@ -31,14 +31,15 @@ export default function Home() {
   const [applicationStates, applicationStatesDispatch] = useReducer<StatesListObject, StateAction>((state, action) => {
     if (action.type === "add") {
       const stateInstance = getStateInstance(action.id);
-      console.info(`Add application state:${action.id}`);
+      console.debug(`Add application state:${action.id}`);
       return {
         ...state,
         [action.id]: stateInstance
       }
     } else {
       Reflect.deleteProperty(state, action.id);
-      console.info(`Remove application state:${action.id}`);
+      //设备状态更新时会触发这个更新Doze模式状态显示 触发太频繁 故将日志降为debug
+      console.debug(`Remove application state:${action.id}`);
       return {
         ...state
       }
