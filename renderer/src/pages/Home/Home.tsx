@@ -90,13 +90,18 @@ export default function Home() {
     });
     const disconnectEventCleanup = ipc.on("disconnect", (reason => {
       console.debug("Show disconnect alert");
-      alert({
+      confirm({
         headline: "通讯中断",
+        closeOnOverlayClick:false,
         description: reason ?? "由于未知原因 连接断开",
         confirmText: "重启应用",
+        cancelText: "关闭应用",
         onConfirm() {
           ipc.rebootApplication();
         },
+        onCancel() {
+          ipc.closeApplication();
+        }
       })
     }));
     const showAlertCleanup = ipc.on("showAlert", ({ title, content }) => {

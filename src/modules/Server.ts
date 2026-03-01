@@ -27,7 +27,7 @@ class Server {
     private LOG_TAG: string = "Server";
     pairToken: string;
     isConnectVerified: boolean;
-    protocolVersion: number;
+    private readonly protocolVersion: number;
     phoneAddress: string | undefined = undefined;
     appWindow: BrowserWindow;
     isInMainWindow: boolean;
@@ -271,7 +271,7 @@ class Server {
                     logger.writeDebug("Device handshake success in 500ms");
                     setTimeout(() => {
                         //完成连接 把网络service转为前台服务
-                        socket.send(JSON.stringify({ packetType: "connect_success", msg: global.serverAddress, sessionId: global.clientMetadata.sessionId }));
+                        socket.send(JSON.stringify({ packetType: "connect_success", msg: global.serverAddress, sessionId: global.clientMetadata.sessionId ,protocolVersion: this.protocolVersion}));
                         //打开主页面
                         this.mainHandle.openMainWindow();
                         this.isInMainWindow = true;

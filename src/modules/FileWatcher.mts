@@ -79,8 +79,8 @@ class FileWatcher {
         if (global.clientMetadata.protocolVersion >= 2) {
             logger.writeInfo("Init file watcher paths")
             this.watcher.add(existsPaths);
-            return
         } else {
+            logger.writeInfo(`Android client protocol version low(${global.clientMetadata.protocolVersion}).Disable file sync`)
             //协议版本低 提醒Android端不支持功能
             setTimeout(() => {
                 logger.writeDebug("Send android client too old warning to renderer process")
