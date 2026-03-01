@@ -2,7 +2,7 @@ import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import PathList from "./components/PathList";
 import TooltipButton from "./components/TooltipButton";
 import { useState } from "react";
-import { snackbar } from "mdui";
+import { alert, snackbar } from "mdui";
 import type { FileSyncAppendEvent } from "~/types/ipc";
 import SyncLogList from "./components/SyncLogList";
 
@@ -35,7 +35,12 @@ export default function FileSyncPage({ hidden }: FileSyncPageProps) {
                         autoCloseDelay: 1500
                     });
                 }}/>
-                <TooltipButton icon="help_outline" tooltip="帮助" />
+                <TooltipButton icon="help_outline" tooltip="帮助" onClick={()=>{
+                    alert({
+                        headline:"帮助",
+                        description:"由于系统限制 该功能建议用于传输非流式写入的中小文件(如屏幕截图)\nAndroid端接收文件夹位于'内部存储/Download/SuishoConnector/FileSync'\n或'应用私有目录/FileSync'\n(根据设置的设备互传接收文件夹而定)"
+                    })
+                }}/>
             </div>
             <div className="flex">
                 <PathList paths={watchingPathsList} setPaths={setWatchingPathsList} />

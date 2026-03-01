@@ -90,10 +90,10 @@ export default function ConnectPhone() {
         // 39865固定的手动连接中转端口
         alert({
             headline: "手动连接",
-            description: `请在手机端对应位置内输入以下信息\n
-            IP:${qrcodeData?.address ?? "发生异常!"}\n
-            端口:39865
-            配对码:${pairCode.current}`,
+            description: `请在手机端对应位置内输入以下信息
+IP:${qrcodeData?.address ?? "发生异常!"}
+端口:39865
+配对码:${pairCode.current}`,
             confirmText: "确定"
         })
     }
@@ -145,7 +145,7 @@ export default function ConnectPhone() {
                         <mdui-tooltip content="帮助">
                             <mdui-button-icon icon="help" onClick={() => confirm({
                                 headline: "帮助",
-                                description:"该软件需要配套Android端才能工作 你可以点击页面中的'下载'按钮后扫码下载(需要在局域网内) 如需获取更多帮助 请前往项目Github页面",
+                                description:"该软件需要配套Android端才能工作\n你可以点击页面中的'下载'按钮后扫码下载(需要在局域网内)\n如需获取更多帮助 请前往项目Github页面",
                                 confirmText:"前往",
                                 cancelText:"取消",
                                 onConfirm:()=>connectPhoneWindowIpc.openUrl("https://github.com/NativeStar/SuishoConnector-Windows"),

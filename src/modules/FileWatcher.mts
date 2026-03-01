@@ -47,7 +47,6 @@ class FileWatcher {
     async init(initialPaths: string[]) {
         this.watcher.on("add", (targetFilePath, stats) => {
             if (!stats || stats.isDirectory() || stats.size <= 0) return
-            // TODO 可能需要检测设备是否信任
             if (global.deviceConfig.getConfigProp<boolean>("enableFileSync", false)) {
                 this.onNewFile(targetFilePath, path.basename(targetFilePath), stats.size)
             }

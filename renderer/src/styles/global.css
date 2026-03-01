@@ -82,3 +82,6 @@ mdui-select::part(text-field){
 .PhotoView-Slider__Counter{
     opacity: 0;
 }
+mdui-dialog::part(description) {
+  white-space: pre-line;
+}

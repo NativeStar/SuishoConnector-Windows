@@ -51,7 +51,6 @@ export default function SyncLogList({ logs, setLogs }: SyncLogListProps) {
             <div className="smallScrollBar overflow-y-auto max-h-[calc(100vh-9.4rem)]">
                 {logs.length === 0 && <span className="text-[gray] absolute right-50">暂无同步记录</span>}
                 {logs.map(log => <SyncLogItem event={log} key={log.id}/>)}
-                {/* <SyncLogItem event={{id:"test",fileName:"test",path:"test",state:"success"}}/> */}
             </div>
         </mdui-list>
     )
