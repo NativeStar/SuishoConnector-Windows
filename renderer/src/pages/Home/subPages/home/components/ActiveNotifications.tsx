@@ -37,7 +37,7 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
     const [spread, setSpread] = useState<boolean>(false);
     useEffect(() => {
         if (defaultIsOverflow) {
-            contentRef.current!.className = twMerge("block ml-0.5 text-sm max-w-[99.6%]", spread ? "" : "truncate")
+            contentRef.current!.className = twMerge("block ml-0.5 text-sm max-w-[99.6%]", spread ? "wrap-anywhere" : "truncate")
         }
     }, [spread])
     return (
@@ -51,7 +51,7 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
                 <div ref={contentRef} className={twMerge("block ml-0.5 text-sm max-w-[99.6%] truncate")}>{notification.content}</div>
                 {notification.progress > 0 && <mdui-linear-progress max={100} value={notification.progress} className="mt-2 w-11/12" />}
             </div>
-            {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} onClick={() => {
+            {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} className={notification.isOngoing?"absolute right-0":"absolute right-5"} onClick={() => {
                 setSpread(!spread)
             }} />}
             {!notification.isOngoing && <mdui-icon name="close" className="absolute right-0" onClick={() => onClose(notification.key)} />}
@@ -82,7 +82,6 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
     }
     const ipc = useMainWindowIpc();
     const [dataPath, setDataPath] = useState<string>("");
-    ipc.getDeviceDataPath().then(value => setDataPath(value));
     const [activeNotification, activeNotificationDispatch] = useReducer<ActiveNotification[], ActiveNotificationReducerAction>((state, action) => {
         switch (action.type) {
             case "add":
@@ -139,6 +138,7 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
                 }
             })
         });
+        ipc.getDeviceDataPath().then(value => setDataPath(value));
         ipc.on("updatedIconPack", () => {
             activeNotificationDispatch({ type: "clear" });
             updateNotification();

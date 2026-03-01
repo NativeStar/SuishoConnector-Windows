@@ -36,8 +36,8 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
     const { androidId } = useContext(AndroidIdContext);
     async function onUnlockButtonClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         if (event.button !== 0 && event.button !== 2) return
-        const fullUnlock=event.button === 2;
-        const protectNotificationForwardPage = await ipc.getDeviceConfig("protectNotificationForwardPage",false) as boolean;
+        const fullUnlock = event.button === 2;
+        const protectNotificationForwardPage = await ipc.getDeviceConfig("protectNotificationForwardPage", false) as boolean;
         //没开启功能
         if (!protectNotificationForwardPage) {
             setCurrentProtectState("fullUnlocked");
@@ -48,26 +48,26 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
             return
         }
         //锁定
-        if (protectType === "unlocked"||protectType === "fullUnlocked") {
+        if (protectType === "unlocked" || protectType === "fullUnlocked") {
             // 只有左键能锁定
-            if (event.button===0) {
+            if (event.button === 0) {
                 setCurrentProtectState("protected");
                 console.debug("Locked notification forward page");
             }
             return
         }
         //解锁
-        const protectMethod: string | null = await ipc.getDeviceConfig("protectMethod","none") as string | null;
+        const protectMethod: string | null = await ipc.getDeviceConfig("protectMethod", "none") as string | null;
         console.debug(`Request unlock notification forward page with verify method:${protectMethod}`);
         if (protectMethod === "oauth") {
             setUnlockButtonLoading(true);
             ipc.startAuthorization().then(result => {
-                result && setCurrentProtectState(fullUnlock?"fullUnlocked":"unlocked");
+                result && setCurrentProtectState(fullUnlock ? "fullUnlocked" : "unlocked");
                 snackbar({
                     message: result ? "已解锁" : "验证失败",
                     autoCloseDelay: 1250
                 });
-                console.debug(`Unlock notification forward page verify ${result?"success":"failed"}`);
+                console.debug(`Unlock notification forward page verify ${result ? "success" : "failed"}`);
             }).catch(e => {
                 console.error(e);
             }).finally(() => {
@@ -75,12 +75,12 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
             });
         } else if (protectMethod === "password") {
             openPasswordInputDialog("请输入密码", androidId).then(result => {
-                result && setCurrentProtectState(fullUnlock?"fullUnlocked":"unlocked");
+                result && setCurrentProtectState(fullUnlock ? "fullUnlocked" : "unlocked");
                 snackbar({
                     message: result ? "已解锁" : "验证失败",
                     autoCloseDelay: 1250
                 });
-                console.debug(`Unlock notification forward page verify ${result?"success":"failed"}`);
+                console.debug(`Unlock notification forward page verify ${result ? "success" : "failed"}`);
             })
         } else {
             console.warn(`Unknown protect method:${protectMethod}`);
@@ -166,7 +166,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
     }, []);
     const filteredList = useFuzzySearchList({
         // 深度隐藏
-        list: notificationList.filter((item) => currentProtectState==="fullUnlocked"?true:!needHideNotification(item.packageName)),
+        list: notificationList.filter((item) => currentProtectState === "fullUnlocked" ? true : !needHideNotification(item.packageName)),
         strategy: "off",
         mapResultItem: ({ item }) => item,
         queryText: searchText,
@@ -193,7 +193,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
             db.addData(notificationData);
             console.debug(`Append new notification:${JSON.stringify(notificationData)}`);
         });
-        ipc.getDeviceConfig("protectNotificationForwardPage",false).then((value) => {
+        ipc.getDeviceConfig("protectNotificationForwardPage", false).then((value) => {
             setCurrentProtectState((value as boolean) ? "protected" : "disabled");
             // 只在开启保护时初始化缓存 毕竟不是所有人都要开这个功能
             if (value) {
@@ -201,8 +201,11 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
                 db.getAllData().then(data => initHideNotificationCache(ipc.getNotificationProfile, data))
             }
         });
+        ipc.getDeviceDataPath().then(value => setDataPath(value));
+        const updateDeepHideNotificationCacheCleanup=ipc.on("updateDeepHideNotificationCache", data => updateDeepHideNotificationCache(data.packageName, data.value));
         return () => {
             notificationAppendListenerCleanup();
+            updateDeepHideNotificationCacheCleanup();
         }
     }, []);
     // 当搜索内容变化时拖到底部
@@ -233,8 +236,6 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
             listRef.current?.scrollToIndex(memoNotificationList.length - 1);
         }
     }, [currentProtectState]);
-    ipc.getDeviceDataPath().then(value => setDataPath(value));
-    ipc.on("updateDeepHideNotificationCache",data=>updateDeepHideNotificationCache(data.packageName,data.value));
     return (
         <div style={{ display: hidden ? "none" : "block" }} className="flex flex-col">
             <ButtonGroup setShowFilterCard={setShowFilterCard} protectType={currentProtectState} setCurrentProtectState={setCurrentProtectState} db={db} notificationListDispatch={notificationDispatch} />
