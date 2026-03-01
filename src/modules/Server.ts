@@ -47,7 +47,7 @@ class Server {
         // 是否通过验证 协议版本等
         this.isConnectVerified = false;
         //客户端协议版本
-        this.protocolVersion = 1;
+        this.protocolVersion = 2;
         //窗口对象
         this.appWindow = window;
         //是否在主页面

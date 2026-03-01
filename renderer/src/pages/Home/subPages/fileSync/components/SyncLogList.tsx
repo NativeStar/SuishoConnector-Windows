@@ -29,13 +29,16 @@ export default function SyncLogList({ logs, setLogs }: SyncLogListProps) {
             switch (data.state) {
                 case "append":
                     setLogs(logs => [...logs, data])
+                    console.debug(`Append new file sync log:${data.path}`);
                     break;
                 case "error":
                     //修改指定项的state
                     setLogs(logs => logs.map(item => item.id === data.id ? { ...item, state: "error" } : item))
+                    console.info(`File sync error:${data.path}`);
                     break
                 case "success":
                     setLogs(logs => logs.map(item => item.id === data.id ? { ...item, state: "success" } : item))
+                    console.info(`File sync success:${data.path}`);
                     break
                 default:
                     console.warn(`Unknown file sync state:${data.state}`);

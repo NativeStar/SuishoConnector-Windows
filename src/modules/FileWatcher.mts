@@ -42,19 +42,24 @@ class FileWatcher {
         });
         const port = await uploader.init();
         await this.responseManager.send({ packetType: "main_fileSyncDownload", port, fileName, fileSize });
-        this.browserWindow.webContents.send("webviewEvent", "appendFileSyncList", { id: eventId, path: filePath,fileName,state: "append" });
+        this.browserWindow.webContents.send("webviewEvent", "appendFileSyncList", { id: eventId, path: filePath, fileName, state: "append" });
     }
     async init(initialPaths: string[]) {
+        logger.writeDebug("Start file watcher init", this.LOG_TAG);
         this.watcher.on("add", (targetFilePath, stats) => {
             if (!stats || stats.isDirectory() || stats.size <= 0) return
-            if (global.deviceConfig.getConfigProp<boolean>("enableFileSync", false)) {
-                this.onNewFile(targetFilePath, path.basename(targetFilePath), stats.size)
+            // 需要开启功能且手机端版本支持
+            if (global.deviceConfig.getConfigProp<boolean>("enableFileSync", false) && global.clientMetadata.protocolVersion >= 2) {
+                this.onNewFile(targetFilePath, path.basename(targetFilePath), stats.size);
+                return
             }
+            logger.writeDebug(`New file append to watching path:${targetFilePath}`, this.LOG_TAG);
         });
         //检查目录存在
         const existsPaths = initialPaths.filter((path) => {
             try {
                 fs.accessSync(path, fs.constants.R_OK);
+                logger.writeDebug(`Target path is accessible:${path}`, this.LOG_TAG);
                 return true;
             } catch (error) {
                 logger.writeWarn(`Failed to watch target path in accessible test.Maybe target directory is deleted:${path} `, this.LOG_TAG);
@@ -64,19 +69,34 @@ class FileWatcher {
         //数据量对不上的话 覆盖配置
         if (existsPaths.length !== initialPaths.length) {
             global.deviceConfig.setConfig("fileSyncTargetDirectory", existsPaths);
+            logger.writeInfo("Override watching path config because some path unavailable", this.LOG_TAG);
             // 确保发送事件时页面已注册好监听器
             setTimeout(() => {
                 this.browserWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "warn_watch_directory_missing" });
+                logger.writeDebug("Send missing directory warning to renderer process")
             }, 1500);
         }
-        this.watcher.add(existsPaths);
+        if (global.clientMetadata.protocolVersion >= 2) {
+            logger.writeInfo("Init file watcher paths")
+            this.watcher.add(existsPaths);
+            return
+        } else {
+            //协议版本低 提醒Android端不支持功能
+            setTimeout(() => {
+                logger.writeDebug("Send android client too old warning to renderer process")
+                this.browserWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "warn_android_client_version_low" });
+            }, 1500);
+        }
+        //无论如何都注册ipc保证基础功能
         this.ipcInit();
+        logger.writeDebug("File watcher init success", this.LOG_TAG);
     }
     private async ipcInit() {
         ipcMain.handle("fileWatcher_addPath", (_event, path: string) => new Promise<boolean>((resolve) => {
             // 先测试能否访问
             try {
                 fs.accessSync(path, fs.constants.R_OK);
+                logger.writeInfo(`Target path is accessible:${path}`, this.LOG_TAG);
             } catch (error) {
                 logger.writeError(`Failed to watch path on access test:${path} ${error}`, this.LOG_TAG);
                 resolve(false);
@@ -98,6 +118,7 @@ class FileWatcher {
                 this.watcher.off("error", onErrorListener)
                 const currentPaths = global.deviceConfig.getConfigProp<string[]>("fileSyncTargetDirectory", []);
                 global.deviceConfig.setConfig("fileSyncTargetDirectory", [...currentPaths, path])
+                logger.writeInfo(`Add path to watching list:${path}`, this.LOG_TAG);
                 resolve(true);
             }, 350);
         }));
@@ -105,6 +126,7 @@ class FileWatcher {
             this.watcher.unwatch(path);
             const currentPaths = global.deviceConfig.getConfigProp<string[]>("fileSyncTargetDirectory", []);
             global.deviceConfig.setConfig("fileSyncTargetDirectory", currentPaths.filter(p => p !== path));
+            logger.writeInfo(`Remove path from watching list:${path}`, this.LOG_TAG);
         })
     }
 }

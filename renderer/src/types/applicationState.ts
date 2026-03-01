@@ -70,6 +70,12 @@ const States = {
             dispatch({type:"remove",id:"warn_watch_directory_missing"})
         }
     },
+    warn_android_client_version_low: {
+        level: ApplicationStateLevel.Warn,
+        title: "Android端版本低",
+        content: "部分功能可能无法工作",
+        clickable: false,
+    },
     error_phone_file_server: {
         level: ApplicationStateLevel.Error,
         title: "文件浏览初始化异常",

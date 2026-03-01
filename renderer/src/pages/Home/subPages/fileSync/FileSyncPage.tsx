@@ -16,8 +16,10 @@ export default function FileSyncPage({ hidden }: FileSyncPageProps) {
     async function onAddPathButtonClick() {
         const selectedPath = await ipc.showDirectoryPicker();
         if (!selectedPath) return
+        console.debug(`Request add path to watching list:${selectedPath}`);
         const addWatchPathResult = await ipc.addWatchPath(selectedPath);
         if (addWatchPathResult) setWatchingPathsList(prev => [...prev, selectedPath]);
+        console.debug(`Add path to watching list ${addWatchPathResult?"success":"fail"}`);
         snackbar({
             message: `添加${addWatchPathResult ? "成功" : "失败 请检查路径是否有访问权限获取其他异常 详见日志"}`,
             autoCloseDelay: addWatchPathResult ? 1500 : 3500
@@ -34,6 +36,7 @@ export default function FileSyncPage({ hidden }: FileSyncPageProps) {
                         message: "已清理",
                         autoCloseDelay: 1500
                     });
+                    console.debug("Clear synced file log");
                 }}/>
                 <TooltipButton icon="help_outline" tooltip="帮助" onClick={()=>{
                     alert({

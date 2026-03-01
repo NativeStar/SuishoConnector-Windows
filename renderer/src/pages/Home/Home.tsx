@@ -189,8 +189,12 @@ export default function Home() {
   function setPageHandle(targetPage: PageRouteProps["page"]) {
     if (page === targetPage) {
       //重复点击事件 用于滚动列表等
+      console.debug(`Trigger route double click event:${page}`);
       routeRef.current?.onPageDoubleClick(page);
       return
+    }else{
+      console.debug(`Trigger route click event:${page}`);
+      routeRef.current?.onPageClick(targetPage);
     }
     setPage(targetPage);
     releaseFfmpeg();
