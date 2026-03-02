@@ -6,7 +6,7 @@ import SettingItemSwitch from "./components/SettingItemSwitch"
 import { useContext, useEffect, useState } from "react"
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import AndroidIdContext from "~/context/AndroidIdContext"
-import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteLogsItemClick, onProtectMethodChange, onRequestArchiveLogsItemClick, rebootSnackbar } from "./settingActionHandles"
+import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteCacheItemClick, onProtectMethodChange, onRequestArchiveLogsItemClick, rebootSnackbar } from "./settingActionHandles"
 import type { ProtectMethod } from "~/utils"
 import AboutDialog from "./components/AboutDialog"
 import { alert } from "mdui"
@@ -81,7 +81,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <mdui-list-subheader className="ml-5 h-10 font-bold">杂项</mdui-list-subheader>
                     <SettingItemCommon title="关于" icon="info" onClick={() => setShowAboutDialog(true)} />
                     <SettingItemCommon title="打包日志" desc="将日志打为压缩包以便发送" icon="send_and_archive" onClick={() => onRequestArchiveLogsItemClick(ipc)} />
-                    <SettingItemCommon title="清除日志" icon="delete_sweep" onClick={() => onDeleteLogsItemClick(ipc)} />
+                    <SettingItemCommon title="清除缓存" icon="delete_sweep" onClick={() => onDeleteCacheItemClick(ipc)} />
                 </mdui-list>
             </div>
         </>

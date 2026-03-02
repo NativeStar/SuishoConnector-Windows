@@ -47,7 +47,6 @@ export default function Home() {
   }, {});
   // ipc相关初始化
   useEffect(() => {
-    setColorScheme("#895cad")
     ipc.getDeviceBaseInfo().then(value => {
       setAndroidId(value.androidId);
     });
@@ -118,7 +117,7 @@ export default function Home() {
       routeRef.current?.onPageDoubleClick("notification");
       console.debug("Focus notification forward page");
     });
-    //TODO 修当处于互传页时收到该消息页面回到最顶部(好像是概率触发 复现不了 难搞)
+    //TODO 修当处于互传页时收到新消息页面回到最顶部(好像是概率触发 复现不了 难搞)
     const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", () => {
       setPage("transmit");
       console.debug("Change to transmit page because drag file");
@@ -134,6 +133,7 @@ export default function Home() {
   }, []);
   // 普通初始化
   useEffect(() => {
+    setColorScheme("#895cad")
     document.addEventListener("keydown", event => {
       //接管系统复制 防止背景样式可能被粘贴到word类软件中
       if (event.key.toUpperCase() === "C" && event.ctrlKey) {

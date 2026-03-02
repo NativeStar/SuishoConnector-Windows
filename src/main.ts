@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem, session } from "electron";
 import path from "path";
 import os from "os";
 import { X509Certificate } from "crypto"
@@ -699,7 +699,11 @@ ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) =>
     };
     phoneFileDownloadWindow.loadURL(`https://${connectedDevice?.getPhoneAddress()}:${30767}?filePath=${encodeURIComponent(downloadFilePath)}`);
 });
-ipcMain.handle("main_deleteLogs", async () => {
+// 情况缓存和日志
+ipcMain.handle("main_deleteCache", async () => {
+    const currentSession=session.defaultSession;
+    await currentSession.clearCache();
+    await currentSession.clearCodeCaches({});
     const logPath = `${app.getPath("userData")}/programData/logs`;
     const filesList = await fs.readdir(logPath);
     const currentLogFileName = logger.getLogFileName();
@@ -714,7 +718,7 @@ ipcMain.handle("main_deleteLogs", async () => {
             }
         }
     }
-    logger.writeInfo("Deleted all logs");
+    logger.writeInfo("Deleted all caches");
 });
 app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
     if (localCertFingerprint256 === null) {

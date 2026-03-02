@@ -150,21 +150,22 @@ export async function onChangePasswordItemClick(
         }
     }).catch(() => { });
 }
-export function onDeleteLogsItemClick(
+export function onDeleteCacheItemClick(
     ipc: ReturnType<typeof useMainWindowIpc>
 ) {
     confirm({
-        headline: "清除日志确认",
-        description: "确认清除日志?\n(通常不会造成影响)",
+        headline: "清除缓存确认",
+        description: "确认清除缓存数据?\n完成后程序将关闭",
         confirmText: "确认",
         cancelText: "取消",
         onConfirm: async () => {
-            await ipc.deleteLogs();
+            await ipc.deleteCache();
+            console.info("Cleaned all logs");
             snackbar({
                 message: "日志清除完成",
                 autoCloseDelay: 1750
             });
-            console.info("Cleaned all logs");
+            ipc.closeApplication();
         },
     }).catch(() => { });
 }

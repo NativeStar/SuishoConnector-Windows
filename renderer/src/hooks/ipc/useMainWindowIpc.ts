@@ -93,7 +93,7 @@ function useMainWindowIpc() {
         getAllConfig: window.electronMainProcess.getAllConfig,
         setConfig: window.electronMainProcess.setConfig,
         setDeviceConfig: window.electronMainProcess.setDeviceConfig,
-        deleteLogs: window.electronMainProcess.deleteLogs,
+        deleteCache: window.electronMainProcess.deleteCache,
         getConfig: window.electronMainProcess.getConfig,
         createCredentials: window.electronMainProcess.createCredentials,
         downloadPhoneFile: window.electronMainProcess.downloadPhoneFile,

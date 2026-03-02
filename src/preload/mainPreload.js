@@ -64,7 +64,7 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     //控制音频转发开关
     setAudioForwardEnable:(enabled)=>{return ipcRenderer.invoke("main_setAudioForward",enabled)},
     //清除日志
-    deleteLogs:()=>{return ipcRenderer.invoke("main_deleteLogs")},
+    deleteCache:()=>{return ipcRenderer.invoke("main_deleteCache")},
     //发送媒体会话控制
     appendMediaSessionControl:(action,time)=>{return ipcRenderer.invoke("mediaSession_appendAction",action,time)},
     //追加渲染进程日志

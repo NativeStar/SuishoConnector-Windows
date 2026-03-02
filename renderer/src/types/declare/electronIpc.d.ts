@@ -43,7 +43,7 @@ declare global {
             readonly getFilePath: (file: File) => string;
             readonly getPhoneIp: () => Promise<string>;
             readonly downloadPhoneFile: (path: string) => Promise<void>;
-            readonly deleteLogs: () => Promise<void>;
+            readonly deleteCache: () => Promise<void>;
             readonly createRightClickMenu: (menu: RightClickMenuItem[]) => Promise<RightClickMenuItemId>;
             readonly getTextFilterConfig: () => Promise<TextFilterConfig>;
             readonly changeTextFilterMode:()=>Promise<void>;
