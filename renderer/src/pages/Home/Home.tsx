@@ -94,8 +94,8 @@ export default function Home() {
         headline: "通讯中断",
         closeOnOverlayClick:false,
         description: reason ?? "由于未知原因 连接断开",
-        confirmText: "重启应用",
-        cancelText: "关闭应用",
+        confirmText: "重启",
+        cancelText: "关闭",
         onConfirm() {
           ipc.rebootApplication();
         },
