@@ -239,7 +239,7 @@ class NotificationCore {
             //根据模式处理
             if (this.config.filterMode === "blacklist") {//黑名单
                 for (const text of this.filterText) {
-                    if (title.includes(text) || content.includes(text)) {
+                    if (title?.includes(text) || content?.includes(text)) {
                         logger.writeDebug(`A notification blocked by text filter(blacklist mode) from package:${packageName}`, this.LOG_TAG);
                         return
                     }
@@ -248,7 +248,7 @@ class NotificationCore {
                 //是否有关键词
                 let passed = false;
                 for (const value of this.filterText) {
-                    if (title.includes(value) || content.includes(value)) {
+                    if (title?.includes(value) || content?.includes(value)) {
                         logger.writeDebug(`A notification passed text filter(whitelist mode) from package:${packageName}`, this.LOG_TAG);
                         passed = true;
                         break
