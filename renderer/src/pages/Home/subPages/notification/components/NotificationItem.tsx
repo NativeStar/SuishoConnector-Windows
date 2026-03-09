@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import { twMerge } from "tailwind-merge";
 import type useDatabase from "~/hooks/useDatabase";
@@ -56,13 +56,19 @@ export default function NotificationItem({ dataPath, notification, createRightCl
     }
     const [defaultIsOverflow, contentRef] = useTextTruncated(0);
     const [spread, setSpread] = useState<boolean>(false);
+    const cardRef = useRef<HTMLElement>(null);
+    useEffect(()=>{
+        //@ts-ignore
+        // 关闭点击效果
+        cardRef.current!.noRipple=true
+    },[]);
     useEffect(() => {
         if (defaultIsOverflow) {
             contentRef.current!.className = twMerge("selectable wrap-break-word block max-w-full", spread ? "" : "truncate")
         }
     }, [defaultIsOverflow, spread]);
     return (
-        <mdui-card clickable className="flex w-[98.5%] cursor-default" onContextMenu={onContextMenu}>
+        <mdui-card ref={cardRef} clickable className="flex w-[98.5%] cursor-default" onContextMenu={onContextMenu}>
             <img src={`${dataPath}assets/iconCache/${notification.packageName}`} className="w-5 h-5 ml-1.5 mt-0.5" onError={(e) => {
                 // 替换统一图标
                 (e.target as HTMLImageElement).src = "/app_icon_unknown.png"

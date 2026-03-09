@@ -105,7 +105,7 @@ mdui-select::part(text-field) {
 mdui-dialog::part(description) {
     white-space: pre-line;
 }
-
+/* 当滑块禁用时不影响光标样式 */
 mdui-slider[disabled]:not([disabled="false" i]) {
   pointer-events: none;
 }
