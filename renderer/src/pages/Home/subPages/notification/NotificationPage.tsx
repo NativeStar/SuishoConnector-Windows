@@ -34,9 +34,9 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
     const ipc = useMainWindowIpc();
     const [unlockButtonLoading, setUnlockButtonLoading] = useState(false);
     const { androidId } = useContext(AndroidIdContext);
-    async function onUnlockButtonClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-        if (event.button !== 0 && event.button !== 2) return
-        const fullUnlock = event.button === 2;
+    async function onUnlockButtonClick(button: number) {
+        if (button !== 0 && button !== 2) return
+        const fullUnlock = button === 2;
         const protectNotificationForwardPage = await ipc.getDeviceConfig("protectNotificationForwardPage", false) as boolean;
         //没开启功能
         if (!protectNotificationForwardPage) {
@@ -50,7 +50,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
         //锁定
         if (protectType === "unlocked" || protectType === "fullUnlocked") {
             // 只有左键能锁定
-            if (event.button === 0) {
+            if (button === 0) {
                 setCurrentProtectState("protected");
                 console.debug("Locked notification forward page");
             }
@@ -123,7 +123,10 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
                 </mdui-button>
             </mdui-tooltip>
             <mdui-tooltip content="解锁" placement="bottom">
-                <mdui-button onMouseDown={onUnlockButtonClick} loading={unlockButtonLoading} variant="text">
+                <mdui-button onClick={event => onUnlockButtonClick(event.button)} onContextMenu={event => {
+                    event.preventDefault();
+                    onUnlockButtonClick(event.button);
+                }} loading={unlockButtonLoading} variant="text">
                     <mdui-icon name="lock" />
                 </mdui-button>
             </mdui-tooltip>
@@ -202,7 +205,7 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
             }
         });
         ipc.getDeviceDataPath().then(value => setDataPath(value));
-        const updateDeepHideNotificationCacheCleanup=ipc.on("updateDeepHideNotificationCache", data => updateDeepHideNotificationCache(data.packageName, data.value));
+        const updateDeepHideNotificationCacheCleanup = ipc.on("updateDeepHideNotificationCache", data => updateDeepHideNotificationCache(data.packageName, data.value));
         return () => {
             notificationAppendListenerCleanup();
             updateDeepHideNotificationCacheCleanup();
