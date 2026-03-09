@@ -15,6 +15,7 @@ interface HomePageProps {
     applicationStates: StatesListObject,
     applicationStatesDispatch: React.ActionDispatch<StateAction>
 }
+let isInDozeMode = false;
 export default function HomePage({ hidden, applicationStates, applicationStatesDispatch }: HomePageProps) {
     const ipc = useMainWindowIpc();
     const [deviceState, setDeviceState] = useState<DeviceState>({
@@ -35,9 +36,19 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             console.debug(`Init device state:${JSON.stringify(value)}`);
         })
         const updateDeviceStateCleanup = ipc.on("updateDeviceState", async (value) => {
-            applicationStatesDispatch({ type: value.inDoze?"add":"remove", id: "info_device_idle" })
+            if (isInDozeMode !== value.inDoze) {
+                ipc.getDeviceConfig<boolean>("enableDozeModeChangeNotification").then(enabled => {
+                    if (enabled) {
+                        new Notification("Doze状态变更", {
+                            body: `设备已${value.inDoze ? "进入" : "退出"}Doze模式`
+                        });
+                    }
+                })
+            }
+            isInDozeMode = value.inDoze;
+            applicationStatesDispatch({ type: value.inDoze ? "add" : "remove", id: "info_device_idle" })
             if (value.charging && value.batteryLevel === 100) {
-                if (batteryFullState.current === false && await ipc.getDeviceConfig("enableBatteryFullNotification",false)) {
+                if (batteryFullState.current === false && await ipc.getDeviceConfig("enableBatteryFullNotification", false)) {
                     batteryFullState.current = true;
                     //直接用web自带足矣
                     new Notification("手机满电提醒", {
@@ -58,8 +69,8 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             console.debug("Updated device state");
         });
         // 信任模式获取
-        ipc.sendRequestPacket<TrustModeIpc>({ packetType: "main_getTrustMode"}).then(value=>{
-            value.trustMode==TrustMode.UNTRUSTED && applicationStatesDispatch({
+        ipc.sendRequestPacket<TrustModeIpc>({ packetType: "main_getTrustMode" }).then(value => {
+            value.trustMode == TrustMode.UNTRUSTED && applicationStatesDispatch({
                 type: "add",
                 id: "info_device_not_trusted"
             });
@@ -70,7 +81,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             console.debug(`Updated network latency:${value}`);
         });
         const trustModeChangeCleanup = ipc.on("trustModeChange", (trusted) => {
-            console.info(`Trust mode change:${trusted?"Trusted":"Untrusted"}`);
+            console.info(`Trust mode change:${trusted ? "Trusted" : "Untrusted"}`);
             applicationStatesDispatch({
                 type: trusted ? "remove" : "add",
                 id: "info_device_not_trusted"
@@ -88,13 +99,13 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
     }, []);
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
-            <DeviceInfoPanel className="top-[9.5%]"/>
-            <DeviceStatePanel state={deviceState} className="top-[47.5%]"/>
-            <ActiveNotifications className="top-[45.5%] left-[45%]"/>
-            <ApplicationStatesBar states={applicationStates} className="top-[9%] right-[2.3%]" dispatch={applicationStatesDispatch}/>
-            <MediaControl className="right-[15%] top-[9.5%]"/>
-            <AudioForwardPanel className="top-[73.5%] left-[10%]"/>
-            <FabMenu className="bottom-[2%] right-[2%]"/>
+            <DeviceInfoPanel className="top-[9.5%]" />
+            <DeviceStatePanel state={deviceState} className="top-[47.5%]" />
+            <ActiveNotifications className="top-[45.5%] left-[45%]" />
+            <ApplicationStatesBar states={applicationStates} className="top-[9%] right-[2.3%]" dispatch={applicationStatesDispatch} />
+            <MediaControl className="right-[15%] top-[9.5%]" />
+            <AudioForwardPanel className="top-[73.5%] left-[10%]" />
+            <FabMenu className="bottom-[2%] right-[2%]" />
         </div>
     )
 }
