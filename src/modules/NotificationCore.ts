@@ -143,6 +143,11 @@ class NotificationCore {
             logger.writeDebug(`A notification blocked because is ongoing`, this.LOG_TAG);
             return
         }
+        //空content过滤
+        if (!content) {
+            logger.writeDebug("A notification blocked because content is empty", this.LOG_TAG);
+            return
+        }
         //计算机熄屏检测
         if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen", false) && windowsNotificationStateCode.isLockedScreen(windowsNotificationState.shQueryUserNotificationState())) {
             logger.writeDebug(`Hide notification because in lock screen:${packageName}`, this.LOG_TAG);
