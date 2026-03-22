@@ -9,6 +9,7 @@ declare global {
             readonly closeApplication: () => Promise<void>;
             readonly initServer: () => Promise<Error | InitServerResult>;
             readonly onPhoneConnected: (callback: Function) => Promise<void>;
+            readonly onAutoConnectBroadcastSent:(callback: Function)=>Promise<void>
             readonly onPhoneConnectFailed: (callback: Function) => Promise<void>;
             readonly detectProxy: () => Promise<boolean>;
             readonly openProxySetting: () => Promise<void>;

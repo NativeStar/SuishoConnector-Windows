@@ -1,24 +1,24 @@
 import { createSocket, Socket } from "dgram";
-import { app, dialog,BrowserWindow } from "electron";
+import { app, dialog, type WebContents } from "electron";
 import { exec } from "child_process";
 import Util from "./Util";
 class Broadcaster {
     private socket: Socket;
+    private sender: WebContents;
     private looper: number | null | NodeJS.Timeout;
     private deviceId: string;
     private readonly LOG_TAG = "Broadcaster";
-    constructor(deviceId:string) {
+    constructor(deviceId: string, sender: WebContents) {
         this.looper = null;
         this.deviceId = deviceId;
+        this.sender = sender;
         this.socket = createSocket("udp4");
         this.socket.on("error", async (err) => {
-            logger.writeWarn(`Socket open error:${err}`,this.LOG_TAG);
-            BrowserWindow.getAllWindows().forEach(window=>{
-                window.webContents.send("main_autoConnectError");
-            });
+            logger.writeWarn(`Socket open error:${err}`, this.LOG_TAG);
+            this.sender.send("main_autoConnectError");
             const processInfo = await Util.getUsingPortProcessNameAndPid(60127);
             if (processInfo) {
-                logger.writeWarn(`Process ${processInfo.name} is using port 60127`,this.LOG_TAG);
+                logger.writeWarn(`Process ${processInfo.name} is using port 60127`, this.LOG_TAG);
                 const dialogResult = await dialog.showMessageBox({
                     type: "warning",
                     message: `自动连接未能按预期工作 因为所需的端口被进程"${processInfo.name}"占用\n终止该进程或重启计算机可能解决该问题\n或者通过手动扫码连接\n如选择终止进程 会在尝试杀进程后自动重启本软件\n且必要时会申请管理员权限`,
@@ -28,7 +28,7 @@ class Broadcaster {
                 });
                 //选择了杀进程
                 if (dialogResult.response === 0) {
-                    logger.writeInfo(`Trying kill process ${processInfo.name}:${processInfo.pid}`,this.LOG_TAG);
+                    logger.writeInfo(`Trying kill process ${processInfo.name}:${processInfo.pid}`, this.LOG_TAG);
                     try {
                         process.kill(processInfo.pid);
                     } catch (error) {
@@ -42,19 +42,19 @@ class Broadcaster {
                         }
                         return
                     }
-                    logger.writeInfo("Reboot application",this.LOG_TAG);
+                    logger.writeInfo("Reboot application", this.LOG_TAG);
                     app.relaunch();
                     app.quit();
                 }
                 return
             }
-            logger.writeError(err,this.LOG_TAG);
+            logger.writeError(err, this.LOG_TAG);
             dialog.showErrorBox("自动连接异常", `功能发生未知异常 重启计算机可能解决该问题\n或者尝试手动扫码连接\n详情:${err}`);
         });
     }
     start() {
         //10秒一次循环
-        logger.writeInfo("Start network broadcast",this.LOG_TAG);
+        logger.writeInfo("Start network broadcast", this.LOG_TAG);
         this.socket.bind(60127, () => {
             this.socket.setBroadcast(true);
             const msgBuffer = Uint8Array.from(Buffer.from(this.deviceId));
@@ -63,11 +63,13 @@ class Broadcaster {
                 try {
                     //如果打开立即扫码连接早于2.5s 这里会崩溃
                     this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
-                } catch (error) {};
+                    if (!this.sender.isDestroyed()) this.sender.send("connectPhone_broadcastSent")
+                } catch (error) { };
             }, 2500);
             this.looper = setInterval(() => {
                 try {
                     this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
+                    if (!this.sender.isDestroyed()) this.sender.send("connectPhone_broadcastSent")
                 } catch (error) { };
                 logger.writeDebug("Sent a broadcast packet");
             }, 5 * 1000)
@@ -76,7 +78,7 @@ class Broadcaster {
     close() {
         if (this.looper !== null) clearInterval(this.looper);
         this.socket.close();
-        logger.writeInfo("Stop network broadcast",this.LOG_TAG);
+        logger.writeInfo("Stop network broadcast", this.LOG_TAG);
     }
 }
 export default Broadcaster

@@ -4,7 +4,7 @@ function useConnectPhoneWindowIpc() {
         detectProxy: window.electronMainProcess.detectProxy,
         openProxySetting: window.electronMainProcess.openProxySetting,
         initServer: window.electronMainProcess.initServer,
-        on: (type: "connectFailed" | "connected" | "autoConnectorError", listener: Function) => {
+        on: (type: "connectFailed" | "connected" | "autoConnectorError"|"sentAutoConnectBroadcast", listener: Function) => {
             console.debug(`Connect phone ipc received event:${type}`);
             switch (type) {
                 case "connected":
@@ -16,6 +16,9 @@ function useConnectPhoneWindowIpc() {
                 case "autoConnectorError":
                     window.electronMainProcess.autoConnectError(listener);
                     break;
+                case "sentAutoConnectBroadcast":
+                    window.electronMainProcess.onAutoConnectBroadcastSent(listener);
+                    break
                 default:
                     throw new Error("Invalid event type");
             }

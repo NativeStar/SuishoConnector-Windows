@@ -512,17 +512,16 @@ ipcMain.on("connectPhone_openProxySetting", (_event) => {
     })
 });
 //局域网扫描绑定设备
-ipcMain.on("main_startAutoConnectBroadcast", () => {
+ipcMain.on("main_startAutoConnectBroadcast", (event) => {
+    const sender = event.sender;
     //开始广播
     if (!global.config.boundDeviceKey) {
         // 有设备id但找不到key
         logger.writeWarn("Device key not found", "Auto Connector");
-        BrowserWindow.getAllWindows().forEach(window => {
-            window.webContents.send("main_autoConnectError");
-        });
+        sender.send("main_autoConnectError");
         return
     }
-    broadcaster = new Broadcaster(global.config.boundDeviceId as any);
+    broadcaster = new Broadcaster(global.config.boundDeviceId as any,sender);
     broadcaster.start();
     logger.writeInfo("Start auto connect broadcast")
 });
@@ -701,7 +700,7 @@ ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) =>
 });
 // 情况缓存和日志
 ipcMain.handle("main_deleteCache", async () => {
-    const currentSession=session.defaultSession;
+    const currentSession = session.defaultSession;
     await currentSession.clearCache();
     await currentSession.clearCodeCaches({});
     const logPath = `${app.getPath("userData")}/programData/logs`;
