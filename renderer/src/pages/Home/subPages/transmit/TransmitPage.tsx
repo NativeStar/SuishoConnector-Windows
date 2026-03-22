@@ -1,7 +1,7 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, confirm, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState, useContext } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -12,6 +12,7 @@ import DragFileMark from "./components/DragFileMark";
 import { useFuzzySearchList } from "@nozbe/microfuzz/react"
 import ItemFilterCard from "../../components/ItemFilterCard";
 import UploadImagePreviewDialog from "./components/UploadImagePreviewDialog";
+import AndroidIdContext from "~/context/AndroidIdContext";
 
 interface TransmitPageProps {
     hidden: boolean,
@@ -31,6 +32,7 @@ export type TransmitMessageListDispatch = [{
 }];
 
 const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, setHasNewTransmitMessage }: TransmitPageProps, ref) => {
+    const { androidId } = useContext(AndroidIdContext)
     useImperativeHandle(ref, () => ({
         scrollToBottom() {
             listRef.current?.scrollToIndex(messageList.length - 1);
@@ -40,6 +42,15 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         uploadTransmitFile(event.target.files![0]);
     }
     function uploadTransmitFile(file: File | { name: string, size: number, path: string }) {
+        const filePath = file instanceof File ? ipc.getFilePath(file) : file.path;
+        //实际上如果从资源管理器拖文件 会因为'/'变成'\'误打误撞躲开误判
+        if (filePath.includes(`phonelinker/programData/devices_data/${androidId}/transmit_files/`)) {
+            snackbar({
+                message:"无法上传来自自身的文件",
+                autoCloseDelay:1200
+            })
+            return
+        }
         if (hasProgressingFile) {
             snackbar({
                 message: "请等待上一个上传任务完成",
@@ -65,7 +76,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             type: "add",
             messageInstance
         });
-        ipc.transmitUploadFile(file.name, file instanceof File ? ipc.getFilePath(file) : file.path, file.size);
+        ipc.transmitUploadFile(file.name, filePath, file.size);
         listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
         console.info("Transmit start upload a file");
     }
@@ -114,7 +125,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     async function uploadClipboardImage() {
         console.debug("User upload image from clipboard");
         const imageArrayBuffer = await previewImage?.arrayBuffer();
-        if(!imageArrayBuffer){
+        if (!imageArrayBuffer) {
             console.warn("Failed to get image array buffer on clipboard!");
             alert({
                 headline: "上传失败",
@@ -125,7 +136,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         }
         setPreviewImage(null);
         const fileName = `ClipboardImage-${Date.now()}.png`;
-        const tempImageFilePath=await ipc.createCacheFile(fileName,imageArrayBuffer);
+        const tempImageFilePath = await ipc.createCacheFile(fileName, imageArrayBuffer);
         console.debug("Upload clipboard image file");
         uploadTransmitFile({ name: fileName, size: imageArrayBuffer.byteLength, path: tempImageFilePath });
     }
@@ -293,7 +304,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     }, [hidden])
     return (
         <>
-            {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage}/>}
+            {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage} />}
             <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
                 {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
                 {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock" />}

@@ -63,6 +63,7 @@ declare global {
             readonly addWatchPath:(path:string)=>Promise<boolean>
             readonly removeWatchPath:(path:string)=>Promise<void>
             readonly showDirectoryPicker:()=>Promise<string|null>
+            readonly startTransmitDragFile:(name:string)=>Promise<boolean>
         }
     }
 }

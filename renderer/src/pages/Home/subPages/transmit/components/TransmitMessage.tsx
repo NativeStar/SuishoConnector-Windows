@@ -132,6 +132,17 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
             }
         }
     }, []);
+    function setFileDeleted() {
+        setIsDeleted(true);
+        const modifiedData = { ...data, isDeleted: true }
+        messageDispatch({
+            type: "put",
+            timestamp: modifiedData.timestamp,
+            messageInstance: { ...data, isDeleted: true }
+        });
+        database.putData(modifiedData);
+        console.debug(`Transmit file deleted:${data.timestamp}`);
+    }
     function onContextMenu(event: React.MouseEvent<HTMLElement, MouseEvent>) {
         event.preventDefault();
         event.stopPropagation();
@@ -168,25 +179,17 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         })
     }
     function onDragStart(event: React.DragEvent<HTMLElement>) {
-        if (data.from === "phone") event.dataTransfer.setData("DownloadURL", `application/x-www-form-urlencoded:${data.displayName}:${fileFullPathRef.current}`);
-        event.dataTransfer.setData("from_self", "true");
+        event.preventDefault();
+        ipc.startTransmitDragFile(data.name).then(result => {
+            if (!result) setFileDeleted()
+        })
         console.debug(`Start drag file message:${data.name}`);
     }
     function openFile() {
         if (data.from === "computer") return
         console.debug("Try open file");
         ipc.openFile(data.name).then(result => {
-            if (!result) {
-                setIsDeleted(true);
-                const modifiedData = { ...data, isDeleted: true }
-                messageDispatch({
-                    type: "put",
-                    timestamp: modifiedData.timestamp,
-                    messageInstance: { ...data, isDeleted: true }
-                });
-                database.putData(modifiedData);
-                console.debug(`Transmit file deleted:${data.timestamp}`);
-            }
+            if (!result) setFileDeleted()
         })
     }
     return (
@@ -197,7 +200,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
                 <div className={twMerge("mt-5", isDeleted ? "text-red-500" : "")} style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{isDeleted ? "文件被删除" : parseFileSize(data.size)}</div>
                 {progressing && <mdui-linear-progress max={data.size} value={progressValue} className="mt-2 w-11/12" />}
                 {/* 文件接收完毕后才显示时间 */}
-                {!progressing&&<span className="text-gray-400 text-xs">{new Date(data.timestamp).toLocaleString()}</span>}
+                {!progressing && <span className="text-gray-400 text-xs">{new Date(data.timestamp).toLocaleString()}</span>}
             </div>
         </mdui-card>
     )

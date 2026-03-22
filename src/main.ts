@@ -474,6 +474,16 @@ ipcMain.handle("transmit_generateTransmitFileURL", (_event, file) => {
     logger.writeDebug(`Generate file URL:file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`);
     return `file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`.replaceAll("\\", "/");
 });
+ipcMain.handle("transmit_startTransmitDragFile", async (event, file) => {
+    logger.writeDebug(`Start transmit drag file:${file}`);
+    const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`
+    if(!await fs.exists(filePath)) return false;
+    event.sender.startDrag({
+        file: filePath,
+        icon: nativeImage.createFromPath(path.join(app.getAppPath(), "res", "fileDrag.png"))
+    });
+    return true
+})
 ipcMain.handle("main_shellOpenFile", async (_event, file) => {
     const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`.replaceAll("/", "\\");
     //检查文件存在
