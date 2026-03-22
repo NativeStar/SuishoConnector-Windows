@@ -71,7 +71,8 @@ app.on("ready", async (_event, _info) => {
         frame: false,
         titleBarOverlay: {
             height: 40,
-            color: "#fdf7fe"
+            color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
+            symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
         },
         width: 330,
         height: 600,
@@ -157,6 +158,17 @@ app.on("ready", async (_event, _info) => {
         }
         logger.writeInfo("Open devtools")
         event.sender.openDevTools({ mode: 'undocked' })
+    });
+    //深色模式适配
+    nativeTheme.addListener("updated", () => {
+        logger.writeInfo(`Native theme updated to:${nativeTheme.shouldUseDarkColors ? "dark" : "light"}`);
+        for (const browserWindow of BrowserWindow.getAllWindows()) {
+            browserWindow.setTitleBarOverlay({
+                height: 40,
+                color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
+                symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
+            })
+        }
     });
 });
 //ipc
@@ -268,27 +280,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             broadcaster?.close();
             broadcaster = null;
             apkDownloadServerInstance?.close();
-            nativeTheme.addListener("updated", () => {
-                //空对象
-                if (mainWindow == null || mainWindow.isDestroyed()) {
-                    logger.writeDebug("Native theme updated but main window is destroyed");
-                    return
-                }
-                logger.writeInfo(`Native theme updated to:${nativeTheme.shouldUseDarkColors ? "dark" : "light"}`);
-                if (nativeTheme.shouldUseDarkColors) {
-                    mainWindow.setTitleBarOverlay({
-                        height: 40,
-                        color: "#1d1b1e",
-                        symbolColor: "#fdf7fe"
-                    })
-                } else {
-                    mainWindow.setTitleBarOverlay({
-                        height: 40,
-                        color: "#fdf7fe"
-                        , symbolColor: "#1d1b1e"
-                    })
-                }
-            });
         },
         getTrayInstance() {
             return trayInstance;
@@ -521,7 +512,7 @@ ipcMain.on("main_startAutoConnectBroadcast", (event) => {
         sender.send("main_autoConnectError");
         return
     }
-    broadcaster = new Broadcaster(global.config.boundDeviceId as any,sender);
+    broadcaster = new Broadcaster(global.config.boundDeviceId as any, sender);
     broadcaster.start();
     logger.writeInfo("Start auto connect broadcast")
 });

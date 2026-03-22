@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ConnectQrcode } from "./components/ConnectQrcode";
 import useDevMode from "~/hooks/useDevMode";
 import { type InitServerResult } from "~/types/ipc"
-import { alert, confirm } from "mdui";
+import { alert, confirm, setColorScheme } from "mdui";
 import 'mdui/components/icon';
 import "mdui/components/tooltip"
 import "mdui/components/button-icon"
@@ -21,8 +21,12 @@ export default function ConnectPhone() {
     const [inApkDownloadPage, setInApkDownloadPage] = useState<boolean>(false);
     const [sentBroadcast, setSentBroadcast] = useState(false);
     const pairCode = useRef<string>("");
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    });
     //连接相关初始化
     useEffect(() => {
+        setColorScheme("#895cad")
         connectPhoneWindowIpc.initServer().then(value => {
             //异常检测
             if (value instanceof Error) {
@@ -48,6 +52,9 @@ export default function ConnectPhone() {
             }
             pairCode.current = code
             setQrcodeData(data)
+        });
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+            setIsDarkMode(e.matches);
         });
         connectPhoneWindowIpc.getBoundDeviceId().then(value => {
             if (value !== null) {
@@ -114,7 +121,13 @@ IP:${qrcodeData?.address ?? "发生异常!"}
                     <h4 className="text-[gray] text-base font-bold">下载Android端</h4>
                     <small className="text-[gray] mt-6">确保手机和电脑在同一局域网下</small>
                     <small className="text-[gray] mt-0.5">使用浏览器扫描下方二维码下载</small>
-                    <QRCodeSVG className="mt-6" value={`http://${qrcodeData?.address ?? "ERROR"}:25120/suishoPkgDownload`} size={150} bgColor="#fdf7fe" fgColor="#707070" />
+                    <QRCodeSVG
+                        className="mt-6"
+                        value={`http://${qrcodeData?.address ?? "ERROR"}:25120/suishoPkgDownload`}
+                        size={150}
+                        marginSize={isDarkMode ? 1 : 0}
+                        bgColor={isDarkMode ? "#f6f2f7" : "#fdf7fe"}
+                        fgColor={isDarkMode ? "#1f1f1f" : "#707070"} />
                     <span className="text-[gray] mt-5">
                         或者访问
                         <a className="text-[gray] underline" style={{ cursor: "pointer" }} onClick={() => connectPhoneWindowIpc.openUrl("https://github.com/NativeStar/SuishoConnector-Android")}> Android端仓库 </a>
