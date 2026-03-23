@@ -1,7 +1,7 @@
 {
   "name": "phonelinker",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Link your phone and computer in LAN",
   "main": "./dist/main.js",
   "scripts": {
