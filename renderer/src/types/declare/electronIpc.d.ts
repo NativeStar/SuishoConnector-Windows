@@ -11,8 +11,6 @@ declare global {
             readonly onPhoneConnected: (callback: Function) => Promise<void>;
             readonly onAutoConnectBroadcastSent:(callback: Function)=>Promise<void>
             readonly onPhoneConnectFailed: (callback: Function) => Promise<void>;
-            readonly detectProxy: () => Promise<boolean>;
-            readonly openProxySetting: () => Promise<void>;
             readonly getConfig: <T=null|string|number|boolean|string[]>(key: string,defaultValue?:T) => Promise<T>;
             readonly startAutoConnectBroadcast: () => Promise<void>;
             readonly startApkDownloadServer: () => Promise<void>;

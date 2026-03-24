@@ -37,10 +37,6 @@ export const OpenSourceList:OpenSourceList=[
         url:"https://github.com/jprichardson/node-fs-extra"
     },
     {
-        name:"get-proxy-settings",
-        url:"https://github.com/Azure/get-proxy-settings"
-    },
-    {
         name:"js-sha256",
         url:"https://github.com/emn178/js-sha256"
     },

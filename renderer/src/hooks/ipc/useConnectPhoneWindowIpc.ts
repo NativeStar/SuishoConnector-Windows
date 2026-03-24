@@ -1,8 +1,6 @@
 function useConnectPhoneWindowIpc() {
     return {
         rebootApplication: window.electronMainProcess.rebootApplication,
-        detectProxy: window.electronMainProcess.detectProxy,
-        openProxySetting: window.electronMainProcess.openProxySetting,
         initServer: window.electronMainProcess.initServer,
         on: (type: "connectFailed" | "connected" | "autoConnectorError"|"sentAutoConnectBroadcast", listener: Function) => {
             console.debug(`Connect phone ipc received event:${type}`);

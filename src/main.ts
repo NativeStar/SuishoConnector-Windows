@@ -8,7 +8,6 @@ import Util from "./modules/Util";
 import DownloadServer from "./modules/DownloadServer";
 import { Config as TypeConfig } from "./modules/Util"
 import { Logger, LogLevel } from "./modules/Logger";
-import { getProxyWindows } from "get-proxy-settings";
 import ManualConnect from "./modules/ManualConnect";
 import type OAuthService from "./modules/OAuthService";
 import DeviceConfig from "./modules/DeviceConfig";
@@ -271,7 +270,9 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 value: global.clientMetadata.sessionId,
                 url: `https://${connectedDevice.getPhoneAddress()}`,
                 sameSite: "no_restriction",
-            })
+            });
+            //不走代理
+            mainWindow.webContents.session.setProxy({mode:"direct"});
             //关闭和发起连接有关的服务
             certDownloadServer?.close();
             certDownloadServer = null;
@@ -505,13 +506,6 @@ ipcMain.on("reboot_application", (_event): void => {
     app.relaunch();
     app.quit();
 });
-//打开代理设置
-ipcMain.on("connectPhone_openProxySetting", (_event) => {
-    logger.writeInfo("Open system proxy setting");
-    import("child_process").then(mod => {
-        mod.exec("start ms-settings:network-proxy")
-    })
-});
 //局域网扫描绑定设备
 ipcMain.on("main_startAutoConnectBroadcast", (event) => {
     const sender = event.sender;
@@ -536,11 +530,6 @@ ipcMain.on("close_application", (_event): void => {
 ipcMain.handle("main_getDeviceDataPath", (_event): string => {
     return `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/`
 });
-//代理检测
-ipcMain.handle("connectPhone_detectProxy", async () => {
-    logger.writeDebug("Handle detect proxy");
-    return await getProxyWindows() !== null
-})
 //获取主配置
 ipcMain.handle("main_getConfig", (_event, prop: string, defaultValue?: null | string | boolean | number) => {
     logger.writeDebug(`Handle get config "${prop}" with default value:${defaultValue}`);

@@ -85,22 +85,6 @@ export default function ConnectPhone() {
             }, 200);
         })
     }, []);
-    //环境检测
-    useEffect(() => {
-        (async () => {
-            if (await connectPhoneWindowIpc.detectProxy()) {
-                confirm({
-                    headline: "检测到系统代理",
-                    description: "应用可能无法正常工作\n请检查代理设置",
-                    confirmText: "打开设置",
-                    cancelText: "确认",
-                    onConfirm: () => {
-                        connectPhoneWindowIpc.openProxySetting();
-                    },
-                }).catch(() => { })
-            }
-        })();
-    }, []);
     function showManualConnectDialog() {
         // 39865固定的手动连接中转端口
         alert({

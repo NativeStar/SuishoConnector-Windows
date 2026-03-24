@@ -14,10 +14,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     onPhoneConnectFailed:callback=>{ipcRenderer.on("connectPhone_connectFailed",callback)},
     //发送一次自动连接广播时触发 用于动画
     onAutoConnectBroadcastSent:callback=>{ipcRenderer.on("connectPhone_broadcastSent",callback)},
-    //检测系统代理
-    detectProxy:()=>{return ipcRenderer.invoke("connectPhone_detectProxy")},
-    //打开代理设置
-    openProxySetting:()=>{ipcRenderer.send("connectPhone_openProxySetting")},
     //获取配置信息
     getConfig:(prop,defaultValue)=>{return ipcRenderer.invoke("main_getConfig",prop,defaultValue)},
     //开始自动连接广播
