@@ -5,7 +5,7 @@ export const TransmitMessageListMenu: RightClickMenuItem[] = [
         label: "上传文件"
     }
 ];
-export const TransmitMessageMenuCommonText = [
+export const TransmitMessageMenuCommonText: RightClickMenuItem[] = [
     {
         id: RightClickMenuItemId.Copy,
         label: "复制"
@@ -15,7 +15,7 @@ export const TransmitMessageMenuCommonText = [
         label: "删除"
     }
 ];
-export const TransmitMessageMenuSelectedCommonText = [
+export const TransmitMessageMenuSelectedCommonText: RightClickMenuItem[] = [
     {
         id: RightClickMenuItemId.Copy,
         label: "复制选中"
@@ -25,7 +25,7 @@ export const TransmitMessageMenuSelectedCommonText = [
         label: "删除"
     }
 ];
-export const TransmitMessageMenuUrlText = [
+export const TransmitMessageMenuUrlText: RightClickMenuItem[] = [
     {
         id: RightClickMenuItemId.OpenUrl,
         label: "打开链接"
@@ -39,7 +39,7 @@ export const TransmitMessageMenuUrlText = [
         label: "删除"
     }
 ]
-export const TransmitMessageMenuSelectedUrlText = [
+export const TransmitMessageMenuSelectedUrlText: RightClickMenuItem[] = [
     {
         id: RightClickMenuItemId.OpenUrl,
         label: "打开选中链接"
@@ -53,18 +53,23 @@ export const TransmitMessageMenuSelectedUrlText = [
         label: "删除"
     },
 ]
-export const TransmitMessageMenuFile = [
+export const TransmitMessageMenuFile: RightClickMenuItem[] = [
     {
         id: RightClickMenuItemId.OpenInExplorer,
         label: "在资源管理器中查看",
         enabled: true
     },
     {
+        id: RightClickMenuItemId.DeleteWithFile,
+        label: "删除消息和文件",
+        enabled: true
+    },
+    {
         id: RightClickMenuItemId.Delete,
-        label: "删除"
+        label: "删除消息"
     }
 ]
-export const NotificationItemNotSelectedText = [
+export const NotificationItemNotSelectedText: RightClickMenuItem[] = [
     {
         id: RightClickMenuItemId.CopyTitle,
         label: "复制标题"
@@ -82,21 +87,21 @@ export const NotificationItemNotSelectedText = [
         label: "删除"
     }
 ]
-export const FileManagerDownload=[
+export const FileManagerDownload: RightClickMenuItem[] = [
     {
-        id:RightClickMenuItemId.Download,
-        label:"下载文件"
+        id: RightClickMenuItemId.Download,
+        label: "下载文件"
     }
 ]
-export const FileManagerStarDirectory=[
+export const FileManagerStarDirectory: RightClickMenuItem[] = [
     {
-        id:RightClickMenuItemId.Star,
-        label:"收藏目录"
+        id: RightClickMenuItemId.Star,
+        label: "收藏目录"
     }
 ]
-export const FileManagerUnStarDirectory=[
+export const FileManagerUnStarDirectory: RightClickMenuItem[] = [
     {
-        id:RightClickMenuItemId.Delete,
-        label:"删除收藏"
+        id: RightClickMenuItemId.Delete,
+        label: "删除收藏"
     }
 ]

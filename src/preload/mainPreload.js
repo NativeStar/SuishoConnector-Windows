@@ -85,4 +85,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     showDirectoryPicker:()=>ipcRenderer.invoke("main_showDirectoryPicker"),
     //开始互传拖动文件
     startTransmitDragFile:(fileName)=>{return ipcRenderer.invoke("transmit_startTransmitDragFile",fileName)},
+    //删除指定互传文件
+    deleteTransmitFile:(fileName)=>{return ipcRenderer.invoke("transmit_deleteTransmitFile",fileName)}
 })

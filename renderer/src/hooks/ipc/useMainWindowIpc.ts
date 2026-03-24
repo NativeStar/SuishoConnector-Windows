@@ -107,7 +107,8 @@ function useMainWindowIpc() {
         addWatchPath:window.electronMainProcess.addWatchPath,
         removeWatchPath:window.electronMainProcess.removeWatchPath,
         showDirectoryPicker:window.electronMainProcess.showDirectoryPicker,
-        startTransmitDragFile:window.electronMainProcess.startTransmitDragFile
+        startTransmitDragFile:window.electronMainProcess.startTransmitDragFile,
+        deleteTransmitFile:window.electronMainProcess.deleteTransmitFile,
     }
 }
 export default useMainWindowIpc;

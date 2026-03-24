@@ -271,7 +271,7 @@ class Server {
                     logger.writeDebug("Device handshake success in 500ms");
                     setTimeout(() => {
                         //完成连接 把网络service转为前台服务
-                        socket.send(JSON.stringify({ packetType: "connect_success", msg: global.serverAddress, sessionId: global.clientMetadata.sessionId ,protocolVersion: this.protocolVersion}));
+                        socket.send(JSON.stringify({ packetType: "connect_success", msg: global.serverAddress, sessionId: global.clientMetadata.sessionId, protocolVersion: this.protocolVersion }));
                         //打开主页面
                         this.mainHandle.openMainWindow();
                         this.isInMainWindow = true;
@@ -694,6 +694,16 @@ class Server {
         ipcMain.handle("mediaSession_appendAction", (_event, action, time) => {
             logger.writeDebug(`Media session append action:${action}`)
             socket.send(JSON.stringify({ packetType: "appendMediaSessionControl", msg: action, time }))
+        });
+        ipcMain.handle("transmit_deleteTransmitFile", (_event, fileName) => {
+            logger.writeDebug(`Transmit request delete file:${fileName}`)
+            const baseFileName = path.basename(fileName);
+            // 不需要返回值 懒得做提醒
+            try {
+                fs.rm(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${baseFileName}`)
+            } catch (e) {
+                logger.writeWarn(`Transmit delete file error:${e}`)
+            }
         });
     }
     get clients() {

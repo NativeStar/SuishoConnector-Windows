@@ -6,6 +6,7 @@ export enum RightClickMenuItemId{
     Delete,//删除
     Upload,//上传
     OpenInExplorer,//资源管理器中打开
+    DeleteWithFile,//互传同时删除消息和接收文件
     CopyTitle,//通知转发 复制标题
     CopyContent,//通知转发 复制内容
     OpenUrl,//打开链接

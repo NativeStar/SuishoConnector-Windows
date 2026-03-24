@@ -147,34 +147,49 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         event.preventDefault();
         event.stopPropagation();
         const menu = structuredClone(TransmitMessageMenuFile);
-        // 文件不存在 不允许资源管理器打开
+        // 文件不存在 不允许资源管理器打开和联动删除文件
         if (data.isDeleted || data.from === "computer") {
             menu[0].enabled = false;
+            menu[1].enabled = false;
         }
         ipc.createRightClickMenu(menu).then(result => {
-            if (result === RightClickMenuItemId.Delete) {
-                database.deleteData(data.timestamp);
-                messageDispatch({
-                    type: "remove",
-                    timestamp: data.timestamp
-                });
-                console.debug(`Delete transmit file message:${data.timestamp}`);
-            } else if (result === RightClickMenuItemId.OpenInExplorer) {
-                console.debug(`Try open file in explorer`);
-                ipc.openInExplorer("transmitFile", data.name).then(result => {
-                    if (!result) {
-                        // 文件不存在
-                        setIsDeleted(true);
-                        const modifiedData = { ...data, isDeleted: true }
-                        messageDispatch({
-                            type: "put",
-                            timestamp: modifiedData.timestamp,
-                            messageInstance: { ...data, isDeleted: true }
-                        });
-                        database.putData(modifiedData);
-                        console.debug(`Transmit file deleted:${data.timestamp}`);
-                    }
-                })
+            switch (result) {
+                case RightClickMenuItemId.Delete:
+                    database.deleteData(data.timestamp);
+                    messageDispatch({
+                        type: "remove",
+                        timestamp: data.timestamp
+                    });
+                    console.debug(`Delete transmit file message:${data.timestamp}`);
+                    break
+                case RightClickMenuItemId.OpenInExplorer:
+                    console.debug(`Try open file in explorer`);
+                    ipc.openInExplorer("transmitFile", data.name).then(result => {
+                        if (!result) {
+                            // 文件不存在
+                            setIsDeleted(true);
+                            const modifiedData = { ...data, isDeleted: true }
+                            messageDispatch({
+                                type: "put",
+                                timestamp: modifiedData.timestamp,
+                                messageInstance: { ...data, isDeleted: true }
+                            });
+                            database.putData(modifiedData);
+                            console.debug(`Transmit file deleted:${data.timestamp}`);
+                        }
+                    })
+                    break
+                case RightClickMenuItemId.DeleteWithFile:
+                    console.debug(`Delete transmit file and message:${data.timestamp}`);
+                    ipc.deleteTransmitFile(data.name);
+                    database.deleteData(data.timestamp);
+                    messageDispatch({
+                        type: "remove",
+                        timestamp: data.timestamp
+                    });
+                    break
+                default:
+                    break;
             }
         })
     }
@@ -186,7 +201,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         console.debug(`Start drag file message:${data.name}`);
     }
     function openFile() {
-        if (data.from === "computer") return
+        if (data.from === "computer"||data.isDeleted) return
         console.debug("Try open file");
         ipc.openFile(data.name).then(result => {
             if (!result) setFileDeleted()
