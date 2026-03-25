@@ -175,13 +175,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     let trayInitd = false;
     let networkDriverName = "";
     await Util.ensureCert();
-    //检测Clash 这玩意会导致拿不到真实ip
-    const networkInterfaces = os.networkInterfaces();
-    logger.writeInfo(`Network interfaces:${Reflect.ownKeys(networkInterfaces)}`);
-    if (Reflect.has(networkInterfaces, "Clash")) {
-        logger.writeWarn('Found working "Clash" virtual network device');
-        return new Error("Clash");
-    }
     connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
             logger.writeDebug("Invoke open main window");
@@ -304,7 +297,9 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     //手动连接服务
     manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId, connectedDevice.pairToken);
     manualConnectRedirectServer.init();
-    const networkInfo = await Util.getIPAddress(os.networkInterfaces())
+    const networkInterfaces = os.networkInterfaces();
+    logger.writeInfo(`Network interfaces:${Reflect.ownKeys(networkInterfaces)}`);
+    const networkInfo = await Util.getIPAddress(networkInterfaces)
     global.serverAddress = networkInfo.address
     networkDriverName = networkInfo.name ?? "";
     //将服务器地址打进全局

@@ -7,7 +7,7 @@ declare global {
             readonly devtools: () => Promise<void>;
             readonly rebootApplication: (clearConnectionCache=false) => Promise<void>;
             readonly closeApplication: () => Promise<void>;
-            readonly initServer: () => Promise<Error | InitServerResult>;
+            readonly initServer: () => Promise<InitServerResult>;
             readonly onPhoneConnected: (callback: Function) => Promise<void>;
             readonly onAutoConnectBroadcastSent:(callback: Function)=>Promise<void>
             readonly onPhoneConnectFailed: (callback: Function) => Promise<void>;

@@ -28,17 +28,6 @@ export default function ConnectPhone() {
     useEffect(() => {
         setColorScheme("#895cad")
         connectPhoneWindowIpc.initServer().then(value => {
-            //异常检测
-            if (value instanceof Error) {
-                alert({
-                    headline: "发生异常",
-                    description: "初始化失败 可能是启用了虚拟网卡(TUN)类程序 如有请关闭它们\n" + value.stack,
-                    confirmText: "重启",
-                    onConfirm: () => connectPhoneWindowIpc.rebootApplication(),
-                });
-                console.error(value);
-                return
-            }
             const { pairCode: code, ...data } = value;
             //空地址检测
             if (data.address === null) {
