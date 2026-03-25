@@ -13,6 +13,7 @@ import { useFuzzySearchList } from "@nozbe/microfuzz/react"
 import ItemFilterCard from "../../components/ItemFilterCard";
 import UploadImagePreviewDialog from "./components/UploadImagePreviewDialog";
 import AndroidIdContext from "~/context/AndroidIdContext";
+import { FolderListDialog } from "./components/FolderListDiaog";
 
 interface TransmitPageProps {
     hidden: boolean,
@@ -145,6 +146,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     const [showFilterCard, setShowFilterCard] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [previewImage, setPreviewImage] = useState<Blob | null>(null);
+    const [userDropFolder,setUserDropFolder]=useState<FileSystemEntry[]|null>(null);
     const [searchCapsSensitive, setSearchCapsSensitive] = useState(false);
     const db = useDatabase("transmit");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -304,9 +306,10 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     }, [hidden])
     return (
         <>
+            {userDropFolder && <FolderListDialog itemList={userDropFolder} setItemList={setUserDropFolder}/>}
             {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage} />}
             <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
-                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} />}
+                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder}/>}
                 {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock" />}
                 {/* 列表内容 */}
                 {sortedMessageList.length === 0 && <div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}

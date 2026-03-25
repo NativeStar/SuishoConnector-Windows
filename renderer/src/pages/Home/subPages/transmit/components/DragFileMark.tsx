@@ -3,8 +3,9 @@ import { snackbar } from "mdui";
 interface DragFileMarkProps {
     onDropFile: (file: File) => void,
     setSelfShow: React.Dispatch<React.SetStateAction<boolean>>
+    setUserDropFolder: React.Dispatch<React.SetStateAction<FileSystemEntry[] | null>>
 }
-export default function DragFileMark({ setSelfShow ,onDropFile}: DragFileMarkProps) {
+export default function DragFileMark({ setSelfShow, onDropFile, setUserDropFolder }: DragFileMarkProps) {
     function onDragLeave(event: React.DragEvent<HTMLDivElement>) {
         //检测是否真的拖出了遮罩外
         const relatedTarget: HTMLElement | null = event.relatedTarget as HTMLElement;
@@ -32,12 +33,25 @@ export default function DragFileMark({ setSelfShow ,onDropFile}: DragFileMarkPro
             console.debug("File drag mark received too many files");
             return
         }
-        if (event.dataTransfer.items[0].webkitGetAsEntry()?.isDirectory) {
-            snackbar({
-                message: "不支持上传文件夹",
-                autoCloseDelay: 1200
-            });
-            console.debug("File drag mark received a folder");
+        const rawEntry = event.dataTransfer.items[0].webkitGetAsEntry()!
+        if (rawEntry.isDirectory) {
+            const directoryEntry = rawEntry as FileSystemDirectoryEntry
+            directoryEntry.createReader().readEntries(subEntries => {
+                console.info(`Reading target folder entries:${directoryEntry.name}`);
+                console.debug(`Target folder entries:${subEntries}`);
+                // console.log(subEntries);
+                snackbar({
+                    message: "正在解析目录...",
+                    autoCloseDelay: 750
+                });
+                setUserDropFolder(subEntries)
+            }, (err) => {
+                console.error(err);
+                snackbar({
+                    message: "读取文件夹时发生异常!",
+                    autoCloseDelay: 1600
+                });
+            })
             return
         }
         console.info(`File drag mark received file:${event.dataTransfer.files[0].name}`);
