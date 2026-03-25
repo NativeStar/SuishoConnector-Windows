@@ -107,7 +107,7 @@ IP:${qrcodeData?.address ?? "发生异常!"}
                     <small className="text-[gray] mt-6">确保手机和电脑在同一局域网下</small>
                     <small className="text-[gray] mt-0.5">使用浏览器扫描下方二维码下载</small>
                     <QRCodeSVG
-                        className="mt-6"
+                        className="mt-6 hover:cursor-none"
                         value={`http://${qrcodeData?.address ?? "ERROR"}:25120/suishoPkgDownload`}
                         size={150}
                         marginSize={isDarkMode ? 1 : 0}
