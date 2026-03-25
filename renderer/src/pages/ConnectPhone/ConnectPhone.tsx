@@ -32,7 +32,7 @@ export default function ConnectPhone() {
             if (value instanceof Error) {
                 alert({
                     headline: "发生异常",
-                    description: "初始化失败 可能是启用了虚拟网卡(TUN)类程序\n" + value.stack,
+                    description: "初始化失败 可能是启用了虚拟网卡(TUN)类程序 如有请关闭它们\n" + value.stack,
                     confirmText: "重启",
                     onConfirm: () => connectPhoneWindowIpc.rebootApplication(),
                 });
@@ -51,16 +51,17 @@ export default function ConnectPhone() {
                 return
             }
             pairCode.current = code
-            setQrcodeData(data)
+            setQrcodeData(data);
+            //等获取到ip才开始自动连接广播
+            connectPhoneWindowIpc.getBoundDeviceId().then(value => {
+                if (value !== null) {
+                    connectPhoneWindowIpc.startAutoConnectBroadcast();
+                    setAutoConnectorWorking(true)
+                }
+            });
         });
         window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
             setIsDarkMode(e.matches);
-        });
-        connectPhoneWindowIpc.getBoundDeviceId().then(value => {
-            if (value !== null) {
-                connectPhoneWindowIpc.startAutoConnectBroadcast();
-                setAutoConnectorWorking(true)
-            }
         });
         //回调
         connectPhoneWindowIpc.on("connected", () => {
@@ -127,7 +128,13 @@ IP:${qrcodeData?.address ?? "发生异常!"}
                     <h4 className="text-[gray] text-base font-bold">使用手机端扫码连接</h4>
                     <small className="text-[gray] mt-5">需要处在同一局域网下</small>
                     <br />
-                    {qrcodeData !== null && <ConnectQrcode data={JSON.stringify(qrcodeData)} showMark={isConnecting} />}
+                    {qrcodeData !== null ? <ConnectQrcode data={JSON.stringify(qrcodeData)} showMark={isConnecting} /> :
+                        <div className="flex flex-col items-center">
+                            <mdui-circular-progress></mdui-circular-progress>
+                            <small className="text-[gray] mt-2">正在获取真实内网IP</small>
+                            <small className="text-[gray]">这会需要几秒时间</small>
+                            <small className="text-[gray]">请放心 网络环境不变时 会使用更快的缓存数据</small>
+                        </div>}
                     {/* 自动连接 */}
                     {autoConnectorWorking && <div hidden={false} className="text-[gray] flex w-max mt-6.5">
                         <mdui-icon style={{ color: sentBroadcast ? "blue" : "gray" }} name={isAutoConnectorError ? "error_outline" : "cell_tower"} />
@@ -136,13 +143,13 @@ IP:${qrcodeData?.address ?? "发生异常!"}
                     {/* 菜单 */}
                     <div className="flex mt-19">
                         <mdui-tooltip content="手动连接">
-                            <mdui-button-icon icon="support" onClick={showManualConnectDialog}></mdui-button-icon>
+                            <mdui-button-icon disabled={!qrcodeData} icon="support" onClick={showManualConnectDialog}></mdui-button-icon>
                         </mdui-tooltip>
                         <mdui-tooltip content="刷新">
-                            <mdui-button-icon icon="refresh" onClick={() => connectPhoneWindowIpc.rebootApplication()}></mdui-button-icon>
+                            <mdui-button-icon disabled={!qrcodeData} icon="refresh" onClick={() => connectPhoneWindowIpc.rebootApplication(true)}></mdui-button-icon>
                         </mdui-tooltip>
                         <mdui-tooltip content="安卓端下载">
-                            <mdui-button-icon icon="download" onClick={() => {
+                            <mdui-button-icon disabled={!qrcodeData} icon="download" onClick={() => {
                                 connectPhoneWindowIpc.startApkDownloadServer();
                                 setInApkDownloadPage(true);
                             }}></mdui-button-icon>

@@ -3,7 +3,7 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     isDeveloping:()=>{return ipcRenderer.invoke("isDeveloping")},
     devtools:()=>ipcRenderer.invoke("openConsole"),
     //重启软件
-    rebootApplication:()=>{ipcRenderer.send("reboot_application")},
+    rebootApplication:(clearConnectionCache=false)=>{ipcRenderer.send("reboot_application",clearConnectionCache)},
     //退出
     closeApplication:()=>{ipcRenderer.send("close_application")},
     //初始化

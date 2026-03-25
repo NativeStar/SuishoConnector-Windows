@@ -5,56 +5,43 @@ import path from "path";
 import child_process from 'child_process';
 import build from "../constant/build.prop.json";
 import configTemp from "../constant/configTemplate";
-import { VirtualNetworkDriverName } from "../constant/VirtualNetworkDriverName"
 import os from "os";
-// import forge from "node-forge"
+import { getSelfAddressWithLegacy,getSelfAddressWithPowerShell} from "./GetSelfAddress";
 type Config = typeof configTemp;
+type NetworkInfo={
+    name:string|null;
+    address:string|null;
+}
 class Util {
     //Windows文件名保留字
     private static windowsReservedWords = new Set(["CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]);
     //url判断正则
     private static urlRegexp = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
     private static LOG_TAG = "Util";
-    private static checkNetworkDriverName(name: string) {
-        for (const virtualName of VirtualNetworkDriverName) {
-            if (name.toLowerCase().includes(virtualName.toLowerCase())) {
-                logger.writeInfo(`Found virtual network driver:${name}`, this.LOG_TAG);
-                return true;
-            }
-        }
-        return false;
-    }
+    
     static delay(ms = 0) {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             setTimeout(() => {
                 resolve();
             }, ms);
         });
     }
-    /**
-     * @description 直接照抄
-     * @author https://zhuanlan.zhihu.com/p/139212816
-     * @static
-     * @param {Array} interfaces os.networkInterfaces
-     * @memberof Util
-     */
-    static getIPAdress(interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>): string | null {
-        for (let devName in interfaces) {
-            //跳过虚拟网卡 仅排查我碰到过的
-            if (this.checkNetworkDriverName(devName)) {
-                logger.writeDebug(`Skipping virtual network device:${devName}`, this.LOG_TAG);
-                continue
-            }
-            let iface = interfaces[devName];
-            if (iface == null) return null;
-            for (let i = 0; i < iface.length; i++) {
-                var alias = iface[i];
-                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
-                    return alias.address;
+    static async getIPAddress(interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>): Promise<NetworkInfo> {
+        const lastConnectionAddress:string=global.config["internal:lastConnectionAddress"]
+        const lastConnectionName:string=global.config["internal:lastConnectionName"]
+        if (lastConnectionAddress&&lastConnectionName) {
+            const legacyGetAddressResult=getSelfAddressWithLegacy(interfaces);
+            //缓存和快速获取的数据一致 直接使用
+            if (legacyGetAddressResult&&legacyGetAddressResult.address === lastConnectionAddress&&legacyGetAddressResult.name === lastConnectionName) {
+                logger.writeInfo("Using last connection address", this.LOG_TAG);
+                return {
+                    address: lastConnectionAddress,
+                    name: lastConnectionName
                 }
             }
         }
-        return null
+        logger.writeInfo("Using PowerShell to get self address", this.LOG_TAG);
+        return await getSelfAddressWithPowerShell()
     }
     /**
      * 
@@ -73,7 +60,7 @@ class Util {
      * @memberof Util
      */
     static get isDeveloping(): boolean {
-        return !app.isPackaged || process.argv.includes("--enable-debug-mode");
+        return !app.isPackaged
     }
     /**
      * @static

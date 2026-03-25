@@ -3,9 +3,11 @@ out
 dist
 ./out/
 test
+./test.js
 ./test
 srcBackup.zip
 /temp_index.txt
 /psd/
 /.claude/
 /.vscode/
+test.js

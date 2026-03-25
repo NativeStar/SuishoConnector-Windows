@@ -6,5 +6,7 @@ export default {
     heartBeatDelay:"MEDIUM",
     logLevel:"INFO",
     enableContentProtection:false,
-    autoCheckUpdate:true
+    autoCheckUpdate:true,
+    "internal:lastConnectionAddress":"",
+    "internal:lastConnectionName":""
 }

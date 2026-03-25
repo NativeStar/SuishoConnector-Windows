@@ -173,6 +173,7 @@ app.on("ready", async (_event, _info) => {
 //ipc
 ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     let trayInitd = false;
+    let networkDriverName = "";
     await Util.ensureCert();
     //检测Clash 这玩意会导致拿不到真实ip
     const networkInterfaces = os.networkInterfaces();
@@ -272,7 +273,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 sameSite: "no_restriction",
             });
             //不走代理
-            mainWindow.webContents.session.setProxy({mode:"direct"});
+            mainWindow.webContents.session.setProxy({ mode: "direct" });
             //关闭和发起连接有关的服务
             certDownloadServer?.close();
             certDownloadServer = null;
@@ -281,6 +282,11 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             broadcaster?.close();
             broadcaster = null;
             apkDownloadServerInstance?.close();
+            //保存本次连接数据
+            global.config["internal:lastConnectionAddress"] = global.serverAddress ?? ""
+            global.config["internal:lastConnectionName"] = networkDriverName
+            logger.writeDebug("Saved last connection data");
+            Util.saveConfig();
         },
         getTrayInstance() {
             return trayInstance;
@@ -298,7 +304,9 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     //手动连接服务
     manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId, connectedDevice.pairToken);
     manualConnectRedirectServer.init();
-    global.serverAddress = Util.getIPAdress(os.networkInterfaces());
+    const networkInfo = await Util.getIPAddress(os.networkInterfaces())
+    global.serverAddress = networkInfo.address
+    networkDriverName = networkInfo.name ?? "";
     //将服务器地址打进全局
     logger.writeInfo(`Local address is ${global.serverAddress}`);
     return {
@@ -478,7 +486,7 @@ ipcMain.handle("transmit_generateTransmitFileURL", (_event, file) => {
 ipcMain.handle("transmit_startTransmitDragFile", async (event, file) => {
     logger.writeDebug(`Start transmit drag file:${file}`);
     const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`
-    if(!await fs.exists(filePath)) return false;
+    if (!await fs.exists(filePath)) return false;
     event.sender.startDrag({
         file: filePath,
         icon: nativeImage.createFromPath(path.join(app.getAppPath(), "res", "fileDrag.png"))
@@ -499,8 +507,15 @@ ipcMain.handle("main_shellOpenFile", async (_event, file) => {
 
 })
 //重启程序
-ipcMain.on("reboot_application", (_event): void => {
-    logger.writeInfo("Reboot application")
+ipcMain.on("reboot_application",async (_event, clearConnectionCache = false): Promise<void> => {
+    logger.writeInfo("Reboot application");
+    if (clearConnectionCache) {
+        //清除缓存连接数据
+        global.config["internal:lastConnectionAddress"] = ""
+        global.config["internal:lastConnectionName"] = ""
+        logger.writeDebug("Cleared last connection data");
+        await Util.saveConfig();
+    }
     //简单粗暴但有效
     mainWindow?.destroy();
     app.relaunch();
