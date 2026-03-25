@@ -67,7 +67,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSwitch title="解锁后提醒接收的通知数量" desc="如果在计算机锁屏时接收到转发通知 则会在解锁后发起提醒 避免遗漏(仅在关闭'计算机锁屏后继续推送通知'时生效)" icon="sync_lock" configs={deviceConfig} configKey="showBlockedNotificationCountOnUnlockScreen" setConfig={wrappedSetDeviceConfig} disabled={deviceConfig.pushNotificationOnLockedScreen as boolean} />
                     <SettingItemSwitch title="手机使用时计算机不推送通知" desc="避免使用手机时通知重复推送 数据仍会进行记录(以是否解锁屏幕为依据判断使用状态)" icon="phonelink_lock" configs={deviceConfig} configKey="blockNotificationOnDeviceUnlock" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="全屏时推送通知" desc="全屏视频 游戏 PPT等" icon="fullscreen" configs={deviceConfig} configKey="pushNotificationOnFullScreen" setConfig={wrappedSetDeviceConfig} />
-                    <SettingItemSwitch title="使用通知历史记录" icon="history" configs={deviceConfig} configKey="enableNotificationLog" setConfig={wrappedSetDeviceConfig} />
+                    <SettingItemSwitch title="记录转发的通知" icon="history" configs={deviceConfig} configKey="enableNotificationLog" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSelect title="默认通知展示方式" icon="notifications_active" items={notificationShowMethodOptions} configs={deviceConfig} configKey="defaultNotificationShowMode" setConfig={wrappedSetDeviceConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">隐私</mdui-list-subheader>
                     <SettingItemSelect title="验证方式" icon="key" items={authMethodOptions} onChange={async (value) => onProtectMethodChange(value as ProtectMethod, ipc, androidId)} configKey="protectMethod" configs={deviceConfig} setConfig={wrappedSetDeviceConfig} />
