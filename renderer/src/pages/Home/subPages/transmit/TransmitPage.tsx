@@ -396,7 +396,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             {userDropFolder && <FolderListDialog itemList={userDropFolder} setItemList={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile} />}
             {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage} />}
             <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
-                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder} />}
+                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile}/>}
                 {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock" />}
                 {/* 列表内容 */}
                 {sortedMessageList.length === 0 && <div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}

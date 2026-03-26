@@ -4,8 +4,9 @@ interface DragFileMarkProps {
     onDropFile: (file: File) => void,
     setSelfShow: React.Dispatch<React.SetStateAction<boolean>>
     setUserDropFolder: React.Dispatch<React.SetStateAction<FileSystemEntry[] | null>>
+    uploadMultipleFiles: (fileList: File[]) => void
 }
-export default function DragFileMark({ setSelfShow, onDropFile, setUserDropFolder }: DragFileMarkProps) {
+export default function DragFileMark({ setSelfShow, onDropFile, setUserDropFolder, uploadMultipleFiles }: DragFileMarkProps) {
     function onDragLeave(event: React.DragEvent<HTMLDivElement>) {
         //检测是否真的拖出了遮罩外
         const relatedTarget: HTMLElement | null = event.relatedTarget as HTMLElement;
@@ -14,7 +15,7 @@ export default function DragFileMark({ setSelfShow, onDropFile, setUserDropFolde
         }
         setSelfShow(false)
     }
-    function onDrop(event: React.DragEvent<HTMLDivElement>) {
+    async function onDrop(event: React.DragEvent<HTMLDivElement>) {
         event.preventDefault();
         setSelfShow(false);
         if (event.dataTransfer.files.length === 0) {
@@ -26,11 +27,27 @@ export default function DragFileMark({ setSelfShow, onDropFile, setUserDropFolde
             return
         }
         if (event.dataTransfer.files.length >= 2) {
-            snackbar({
-                message: "暂时只支持单个文件上传",
-                autoCloseDelay: 1200
-            });
-            console.debug("File drag mark received too many files");
+            const entries = Array.from(event.dataTransfer.items, item => item.webkitGetAsEntry());
+            const parsedFiles: File[] = [];
+            if (entries.some(entry => !entry || entry.isDirectory)) {
+                console.info("User drop multiple item has folder");
+                snackbar({
+                    message: "该操作只接受文件",
+                    autoCloseDelay: 1200
+                });
+                return;
+            }
+            for (const fsEntry of entries) {
+                await new Promise((resolve) => {
+                    (fsEntry as FileSystemFileEntry).file(file => {
+                        console.debug(`Get drag file instance success:${file.name}`);
+                        parsedFiles.push(file);
+                        resolve(true);
+                    })
+                });
+            }
+            uploadMultipleFiles(parsedFiles)
+            console.debug("File drag mark received multiple files");
             return
         }
         const rawEntry = event.dataTransfer.items[0].webkitGetAsEntry()!
@@ -39,7 +56,6 @@ export default function DragFileMark({ setSelfShow, onDropFile, setUserDropFolde
             directoryEntry.createReader().readEntries(subEntries => {
                 console.info(`Reading target folder entries:${directoryEntry.name}`);
                 console.debug(`Target folder entries:${subEntries}`);
-                // console.log(subEntries);
                 snackbar({
                     message: "正在解析目录...",
                     autoCloseDelay: 550
