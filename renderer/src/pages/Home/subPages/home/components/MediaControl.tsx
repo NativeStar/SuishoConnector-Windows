@@ -9,7 +9,7 @@ interface MediaControlProps {
 }
 // 旋转动画角度
 const rotateList = [60, 120, 180, 240, 300, 360];
-export default function MediaControl({className}:MediaControlProps) {
+export default function MediaControl({ className }: MediaControlProps) {
     const ipc = useMainWindowIpc();
     const [playing, setPlaying] = useState(false);
     const [controllable, setControllable] = useState(false);
@@ -25,9 +25,9 @@ export default function MediaControl({className}:MediaControlProps) {
         duration: 0
     });
     let durationLooper: number = -1;
-    function onSliderChange(event: React.ChangeEvent<MduiSliderElement>){
-        ipc.appendMediaSessionControl("seek",event.target.value*1000);
-        console.debug(`Seek phone media to:${event.target.value*1000}`);
+    function onSliderChange(event: React.ChangeEvent<MduiSliderElement>) {
+        ipc.appendMediaSessionControl("seek", event.target.value * 1000);
+        console.debug(`Seek phone media to:${event.target.value * 1000}`);
     }
     useEffect(() => {
         const updateMediaSessionMetadataCleanup = ipc.on("updateMediaSessionMetadata", data => {
@@ -64,7 +64,7 @@ export default function MediaControl({className}:MediaControlProps) {
             console.debug(`Update media session playback state:${JSON.stringify(data)}`);
         });
         let aniIndex = 0;
-        const animationLooper= setInterval(() => {
+        const animationLooper = setInterval(() => {
             if (!imageRef.current?.src.startsWith("data:image")) {
                 if (aniIndex >= rotateList.length) {
                     aniIndex = 0;
@@ -95,7 +95,7 @@ export default function MediaControl({className}:MediaControlProps) {
         }
     }, [playing, mediaSessionMetadata])
     return (
-        <mdui-card className={twMerge("fixed h-[35%] flex flex-col max-w-[40%] min-w-[40%]",className)}>
+        <mdui-card className={twMerge("fixed h-[35%] flex flex-col max-w-[40%] min-w-[40%]", className)}>
             <div className="flex">
                 {/* 封面 */}
                 <img ref={imageRef} style={{ rotate: `${rotate}deg` }} src={mediaSessionMetadata.image === "null" ? "./audioPlayerNotPicture.png" : mediaSessionMetadata.image} className="w-24 h-24 mt-2 ml-2" />
@@ -111,7 +111,7 @@ export default function MediaControl({className}:MediaControlProps) {
                 <small className="text-[gray]">{time2str(duration)}</small>
                 <small className="text-[gray]">{time2str(mediaSessionMetadata.duration)}</small>
             </div>
-            <mdui-slider onPointerDown={() => userControllingSlider.current = true} onPointerUp={() => userControllingSlider.current = false} onChange={onSliderChange} nolabel value={duration} disabled={!controllable} max={mediaSessionMetadata.duration === 0 ? 1 : mediaSessionMetadata.duration} className="w-11/12 ml-3.5 mt-3" />
+            <mdui-slider key={mediaSessionMetadata.duration} onPointerDown={() => userControllingSlider.current = true} onPointerUp={() => userControllingSlider.current = false} onChange={onSliderChange} nolabel value={duration} disabled={!controllable} max={mediaSessionMetadata.duration === 0 ? 1 : mediaSessionMetadata.duration} className="w-11/12 ml-3.5 mt-3" />
             {/* 控制按钮 */}
             <div className="flex justify-between w-11/12 ml-3.5 mt-2.5">
                 <mdui-button-icon disabled={!controllable} icon="skip_previous" onClick={() => ipc.appendMediaSessionControl("previous")}></mdui-button-icon>
