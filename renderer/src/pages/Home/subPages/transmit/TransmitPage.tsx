@@ -45,7 +45,8 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     }));
     const hasProgressingFileRef = useRef(false);
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
-        uploadTransmitFile(event.target.files![0]);
+        if (!event.target.files||event.target.files.length===0) return;
+        uploadMultipleFile(Array.from(event.target.files));
     }
     function uploadTransmitFile(file: File | UploadFileDescriptor, timestamp?: number, appendMessage = true) {
         const filePath = file instanceof File ? ipc.getFilePath(file) : file.path;
@@ -427,7 +428,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 {/* 输入和菜单区 */}
                 <div className="fixed w-full h-[8%] bottom-0 left-[9%] border-r-[5px] bg-[rgb(var(--mdui-color-surface-container-low))]" onPaste={onPagePaste}>
                     {/* 文件上传input */}
-                    <input type="file" hidden ref={fileInputRef} onChange={onFileInputValueChange} />
+                    <input type="file" multiple hidden ref={fileInputRef} onChange={onFileInputValueChange} />
                     <TransmitTextInputArea messageDispatch={messageListDispatch} database={db} list={listRef} />
                     <mdui-dropdown>
                         {/* 菜单按钮 */}
