@@ -97,41 +97,43 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
         </mdui-card>
     )
 }
-export function FileMessage({ data, progressing: hasProgress, database, messageDispatch }: FileMessageProps) {
+export function FileMessage({ data, progressing, database, messageDispatch }: FileMessageProps) {
     const ipc = useMainWindowIpc();
     const [progressValue, setProgressValue] = useState<number>(0);
-    const [progressing, setProgressing] = useState<boolean>(hasProgress);
     const [isDeleted, setIsDeleted] = useState<boolean>(data.isDeleted);
     const fileFullPathRef = useRef<string>(null);
     useEffect(() => {
-        const progressListener = (_event: never, progress: number) => {
-            setProgressValue(progress);
-        }
         if (!data.isDeleted && data.from === "phone") {
             ipc.generateTransmitFileURL(data.name).then(fullPath => {
                 fileFullPathRef.current = fullPath;
             })
         }
-        if (hasProgress) {
+    }, []);
+    useEffect(() => {
+        if (progressing) {
+            const progressListener = (_event: never, progress: number) => {
+                setProgressValue(progress);
+            }
             ipc.registerFileUploadProgressListener(progressListener);
-            ipc.on("transmitFileUploadSuccess", () => {
+            const transmitFileUploadSuccessCleanup = ipc.on("transmitFileUploadSuccess", () => {
                 //进度条消失之前填满
                 setProgressValue(data.size);
-                setProgressing(false);
                 ipc.unregisterFileUploadProgressListener(progressListener);
                 console.info(`Transmit file receive success:${data.name}`);
             });
-            ipc.on("transmitFileTransmitFailed", () => {
-                setProgressing(false);
+            const transmitFileTransmitFailedCleanup = ipc.on("transmitFileTransmitFailed", () => {
+                // setProgressing(false);
                 ipc.unregisterFileUploadProgressListener(progressListener);
                 console.warn(`Transmit file receive failed:${data.name}`);
             })
             return () => {
                 ipc.unregisterFileUploadProgressListener(progressListener);
+                transmitFileUploadSuccessCleanup();
+                transmitFileTransmitFailedCleanup();
                 console.debug(`Unmount transmit file progress listener:${data.name}`);
             }
         }
-    }, []);
+    }, [progressing]);
     function setFileDeleted() {
         setIsDeleted(true);
         const modifiedData = { ...data, isDeleted: true }
@@ -201,7 +203,7 @@ export function FileMessage({ data, progressing: hasProgress, database, messageD
         console.debug(`Start drag file message:${data.name}`);
     }
     function openFile() {
-        if (data.from === "computer"||data.isDeleted) return
+        if (data.from === "computer" || data.isDeleted) return
         console.debug("Try open file");
         ipc.openFile(data.name).then(result => {
             if (!result) setFileDeleted()

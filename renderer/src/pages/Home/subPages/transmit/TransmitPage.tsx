@@ -1,7 +1,7 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, confirm, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState, useContext } from "react";
+import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState, useContext, useCallback } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -13,7 +13,7 @@ import { useFuzzySearchList } from "@nozbe/microfuzz/react"
 import ItemFilterCard from "../../components/ItemFilterCard";
 import UploadImagePreviewDialog from "./components/UploadImagePreviewDialog";
 import AndroidIdContext from "~/context/AndroidIdContext";
-import { FolderListDialog } from "./components/FolderListDiaog";
+import { FolderListDialog } from "./components/FolderListDialog";
 
 interface TransmitPageProps {
     hidden: boolean,
@@ -39,20 +39,21 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             listRef.current?.scrollToIndex(messageList.length - 1);
         },
     }));
+    const hasProgressingFileRef = useRef(false);
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
         uploadTransmitFile(event.target.files![0]);
     }
-    function uploadTransmitFile(file: File | { name: string, size: number, path: string }) {
+    function uploadTransmitFile(file: File | { name: string, size: number, path: string }, timestamp?: number, appendMessage = true) {
         const filePath = file instanceof File ? ipc.getFilePath(file) : file.path;
         //实际上如果从资源管理器拖文件 会因为'/'变成'\'误打误撞躲开误判
         if (filePath.includes(`phonelinker/programData/devices_data/${androidId}/transmit_files/`)) {
             snackbar({
-                message:"无法上传来自自身的文件",
-                autoCloseDelay:1200
+                message: "无法上传来自自身的文件",
+                autoCloseDelay: 1200
             })
             return
         }
-        if (hasProgressingFile) {
+        if (hasProgressingFileRef.current) {
             snackbar({
                 message: "请等待上一个上传任务完成",
                 autoCloseDelay: 1500
@@ -60,23 +61,25 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             console.debug("Upload file failed:last upload task not completed");
             return
         }
-        const fileTimestamp = Date.now();
-        uploadingFileTimestamp.current = fileTimestamp;
-        const messageInstance: TransmitFileMessage = {
-            timestamp: fileTimestamp,
-            type: "file",
-            from: "computer",
-            isDeleted: false,
-            displayName: file.name,
-            name: file.name,
-            size: file.size
+        const fileTimestamp = timestamp ?? Date.now();
+        setUploadingFileTimestamp(fileTimestamp);
+        if (appendMessage) {
+            const messageInstance: TransmitFileMessage = {
+                timestamp: fileTimestamp,
+                type: "file",
+                from: "computer",
+                isDeleted: false,
+                displayName: file.name,
+                name: file.name,
+                size: file.size
+            }
+            db.addData(messageInstance);
+            messageListDispatch({
+                type: "add",
+                messageInstance
+            });
         }
-        db.addData(messageInstance);
         fileInputRef.current!.value = "";
-        messageListDispatch({
-            type: "add",
-            messageInstance
-        });
         ipc.transmitUploadFile(file.name, filePath, file.size);
         listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
         console.info("Transmit start upload a file");
@@ -146,14 +149,48 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     const [showFilterCard, setShowFilterCard] = useState(false);
     const [searchText, setSearchText] = useState("");
     const [previewImage, setPreviewImage] = useState<Blob | null>(null);
-    const [userDropFolder,setUserDropFolder]=useState<FileSystemEntry[]|null>(null);
+    const [userDropFolder, setUserDropFolder] = useState<FileSystemEntry[] | null>(null);
     const [searchCapsSensitive, setSearchCapsSensitive] = useState(false);
     const db = useDatabase("transmit");
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const uploadingFileTimestamp = useRef<number>(null);
+    const [uploadingFileTimestamp,setUploadingFileTimestamp]=useState(0);
     const listRef = useRef<VirtuosoHandle>(null);
+    const [multipleUploadFilesList, setMultipleUploadFilesList] = useState<{ time: number, file: File }[]>([]);
     const isAtBottom = useRef(true);
-    let hasProgressingFile = false;
+    const uploadMultipleFile = useCallback((fileList: File[]) => {
+        if (fileList.length === 0) return
+        //防止时间戳重复
+        const firstFileTimestamp = Date.now();
+        let timestampOffset = 2;
+        const [firstFile, ...removedFileList] = fileList;
+        const parsedFileInstanceList = removedFileList.map(file => {
+            const parsedFileInstance = {
+                time: Date.now() + timestampOffset,
+                file
+            }
+            timestampOffset += 1;
+            return parsedFileInstance;
+        })
+        setMultipleUploadFilesList(prev => [...prev, ...parsedFileInstanceList]);
+        //提前追加消息列表
+        for (const fileInfo of parsedFileInstanceList) {
+            const messageInstance: TransmitFileMessage = {
+                timestamp: fileInfo.time,
+                type: "file",
+                from: "computer",
+                isDeleted: false,
+                displayName: fileInfo.file.name,
+                name: fileInfo.file.name,
+                size: fileInfo.file.size
+            }
+            db.addData(messageInstance);
+            messageListDispatch({
+                type: "add",
+                messageInstance
+            });
+        }
+        uploadTransmitFile(firstFile, firstFileTimestamp);
+    }, [multipleUploadFilesList])
     const [messageList, messageListDispatch] = useReducer<(TransmitTextMessage | TransmitFileMessage)[], TransmitMessageListDispatch>((state, action) => {
         switch (action.type) {
             case "add":
@@ -224,8 +261,8 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         // 接收就是有进度
         const appendFileCleanup = ipc.on("transmitAppendFile", file => {
             const messageTimestamp: number = Date.now();
-            uploadingFileTimestamp.current = messageTimestamp;
-            hasProgressingFile = true;
+            setUploadingFileTimestamp(messageTimestamp)
+            hasProgressingFileRef.current = true;
             const messageInstance: TransmitFileMessage = {
                 timestamp: messageTimestamp,
                 type: "file",
@@ -245,26 +282,6 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             });
             console.debug(`Transmit receive new file:${messageInstance.name}`);
         });
-        const uploadFileSuccessListenerCleanup = ipc.on("transmitFileUploadSuccess", () => {
-            hasProgressingFile = false;
-            uploadingFileTimestamp.current = null;
-            console.debug(`Transmit receive file success`);
-        });
-        const uploadFileFailListenerCleanup = ipc.on("transmitFileTransmitFailed", ({ title, message }) => {
-            db.deleteData(uploadingFileTimestamp.current!);
-            messageListDispatch({
-                type: "remove",
-                timestamp: uploadingFileTimestamp.current!
-            });
-            hasProgressingFile = false;
-            alert({
-                headline: title,
-                description: message,
-                confirmText: "确定",
-                onConfirm: () => { },
-            })
-            console.warn(`Transmit receive file failed:${message}`);
-        });
         const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", data => {
             uploadTransmitFile({
                 name: data.filename,
@@ -276,11 +293,53 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         return () => {
             appendTextCleanup();
             appendFileCleanup();
-            uploadFileSuccessListenerCleanup();
-            uploadFileFailListenerCleanup();
             dragOpenFileListenerCleanup();
         }
     }, []);
+    //处理多选文件上传
+    useEffect(() => {
+        const uploadFileSuccessListenerCleanup = ipc.on("transmitFileUploadSuccess", () => {
+            hasProgressingFileRef.current = false;
+            setUploadingFileTimestamp(0)
+            //检查多选队列
+            if (multipleUploadFilesList.length > 0) {
+                const [firstFile, ...removedFileList] = multipleUploadFilesList;
+                setMultipleUploadFilesList(removedFileList);
+                //延迟一段时间 避免主进程还有些东西没处理
+                uploadTransmitFile(firstFile.file, firstFile.time, false);
+            }
+            console.debug(`Transmit receive file success`);
+        });
+        const uploadFileFailListenerCleanup = ipc.on("transmitFileTransmitFailed", ({ title, message }) => {
+            db.deleteData(uploadingFileTimestamp);
+            messageListDispatch({
+                type: "remove",
+                timestamp: uploadingFileTimestamp
+            });
+            hasProgressingFileRef.current = false;
+            alert({
+                headline: title,
+                description: message,
+                confirmText: "确定",
+                onConfirm: () => { },
+            })
+            //任何一个传输失败都清空多选队列
+            //移除已追加的消息
+            for (const fileInfo of multipleUploadFilesList) {
+                messageListDispatch({
+                    type: "remove",
+                    timestamp: fileInfo.time
+                });
+                db.deleteData(fileInfo.time);
+            }
+            setMultipleUploadFilesList([]);
+            console.warn(`Transmit receive file failed:${message}`);
+        });
+        return () => {
+            uploadFileSuccessListenerCleanup();
+            uploadFileFailListenerCleanup();
+        }
+    }, [multipleUploadFilesList])
     // 当搜索内容变化时拖到底部
     useEffect(() => {
         listRef.current?.scrollToIndex({
@@ -306,10 +365,10 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     }, [hidden])
     return (
         <>
-            {userDropFolder && <FolderListDialog itemList={userDropFolder} setItemList={setUserDropFolder}/>}
+            {userDropFolder && <FolderListDialog itemList={userDropFolder} setItemList={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile} />}
             {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage} />}
             <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
-                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder}/>}
+                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder} />}
                 {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock" />}
                 {/* 列表内容 */}
                 {sortedMessageList.length === 0 && <div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}
@@ -331,7 +390,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                             case "text":
                                 return <TextMessage timestamp={item.timestamp} text={item.message} from={item.from} createRightClickMenu={ipc.createRightClickMenu} database={db} messageDispatch={messageListDispatch} openUrl={ipc.openUrl} />
                             case "file":
-                                return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp.current === item.timestamp} database={db} messageDispatch={messageListDispatch} />
+                                return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp === item.timestamp} database={db} messageDispatch={messageListDispatch} />
                             default:
                                 return <div className="text-red-500">Unknown message type:{(item as any)?.type ?? "null"}</div>
                         }

@@ -13,7 +13,7 @@ interface IpcEvents {
     closeConfirm: void,
     transmitAppendPlainText: string,
     transmitAppendFile: { displayName: string, size: number, fileName: string },
-    transmitFileUploadSuccess: void,//那几个数据应该是用不上了
+    transmitFileUploadSuccess: string,//仅保留文件名数据
     transmitFileTransmitFailed: { title: string, message: string }
     disconnect?: string,
     showAlert: { title: string, content: string },

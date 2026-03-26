@@ -42,7 +42,7 @@ export default function DragFileMark({ setSelfShow, onDropFile, setUserDropFolde
                 // console.log(subEntries);
                 snackbar({
                     message: "正在解析目录...",
-                    autoCloseDelay: 750
+                    autoCloseDelay: 550
                 });
                 setUserDropFolder(subEntries)
             }, (err) => {

@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 
 interface FolderListDialogProps {
     itemList: FileSystemEntry[]
     setItemList: React.Dispatch<React.SetStateAction<FileSystemEntry[] | null>>
+    uploadMultipleFiles: (fileList: File[]) => void
 }
 interface FileItemProps {
     file: FileSystemEntry
@@ -24,7 +25,7 @@ function FileItem({ file, checkedFiles, setCheckedFiles }: FileItemProps) {
         </mdui-list-item>
     )
 }
-export function FolderListDialog({ itemList, setItemList }: FolderListDialogProps) {
+export function FolderListDialog({ itemList, setItemList, uploadMultipleFiles }: FolderListDialogProps) {
     const sortedList = useMemo(() => {
         return [...itemList].sort((a, b) => {
             if (a.isDirectory !== b.isDirectory) {
@@ -32,8 +33,10 @@ export function FolderListDialog({ itemList, setItemList }: FolderListDialogProp
             }
             return a.name.localeCompare(b.name)
         })
-    }, [itemList])
+    }, [itemList]);
+    const fileCount = useRef(sortedList.reduce((prev, item) => item.isFile ? prev + 1 : prev, 0));
     const [checkedFiles, setCheckedFiles] = useState<FileSystemEntry[]>([]);
+    const [loading, setLoading] = useState(false);
     return (
         <div className="w-full h-full fixed bg-black/50 left-0 z-10" onClick={() => setItemList(null)}>
             <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-highest))] rounded-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -42,9 +45,31 @@ export function FolderListDialog({ itemList, setItemList }: FolderListDialogProp
                     {sortedList.map((item) => <FileItem file={item} key={item.name} checkedFiles={checkedFiles} setCheckedFiles={setCheckedFiles} />)}
                 </mdui-list>
                 <div className="flex mt-2 justify-end mr-4 gap-1">
+                    <mdui-checkbox className="text-[gray] mt-2 ml-3 flex-1" checked={checkedFiles.length > 0 && checkedFiles.length === fileCount.current} indeterminate={checkedFiles.length > 0 && checkedFiles.length < fileCount.current} onChange={() => {
+                        setCheckedFiles(prev=>prev.length === fileCount.current ? [] : sortedList.filter(item => item.isFile))
+                    }}>全选文件</mdui-checkbox>
                     <mdui-button variant="text" onClick={() => setItemList(null)}>取消</mdui-button>
-                    <mdui-button variant="text" onClick={() => {
-                        console.log(checkedFiles);
+                    <mdui-button loading={loading} variant="text" onClick={async () => {
+                        if (checkedFiles.length === 0) {
+                            console.debug("User non choice file");
+                            setItemList(null);
+                            return
+                        }
+                        setLoading(true);
+                        const parsedFile: File[] = [];
+                        for (const fsEntry of checkedFiles) {
+                            if (fsEntry.isFile) {
+                                await new Promise((resolve) => {
+                                    (fsEntry as FileSystemFileEntry).file(file => {
+                                        parsedFile.push(file);
+                                        resolve(true);
+                                    })
+                                });
+                            }
+                        }
+                        console.debug(`User choice multiple files count:${checkedFiles.length}`);
+                        uploadMultipleFiles(parsedFile);
+                        setItemList(null);
                     }}>发送</mdui-button>
                 </div>
             </div>
