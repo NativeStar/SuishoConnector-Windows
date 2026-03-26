@@ -125,7 +125,7 @@ app.on("ready", async (_event, _info) => {
                     logger.writeInfo(`Transmit file from drag app icon:${lastArg}`);
                     mainWindow?.webContents.send("webviewEvent", "transmitDragFile", { filename: path.basename(lastArg), filePath: lastArg, size: fileStat.size });
                 } else if (fileStat.isDirectory()) {
-                    mainWindow.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "暂不支持上传文件夹" });
+                    mainWindow.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "暂仅支持通过拖入互传窗口处理文件夹" });
                 }
             }
         } else if (connectPhoneWindow != null && !connectPhoneWindow.isDestroyed()) {
