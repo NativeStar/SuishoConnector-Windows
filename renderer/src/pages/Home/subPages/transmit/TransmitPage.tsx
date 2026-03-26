@@ -1,7 +1,7 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, confirm, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState, useContext, useCallback } from "react";
+import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState, useContext } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -19,7 +19,11 @@ interface TransmitPageProps {
     hidden: boolean,
     setHasNewTransmitMessage: React.Dispatch<React.SetStateAction<boolean>>
 }
-
+type UploadFileDescriptor = {
+    name: string,
+    size: number,
+    path: string,
+}
 export interface TransmitPageRef {
     // 滚动到底部
     scrollToBottom(): void
@@ -43,7 +47,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
         uploadTransmitFile(event.target.files![0]);
     }
-    function uploadTransmitFile(file: File | { name: string, size: number, path: string }, timestamp?: number, appendMessage = true) {
+    function uploadTransmitFile(file: File | UploadFileDescriptor, timestamp?: number, appendMessage = true) {
         const filePath = file instanceof File ? ipc.getFilePath(file) : file.path;
         //实际上如果从资源管理器拖文件 会因为'/'变成'\'误打误撞躲开误判
         if (filePath.includes(`phonelinker/programData/devices_data/${androidId}/transmit_files/`)) {
@@ -53,15 +57,28 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             })
             return
         }
+        const fileTimestamp = timestamp ?? Date.now();
+        fileInputRef.current!.value = "";
         if (hasProgressingFileRef.current) {
-            snackbar({
-                message: "请等待上一个上传任务完成",
-                autoCloseDelay: 1500
+            setMultipleUploadFilesList(prev => [...prev, { time: fileTimestamp, file }]);
+            const messageInstance: TransmitFileMessage = {
+                timestamp: fileTimestamp,
+                type: "file",
+                from: "computer",
+                isDeleted: false,
+                displayName: file.name,
+                name: file.name,
+                size: file.size
+            }
+            db.addData(messageInstance);
+            messageListDispatch({
+                type: "add",
+                messageInstance
             });
-            console.debug("Upload file failed:last upload task not completed");
+            console.debug(`Add file'${file.name}' to multiple upload list`);
             return
         }
-        const fileTimestamp = timestamp ?? Date.now();
+        hasProgressingFileRef.current = true;
         setUploadingFileTimestamp(fileTimestamp);
         if (appendMessage) {
             const messageInstance: TransmitFileMessage = {
@@ -79,7 +96,6 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 messageInstance
             });
         }
-        fileInputRef.current!.value = "";
         ipc.transmitUploadFile(file.name, filePath, file.size);
         listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
         console.info("Transmit start upload a file");
@@ -153,24 +169,37 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     const [searchCapsSensitive, setSearchCapsSensitive] = useState(false);
     const db = useDatabase("transmit");
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [uploadingFileTimestamp,setUploadingFileTimestamp]=useState(0);
+    const [uploadingFileTimestamp, setUploadingFileTimestamp] = useState(0);
     const listRef = useRef<VirtuosoHandle>(null);
-    const [multipleUploadFilesList, setMultipleUploadFilesList] = useState<{ time: number, file: File }[]>([]);
+    const [multipleUploadFilesList, setMultipleUploadFilesList] = useState<{ time: number, file: File | UploadFileDescriptor }[]>([]);
     const isAtBottom = useRef(true);
-    const uploadMultipleFile = useCallback((fileList: File[]) => {
+    function uploadMultipleFile(fileList: (File | UploadFileDescriptor)[]) {
         if (fileList.length === 0) return
-        //防止时间戳重复
-        const firstFileTimestamp = Date.now();
+        let parsedFileInstanceList: { time: number, file: File | UploadFileDescriptor }[];
         let timestampOffset = 2;
-        const [firstFile, ...removedFileList] = fileList;
-        const parsedFileInstanceList = removedFileList.map(file => {
-            const parsedFileInstance = {
-                time: Date.now() + timestampOffset,
-                file
-            }
-            timestampOffset += 1;
-            return parsedFileInstance;
-        })
+        if (hasProgressingFileRef.current) {
+            parsedFileInstanceList = fileList.map(file => {
+                const parsedFileInstance = {
+                    time: Date.now() + timestampOffset,
+                    file
+                }
+                timestampOffset += 1;
+                return parsedFileInstance;
+            })
+        } else {
+            // 防止时间戳重复
+            const firstFileTimestamp = Date.now();
+            const [firstFile, ...removedFileList] = fileList;
+            parsedFileInstanceList = removedFileList.map(file => {
+                const parsedFileInstance = {
+                    time: Date.now() + timestampOffset,
+                    file
+                }
+                timestampOffset += 1;
+                return parsedFileInstance;
+            })
+            uploadTransmitFile(firstFile, firstFileTimestamp);
+        }
         setMultipleUploadFilesList(prev => [...prev, ...parsedFileInstanceList]);
         //提前追加消息列表
         for (const fileInfo of parsedFileInstanceList) {
@@ -189,8 +218,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 messageInstance
             });
         }
-        uploadTransmitFile(firstFile, firstFileTimestamp);
-    }, [multipleUploadFilesList])
+    }
     const [messageList, messageListDispatch] = useReducer<(TransmitTextMessage | TransmitFileMessage)[], TransmitMessageListDispatch>((state, action) => {
         switch (action.type) {
             case "add":
