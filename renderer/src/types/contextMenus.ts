@@ -3,6 +3,10 @@ export const TransmitMessageListMenu: RightClickMenuItem[] = [
     {
         id: RightClickMenuItemId.Upload,
         label: "上传文件"
+    },
+    {
+        id:RightClickMenuItemId.OpenTransmitFolder,
+        label:"打开互传文件夹"
     }
 ];
 export const TransmitMessageMenuCommonText: RightClickMenuItem[] = [

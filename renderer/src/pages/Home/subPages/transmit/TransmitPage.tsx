@@ -106,6 +106,9 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             if (menu === RightClickMenuItemId.Upload) {
                 console.debug("Show file upload dialog");
                 fileInputRef.current?.click();
+            }else if (menu===RightClickMenuItemId.OpenTransmitFolder) {
+                console.log("Open transmit folder in right click menu");
+                ipc.openInExplorer("transmitFolder")
             }
         })
     }

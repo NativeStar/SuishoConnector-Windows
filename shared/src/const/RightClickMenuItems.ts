@@ -13,6 +13,7 @@ export enum RightClickMenuItemId{
     OpenNotificationApplicationPanel,//通知转发 打开目标应用设置
     Download,//文件管理下载文件
     Star,//收藏目录
+    OpenTransmitFolder//打开互传文件夹
 }
 export interface RightClickMenuItem{
     id:RightClickMenuItemId;
