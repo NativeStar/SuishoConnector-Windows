@@ -61,11 +61,18 @@ class Broadcaster {
             //不知道为什么 Windows上如果是系统启动后首次发的包会被吞
             setTimeout(() => {
                 try {
-                    //如果打开立即扫码连接早于2.5s 这里会崩溃
+                    //如果已经完成连接 这里会崩溃
                     this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
                     if (!this.sender.isDestroyed()) this.sender.send("connectPhone_broadcastSent")
                 } catch (error) { };
-            }, 2500);
+            }, 1000);
+            setTimeout(() => {
+                try {
+                    //如果已经完成连接 这里会崩溃
+                    this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
+                    if (!this.sender.isDestroyed()) this.sender.send("connectPhone_broadcastSent")
+                } catch (error) { };
+            }, 3000);
             this.looper = setInterval(() => {
                 try {
                     this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
