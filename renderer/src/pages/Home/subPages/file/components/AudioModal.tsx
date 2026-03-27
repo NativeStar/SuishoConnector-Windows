@@ -28,6 +28,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
     const [rotate, setRotate] = useState<number>(0);
     const [lyric, setLyric] = useState<LyricItemType[]>([]);
     const [enableLyricAutoScroll, setEnableLyricAutoScroll] = useState<boolean>(false);
+    const [lyricOffset, setLyricOffset] = useState<number>(0);
     const imageRef = useRef<HTMLImageElement | null>(null);
     // 防止进度条拖动时闪烁
     const userControllingSlider = useRef<boolean>(false);
@@ -69,12 +70,12 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         ffmpegInstance = await ensureFfmpegLoaded();
         console.debug(`Fetching audio file`);
         const rawFetchData = await fetch(src, { cache: "no-store" });
-        if (rawFetchData.status!==200) {
+        if (rawFetchData.status !== 200) {
             alert({
                 headline: "加载失败",
                 description: `无法加载音频文件:${rawFetchData.status}`,
                 confirmText: "关闭",
-                onConfirm:()=>{
+                onConfirm: () => {
                     setVisible(false);
                 }
             })
@@ -168,23 +169,31 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
                     {/* 时间显示 */}
                     <div className="flex justify-between w-full mt-1.5">
                         <small className="text-[gray] ml-3">{time2str(currentTime)}</small>
+                        {/* 歌词偏移量 仅在启用时显示 */}
+                        {lyricOffset !== 0 && <small className="text-[gray]">{`${lyricOffset > 0 ? "+" : ""}${(lyricOffset / 1000).toFixed(1)}`}</small>}
                         <small className="text-[gray] mr-3">{time2str(duration)}</small>
                     </div>
                     {/* 进度条 */}
                     <mdui-slider onPointerDown={() => userControllingSlider.current = true} onPointerUp={() => userControllingSlider.current = false} onChange={onSliderChange} max={duration} value={sliderValue} nolabel className="w-11/12 mt-1"></mdui-slider>
                     {/* 控制 */}
                     <div className="flex justify-center items-center gap-2.5">
-                        <mdui-tooltip content={paused ? "播放" : "暂停"} placement="left">
+                        <mdui-tooltip content={paused ? "播放" : "暂停"} placement="top">
                             <mdui-button-icon icon={paused ? "play_arrow" : "pause"} onClick={() => { setPaused(!paused); audioRef.current?.paused ? audioRef.current?.play() : audioRef.current?.pause() }} disabled={duration === 0}></mdui-button-icon>
                         </mdui-tooltip>
-                        <mdui-tooltip content="歌词滚动" placement="right">
-                            <mdui-button-icon selected={enableLyricAutoScroll} icon="sync_alt" disabled={duration === 0 || lyric.length === 0} onClick={()=>setEnableLyricAutoScroll(prev=>!prev)}></mdui-button-icon>
+                        <mdui-tooltip content="歌词滚动" placement="top">
+                            <mdui-button-icon selected={enableLyricAutoScroll} icon="sync_alt" disabled={duration === 0 || lyric.length === 0} onClick={() => setEnableLyricAutoScroll(prev => !prev)}></mdui-button-icon>
+                        </mdui-tooltip>
+                        <mdui-tooltip content="歌词偏移-0.5s" placement="top">
+                            <mdui-button-icon icon="replay_5" disabled={duration === 0 || lyric.length === 0} onClick={() => setLyricOffset(prev => prev - 500)}></mdui-button-icon>
+                        </mdui-tooltip>
+                        <mdui-tooltip content="歌词偏移+0.5s" placement="top">
+                            <mdui-button-icon icon="forward_5" disabled={duration === 0 || lyric.length === 0} onClick={() => setLyricOffset(prev => prev + 500)}></mdui-button-icon>
                         </mdui-tooltip>
                     </div>
                 </div>
                 {/* 右侧 歌词(如果有) */}
                 <div className="h-full flex-1">
-                    <AutoScrollLyric audioRef={audioRef} currentTime={currentTime * 1000/* 转换为ms 和歌词数组对应*/} lyric={lyric} enableLyricAutoScroll={enableLyricAutoScroll} setEnableLyricAutoScroll={setEnableLyricAutoScroll}/>
+                    <AutoScrollLyric audioRef={audioRef} currentTime={currentTime * 1000 + lyricOffset/* 转换为ms 和歌词数组对应*/} lyric={lyric} enableLyricAutoScroll={enableLyricAutoScroll} setEnableLyricAutoScroll={setEnableLyricAutoScroll} />
                 </div>
             </div>
         </div>
