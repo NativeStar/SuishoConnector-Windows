@@ -25,4 +25,6 @@ export default{
     enableFileSync:false,
     //文件同步监听目录
     fileSyncTargetDirectory:[],
+    //锁屏时同步锁定通知转发页
+    protectNotificationForwardPageOnLockedScreen:false,
 }

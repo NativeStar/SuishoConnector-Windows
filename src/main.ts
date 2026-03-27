@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem, session } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem, session, powerMonitor } from "electron";
 import path from "path";
 import os from "os";
 import { X509Certificate } from "crypto"
@@ -786,6 +786,9 @@ ipcMain.handle("main_archiveLogs", async () => {
     logger.writeInfo("Archive log file success")
     return true
 });
+powerMonitor.on("lock-screen",()=>{
+    mainWindow?.webContents.send("webviewEvent", "lockScreen")
+})
 ipcMain.handle("main_setEnableFileContextMenu", (_event, enable) => {
     enable ? Util.registerContextMenu() : Util.unregisterContextMenu();
 });

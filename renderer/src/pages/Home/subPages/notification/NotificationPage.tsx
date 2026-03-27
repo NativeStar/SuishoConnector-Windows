@@ -211,6 +211,18 @@ const NotificationPage = forwardRef<NotificationPageRef, NotificationPageProps>(
             updateDeepHideNotificationCacheCleanup();
         }
     }, []);
+    useEffect(() => {
+        const lockScreenListenerCleanup = ipc.on("lockScreen", () => {
+            if (currentProtectState !== "disabled" && currentProtectState !== "protected") {
+                ipc.getDeviceConfig("protectNotificationForwardPageOnLockedScreen",false).then(value=>{
+                    if(value) setCurrentProtectState("protected");
+                })
+            }
+        });
+        return () => {
+            lockScreenListenerCleanup();
+        }
+    }, [currentProtectState])
     // 当搜索内容变化时拖到底部
     useEffect(() => {
         listRef.current?.scrollToIndex({

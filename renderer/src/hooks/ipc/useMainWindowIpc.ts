@@ -24,6 +24,7 @@ interface IpcEvents {
     updateMediaSessionMetadata:MediaSessionMetadata
     updateMediaSessionPlaybackState:MediaSessionState
     appendFileSyncList:FileSyncAppendEvent
+    lockScreen:void
 }
 let registeredEventListener = false;
 type EventListener = (...args: any[]) => void;
