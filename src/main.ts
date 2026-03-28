@@ -54,6 +54,11 @@ if (!app.requestSingleInstanceLock()) {
 }
 //阻止媒体控制
 app.commandLine.appendSwitch('disable-features', 'MediaSessionService,HardwareMediaKeyHandling');
+process.on("uncaughtException", (error,origin)=>Util.onUncaughtException(error,origin,mainWindow))
+process.on("unhandledRejection", (reason, promise) => {
+    logger.writeError(`Unhandled rejection at: ${promise} reason: ${reason}`);
+    Util.onUncaughtException(reason as Error, "unhandledRejection", mainWindow)
+});
 app.on("ready", async (_event, _info) => {
     global.logger = new Logger(`${app.getPath("userData")}/programData/logs`);
     //检查并获取配置文件
@@ -398,41 +403,6 @@ function initTray() {
     }
     trayInstance.setContextMenu(Menu.buildFromTemplate(trayMenu));
 }
-//未捕获异常弹窗 给点功能选择
-process.on("uncaughtException", (error, _origin) => {
-    logger.writeError(error);
-    dialog.showMessageBox({
-        type: "error",
-        title: "应用程序异常",
-        message: `主进程发生异常:\n${error.name}:${error.message}\n${error.stack}`,
-        buttons: ["忽略", "重启", "退出"],
-        defaultId: 0
-    } as MessageBoxOptions).then((result) => {
-        switch (result.response) {
-            case 0:
-                //忽略
-                logger.writeWarn("User ignored uncaught exception dialog");
-                break;
-            case -1:
-                //取消
-                logger.writeWarn("User cancelled uncaught exception dialog");
-                break;
-            case 1:
-                //重启
-                logger.writeWarn("App relaunching because uncaught exception");
-                mainWindow?.destroy();
-                app.relaunch();
-                app.quit();
-                break;
-            case 2:
-                //退出
-                logger.writeWarn("App close application because uncaught exception");
-                mainWindow?.destroy();
-                app.quit();
-                break;
-        }
-    });
-});
 //是否开发模式
 ipcMain.handle("isDeveloping", _event => {
     return Util.isDeveloping;
@@ -502,7 +472,7 @@ ipcMain.handle("main_shellOpenFile", async (_event, file) => {
 
 })
 //重启程序
-ipcMain.on("reboot_application",async (_event, clearConnectionCache = false): Promise<void> => {
+ipcMain.on("reboot_application", async (_event, clearConnectionCache = false): Promise<void> => {
     logger.writeInfo("Reboot application");
     if (clearConnectionCache) {
         //清除缓存连接数据
@@ -786,7 +756,7 @@ ipcMain.handle("main_archiveLogs", async () => {
     logger.writeInfo("Archive log file success")
     return true
 });
-powerMonitor.on("lock-screen",()=>{
+powerMonitor.on("lock-screen", () => {
     mainWindow?.webContents.send("webviewEvent", "lockScreen")
 })
 ipcMain.handle("main_setEnableFileContextMenu", (_event, enable) => {

@@ -1,16 +1,16 @@
 import fs from "fs-extra";
 import crypto from "crypto";
-import { app, dialog, shell } from "electron";
+import { app, type BrowserWindow, dialog, type MessageBoxOptions, shell } from "electron";
 import path from "path";
 import child_process from 'child_process';
 import build from "../constant/build.prop.json";
 import configTemp from "../constant/configTemplate";
 import os from "os";
-import { getSelfAddressWithLegacy,getSelfAddressWithPowerShell} from "./GetSelfAddress";
+import { getSelfAddressWithLegacy, getSelfAddressWithPowerShell } from "./GetSelfAddress";
 type Config = typeof configTemp;
-type NetworkInfo={
-    name:string|null;
-    address:string|null;
+type NetworkInfo = {
+    name: string | null;
+    address: string | null;
 }
 class Util {
     //Windows文件名保留字
@@ -18,7 +18,7 @@ class Util {
     //url判断正则
     private static urlRegexp = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
     private static LOG_TAG = "Util";
-    
+
     static delay(ms = 0) {
         return new Promise<void>((resolve) => {
             setTimeout(() => {
@@ -27,12 +27,12 @@ class Util {
         });
     }
     static async getIPAddress(interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>): Promise<NetworkInfo> {
-        const lastConnectionAddress:string=global.config["internal:lastConnectionAddress"]
-        const lastConnectionName:string=global.config["internal:lastConnectionName"]
-        if (lastConnectionAddress&&lastConnectionName) {
-            const legacyGetAddressResult=getSelfAddressWithLegacy(interfaces);
+        const lastConnectionAddress: string = global.config["internal:lastConnectionAddress"]
+        const lastConnectionName: string = global.config["internal:lastConnectionName"]
+        if (lastConnectionAddress && lastConnectionName) {
+            const legacyGetAddressResult = getSelfAddressWithLegacy(interfaces);
             //缓存和快速获取的数据一致 直接使用
-            if (legacyGetAddressResult&&legacyGetAddressResult.address === lastConnectionAddress&&legacyGetAddressResult.name === lastConnectionName) {
+            if (legacyGetAddressResult && legacyGetAddressResult.address === lastConnectionAddress && legacyGetAddressResult.name === lastConnectionName) {
                 logger.writeInfo("Using last connection address", this.LOG_TAG);
                 return {
                     address: lastConnectionAddress,
@@ -285,6 +285,42 @@ class Util {
         } catch {
             return false
         }
+    }
+    //处理未捕获异常
+    static onUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionOrigin, mainWindow: BrowserWindow | null) {
+        logger.writeError(`New ${origin}`);
+        logger.writeError(error);
+        //未捕获异常弹窗 给点功能选择
+        dialog.showMessageBox({
+            type: "error",
+            title: "应用程序异常",
+            message: `主进程发生异常:\n${error.name}:${error.message}\n${error.stack}`,
+            buttons: ["忽略", "重启", "退出"],
+            defaultId: 0,
+            cancelId: -1
+        } as MessageBoxOptions).then((result) => {
+            console.log(result.response);
+            switch (result.response) {
+                case 0:
+                    //忽略
+                    logger.writeWarn("User ignored uncaught exception dialog");
+                    break;
+                case 1:
+                    //重启
+                    logger.writeWarn("App relaunching because uncaught exception");
+                    mainWindow?.destroy();
+                    app.relaunch();
+                    app.quit();
+                    break;
+                case -1:
+                case 2:
+                    //关闭对话框或选择退出
+                    logger.writeWarn("App close because uncaught exception");
+                    mainWindow?.destroy();
+                    app.quit();
+                    break;
+            }
+        });
     }
 }
 export default Util;
