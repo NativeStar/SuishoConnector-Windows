@@ -45,7 +45,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     }));
     const hasProgressingFileRef = useRef(false);
     function onFileInputValueChange(event: React.ChangeEvent<HTMLInputElement>) {
-        if (!event.target.files||event.target.files.length===0) return;
+        if (!event.target.files || event.target.files.length === 0) return;
         uploadMultipleFile(Array.from(event.target.files));
     }
     function uploadTransmitFile(file: File | UploadFileDescriptor, timestamp?: number, appendMessage = true) {
@@ -98,7 +98,9 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             });
         }
         ipc.transmitUploadFile(file.name, filePath, file.size);
-        listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
+        setTimeout(() => {
+            listRef.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
+        }, 150);
         console.info("Transmit start upload a file");
     }
     function onMessageListContextMenu() {
@@ -106,7 +108,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             if (menu === RightClickMenuItemId.Upload) {
                 console.debug("Show file upload dialog");
                 fileInputRef.current?.click();
-            }else if (menu===RightClickMenuItemId.OpenTransmitFolder) {
+            } else if (menu === RightClickMenuItemId.OpenTransmitFolder) {
                 console.log("Open transmit folder in right click menu");
                 ipc.openInExplorer("transmitFolder")
             }
@@ -320,6 +322,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 size: data.size,
                 path: data.filePath
             });
+
             console.debug(`Transmit drag a new file`);
         });
         return () => {
@@ -400,7 +403,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             {userDropFolder && <FolderListDialog itemList={userDropFolder} setItemList={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile} />}
             {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage} />}
             <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
-                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile}/>}
+                {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile} />}
                 {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock" />}
                 {/* 列表内容 */}
                 {sortedMessageList.length === 0 && <div className="absolute left-5/12 top-5/12 text-[gray]">暂无数据</div>}

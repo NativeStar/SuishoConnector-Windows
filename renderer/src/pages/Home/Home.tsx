@@ -117,7 +117,6 @@ export default function Home() {
       routeRef.current?.onPageDoubleClick("notification");
       console.debug("Focus notification forward page");
     });
-    //TODO 修当处于互传页时收到新消息页面回到最顶部(好像是概率触发 复现不了 难搞)
     const dragOpenFileListenerCleanup = ipc.on("transmitDragFile", () => {
       setPage("transmit");
       console.debug("Change to transmit page because drag file");
