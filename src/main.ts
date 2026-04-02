@@ -17,6 +17,7 @@ import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import type ApkDownloadServer from "./modules/ApkServer";
 import AudioForward from "./modules/AudioForward";
 import configTemplate from "./constant/configTemplate";
+import CloseReason from "./constant/CloseCodeReasonString";
 let connectedDevice: PhoneServer;
 /**
  * @description 连接手机窗口
@@ -272,6 +273,12 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             });
             //不走代理
             mainWindow.webContents.session.setProxy({ mode: "direct" });
+            //关机提醒
+            mainWindow.on("query-session-end",(e)=>{
+                if (e.reasons.includes("shutdown")||e.reasons.includes("logoff")) {
+                    connectedDevice.socket?.close(ConnectionCloseCode.ComputerWillShutdown,CloseReason[ConnectionCloseCode.ComputerWillShutdown])
+                }
+            })
             //关闭和发起连接有关的服务
             certDownloadServer?.close();
             certDownloadServer = null;

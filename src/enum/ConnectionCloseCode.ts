@@ -15,5 +15,7 @@ enum ConnectionCloseCode {
     ConnectionAlreadyExists=1008,
     // 鉴权失败
     AuthorizationFailed=1009,
+    //计算机即将关闭
+    ComputerWillShutdown=1011
 }
 export default ConnectionCloseCode;

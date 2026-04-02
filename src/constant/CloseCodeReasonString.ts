@@ -8,6 +8,7 @@ const CloseReason={
     1008:"计算机已有连接",
     1009:"鉴权失败",
     // 执行清除数据 彩蛋
-    1010:"Goodbye World"
+    1010:"Goodbye World",
+    1011:"计算机即将关机",
 };
 export default CloseReason;
