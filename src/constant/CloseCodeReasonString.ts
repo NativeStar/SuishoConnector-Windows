@@ -10,5 +10,6 @@ const CloseReason={
     // 执行清除数据 彩蛋
     1010:"Goodbye World",
     1011:"计算机即将关机",
+    1012:"手机即将关机"
 };
 export default CloseReason;
