@@ -196,7 +196,7 @@ class Server {
             //关闭连接
             this.close(false);
             clearTimeout(<number>this.connectTimeoutTimer);
-            this.appWindow.webContents.send("connectPhone_connectFailed", "异常数据包");
+            this.appWindow.webContents.send("connectPhone_connectFailed", "设备发送了破损的数据包");
             return
         }
         //检查是否已验证
@@ -300,35 +300,36 @@ class Server {
                         this.appWindow.webContents.send("webviewEvent", "transmitAppendPlainText", jsonObj.data);
                         break;
                     case "file":
-                        //文件存储路径
                         const fileDirPath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`;
-                        //确保目录存在 
                         await fs.ensureDir(fileDirPath);
                         //检查是否有文件重名
                         const dirFileList = await fs.readdir(fileDirPath);
                         // 防止路径穿越
                         jsonObj.name = path.basename(jsonObj.name);
-                        //先正常赋值 之后检查重名
                         jsonObj.displayName = jsonObj.name;
                         for (const dirFileName of dirFileList) {
                             if (dirFileName === jsonObj.name) {
                                 //有重名
-                                //设置显示名称 尝试逃过浅拷贝
-                                jsonObj.displayName = `${jsonObj.name}`;
-                                //改为文件原名+时间戳+原后缀
-                                //文件有后缀名
-                                if (jsonObj.name.lastIndexOf(".") !== -1) {
-                                    jsonObj.name = jsonObj.name.slice(0, jsonObj.name.lastIndexOf(".")) + "_" + Date.now().toString() + jsonObj.name.slice(jsonObj.name.lastIndexOf("."), jsonObj.name.length);
-                                } else {
-                                    //无后缀名
-                                    jsonObj.name = jsonObj.name + Date.now().toString();
-                                }
-                                logger.writeDebug(`Transmit file auto rename because file name repeat:"${jsonObj.displayName}"=>"${jsonObj.name}"`)
-                                //检查文件名长度
-                                if (jsonObj.name.length > 255) {
-                                    //直接改成时间戳文件名 不管打开了
-                                    jsonObj.name = Date.now().toString();
-                                    logger.writeInfo(`Transmit file name too long:"${jsonObj.displayName}"=>"${jsonObj.name}"`)
+                                if (global.config.deleteTransmitConflictFile) {
+                                    await fs.remove(fileDirPath + dirFileName);
+                                }else{
+                                    //设置显示名称 尝试逃过浅拷贝
+                                    jsonObj.displayName = `${jsonObj.name}`;
+                                    //改为文件原名+时间戳+原后缀
+                                    //文件有后缀名
+                                    if (jsonObj.name.lastIndexOf(".") !== -1) {
+                                        jsonObj.name = jsonObj.name.slice(0, jsonObj.name.lastIndexOf(".")) + "_" + Date.now().toString() + jsonObj.name.slice(jsonObj.name.lastIndexOf("."), jsonObj.name.length);
+                                    } else {
+                                        //无后缀名
+                                        jsonObj.name = jsonObj.name + Date.now().toString();
+                                    }
+                                    logger.writeDebug(`Transmit file auto rename because file name repeat:"${jsonObj.displayName}"=>"${jsonObj.name}"`)
+                                    //检查文件名长度
+                                    if (jsonObj.name.length > 255) {
+                                        //直接改成时间戳文件名 不管打开了
+                                        jsonObj.name = Date.now().toString();
+                                        logger.writeInfo(`Transmit file name too long:"${jsonObj.displayName}"=>"${jsonObj.name}"`)
+                                    }
                                 }
                                 break
                             }

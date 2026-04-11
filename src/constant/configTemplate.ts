@@ -5,6 +5,7 @@ export default {
     boundDeviceKey:null,
     heartBeatDelay:"MEDIUM",
     logLevel:"INFO",
+    deleteTransmitConflictFile:false,
     enableContentProtection:false,
     autoCheckUpdate:true,
     "internal:lastConnectionAddress":"",
