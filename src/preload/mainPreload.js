@@ -18,7 +18,7 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     //打开文件
     openFile:(file)=>{return ipcRenderer.invoke("main_shellOpenFile",file)},
     //拖出文件
-    generateTransmitFileURL:(file)=>{return ipcRenderer.invoke("transmit_generateTransmitFileURL",file)},
+    getTransmitFilePath:(file)=>{return ipcRenderer.invoke("transmit_getTransmitFilePath",file)},
     //在资源管理器中打开
     openInExplorer:(type,path)=>{return ipcRenderer.invoke("main_openInExplorer",type,path)},
     //发送数据包 不带响应

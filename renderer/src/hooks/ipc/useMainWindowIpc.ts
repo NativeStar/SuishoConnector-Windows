@@ -85,7 +85,7 @@ function useMainWindowIpc() {
         transmitUploadFile: window.electronMainProcess.transmitUploadFile,
         createRightClickMenu: window.electronMainProcess.createRightClickMenu,
         openUrl: window.electronMainProcess.openUrl,
-        generateTransmitFileURL: window.electronMainProcess.generateTransmitFileURL,
+        getTransmitFilePath: window.electronMainProcess.getTransmitFilePath,
         getDeviceConfig: window.electronMainProcess.getDeviceConfig,
         startAuthorization: window.electronMainProcess.startAuthorization,
         openNotificationForwardConfigWindow: window.electronMainProcess.openNotificationForwardConfigWindow,

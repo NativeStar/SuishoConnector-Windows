@@ -156,3 +156,6 @@ export function time2str(time: number) {
 export function getAndroidVersionInfoBySdkVersion(version: number): AndroidVersionData {
     return AndroidVersions[version] ?? { name: "Unknown", semver: "Unknown" };
 }
+export function isSupportedImageFormat(fileName:string){
+    return fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".gif") || fileName.endsWith(".webp")
+}

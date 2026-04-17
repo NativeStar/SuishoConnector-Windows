@@ -1,6 +1,6 @@
 import { twMerge } from "tailwind-merge";
 import type { TransmitFileMessage } from "~/types/database";
-import { checkUrl, parseFileSize } from "~/utils";
+import { checkUrl, parseFileSize, isSupportedImageFormat } from "~/utils";
 import "mdui/components/linear-progress"
 import { useEffect, useRef, useState } from "react";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -23,6 +23,7 @@ interface FileMessageProps {
     progressing: boolean,
     database: ReturnType<typeof useDatabase<"transmit">>,
     messageDispatch: React.ActionDispatch<TransmitMessageListDispatch>,
+    setImagePreview:(url:string|null)=>void
 }
 export function TextMessage({ text, from, createRightClickMenu, database, messageDispatch, timestamp, openUrl }: TextMessageProps) {
     async function onContextMenuCallback(result: RightClickMenuItemId) {
@@ -97,15 +98,16 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
         </mdui-card>
     )
 }
-export function FileMessage({ data, progressing, database, messageDispatch }: FileMessageProps) {
+export function FileMessage({ data, progressing, database, messageDispatch ,setImagePreview}: FileMessageProps) {
     const ipc = useMainWindowIpc();
     const [progressValue, setProgressValue] = useState<number>(0);
     const [isDeleted, setIsDeleted] = useState<boolean>(data.isDeleted);
+    const [isError, setIsError] = useState<boolean>(false);
     const fileFullPathRef = useRef<string>(null);
     useEffect(() => {
         if (!data.isDeleted && data.from === "phone") {
-            ipc.generateTransmitFileURL(data.name).then(fullPath => {
-                fileFullPathRef.current = fullPath;
+            ipc.getTransmitFilePath(data.name).then(fullPath => {
+                fileFullPathRef.current = `file://${fullPath}`;
             })
         }
     }, []);
@@ -122,7 +124,6 @@ export function FileMessage({ data, progressing, database, messageDispatch }: Fi
                 console.info(`Transmit file receive success:${data.name}`);
             });
             const transmitFileTransmitFailedCleanup = ipc.on("transmitFileTransmitFailed", () => {
-                // setProgressing(false);
                 ipc.unregisterFileUploadProgressListener(progressListener);
                 console.warn(`Transmit file receive failed:${data.name}`);
             })
@@ -208,6 +209,31 @@ export function FileMessage({ data, progressing, database, messageDispatch }: Fi
         ipc.openFile(data.name).then(result => {
             if (!result) setFileDeleted()
         })
+    }
+    if (!progressing && data.from === "phone" && !data.isDeleted && fileFullPathRef.current !== null && isSupportedImageFormat(data.displayName)) {
+        function onImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
+            setIsError(true);
+            // setFileDeleted();
+            console.log("Err");
+            console.log(e.nativeEvent);
+        }
+        function openImagePreview(){
+            setImagePreview(fileFullPathRef.current)
+        }
+        return (
+            <div className="w-[36%] max-h-[15%] mt-1.5" onContextMenu={onContextMenu}>
+                {
+                    isError ?
+                        <div className="w-full h-[20vh] flex flex-col justify-center items-center bg-[#ede7ed]">
+                            <mdui-icon name="error_outline" className="size-12`"></mdui-icon>
+                            <div className="text-[gray]">加载失败</div>
+                        </div>
+                        :
+                        <img src={fileFullPathRef.current} onErrorCapture={onImageError} className="object-contain cursor-zoom-in" onClick={openImagePreview}/>
+                }
+            </div>
+
+        )
     }
     return (
         <mdui-card draggable={data.from === "phone" && !isDeleted} onDragStart={onDragStart} onContextMenu={onContextMenu} onClick={openFile} clickable={!isDeleted && data.from === "phone"} className={twMerge("draggable mdui-theme-auto w-65 h-23.5 rounded-[9px] mt-1 whitespace-pre-wrap text-ellipsis", data.from === "phone" ? "bg-[#ede7ed]" : "bg-[#f3ebf3] ml-110")} variant="elevated">

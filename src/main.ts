@@ -451,9 +451,9 @@ ipcMain.handle("main_openInExplorer", (_event, type, filePath) => {
     }
 });
 //获取互传文件路径
-ipcMain.handle("transmit_generateTransmitFileURL", (_event, file) => {
+ipcMain.handle("transmit_getTransmitFilePath", (_event, file) => {
     logger.writeDebug(`Generate file URL:file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${file}`);
-    return `file://${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`.replaceAll("\\", "/");
+    return `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/${path.basename(file)}`.replaceAll("\\", "/");
 });
 ipcMain.handle("transmit_startTransmitDragFile", async (event, file) => {
     logger.writeDebug(`Start transmit drag file:${file}`);

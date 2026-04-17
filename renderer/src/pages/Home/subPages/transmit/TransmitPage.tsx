@@ -1,7 +1,7 @@
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
 import { alert, confirm, snackbar } from "mdui";
 import TransmitTextInputArea from "./components/TransmitTextInputArea";
-import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState, useContext } from "react";
+import { forwardRef, useImperativeHandle, useEffect, useMemo, useReducer, useRef, useState, useContext, useCallback } from "react";
 import useDatabase from "~/hooks/useDatabase";
 import type { TransmitFileMessage, TransmitTextMessage } from "~/types/database";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -14,6 +14,7 @@ import ItemFilterCard from "../../components/ItemFilterCard";
 import UploadImagePreviewDialog from "./components/UploadImagePreviewDialog";
 import AndroidIdContext from "~/context/AndroidIdContext";
 import { FolderListDialog } from "./components/FolderListDialog";
+import { PhotoSlider } from "react-photo-view";
 
 interface TransmitPageProps {
     hidden: boolean,
@@ -166,6 +167,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         console.debug("Upload clipboard image file");
         uploadTransmitFile({ name: fileName, size: imageArrayBuffer.byteLength, path: tempImageFilePath });
     }
+
     const ipc = useMainWindowIpc();
     const [showFileDragMark, setShowFileDragMark] = useState(false);
     const [showFilterCard, setShowFilterCard] = useState(false);
@@ -177,8 +179,18 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploadingFileTimestamp, setUploadingFileTimestamp] = useState(0);
     const listRef = useRef<VirtuosoHandle>(null);
+    const [imageViewerVisible, setImageViewerVisible] = useState(false);
     const [multipleUploadFilesList, setMultipleUploadFilesList] = useState<{ time: number, file: File | UploadFileDescriptor }[]>([]);
     const isAtBottom = useRef(true);
+    const previewFileUrl = useRef<string>("");
+    const setImagePreview = useCallback((url:string|null) => {
+        if(url){
+            previewFileUrl.current = url;
+            setImageViewerVisible(true);
+        }else{
+            setImageViewerVisible(false);
+        }
+    }, []);
     function uploadMultipleFile(fileList: (File | UploadFileDescriptor)[]) {
         if (fileList.length === 0) return
         let parsedFileInstanceList: { time: number, file: File | UploadFileDescriptor }[];
@@ -402,6 +414,15 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
         <>
             {userDropFolder && <FolderListDialog itemList={userDropFolder} setItemList={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile} />}
             {previewImage && <UploadImagePreviewDialog imageBlob={previewImage} setImageBlob={setPreviewImage} uploadFunction={uploadClipboardImage} />}
+            <PhotoSlider
+                maskOpacity={0.8}
+                images={[{ key: previewFileUrl.current || "preview", src: previewFileUrl.current }]}
+                visible={imageViewerVisible}
+                onClose={() => setImagePreview(null)}
+                bannerVisible
+                loop={false}
+                portalContainer={document.body}
+            />
             <div onDragEnter={onFileDragEnterComponent} style={{ display: hidden ? "none" : "block" }} className="w-full" onContextMenu={onMessageListContextMenu}>
                 {showFileDragMark && <DragFileMark onDropFile={uploadTransmitFile} setSelfShow={setShowFileDragMark} setUserDropFolder={setUserDropFolder} uploadMultipleFiles={uploadMultipleFile} />}
                 {showFilterCard && <ItemFilterCard setSearchText={setSearchText} setShowFilterCard={setShowFilterCard} extSwitchState={searchCapsSensitive} setExtSwitchState={setSearchCapsSensitive} extSwitchText="区分大小写" extSwitchIcon="keyboard_capslock" />}
@@ -410,6 +431,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 <Virtuoso
                     className="w-full"
                     ref={listRef}
+                    increaseViewportBy={{ top: 725, bottom: 725 }}
                     style={{ height: window.innerHeight * 0.85 }}
                     data={sortedMessageList}
                     followOutput={searchText === "" ? "smooth" : "auto"}
@@ -425,7 +447,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                             case "text":
                                 return <TextMessage timestamp={item.timestamp} text={item.message} from={item.from} createRightClickMenu={ipc.createRightClickMenu} database={db} messageDispatch={messageListDispatch} openUrl={ipc.openUrl} />
                             case "file":
-                                return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp === item.timestamp} database={db} messageDispatch={messageListDispatch} />
+                                return <FileMessage data={item as TransmitFileMessage} progressing={uploadingFileTimestamp === item.timestamp} database={db} messageDispatch={messageListDispatch} setImagePreview={setImagePreview}/>
                             default:
                                 return <div className="text-red-500">Unknown message type:{(item as any)?.type ?? "null"}</div>
                         }
