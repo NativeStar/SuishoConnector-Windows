@@ -23,7 +23,7 @@ interface FileMessageProps {
     progressing: boolean,
     database: ReturnType<typeof useDatabase<"transmit">>,
     messageDispatch: React.ActionDispatch<TransmitMessageListDispatch>,
-    setImagePreview:(url:string|null)=>void
+    setImagePreview: (url: string | null) => void
 }
 export function TextMessage({ text, from, createRightClickMenu, database, messageDispatch, timestamp, openUrl }: TextMessageProps) {
     async function onContextMenuCallback(result: RightClickMenuItemId) {
@@ -98,7 +98,7 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
         </mdui-card>
     )
 }
-export function FileMessage({ data, progressing, database, messageDispatch ,setImagePreview}: FileMessageProps) {
+export function FileMessage({ data, progressing, database, messageDispatch, setImagePreview }: FileMessageProps) {
     const ipc = useMainWindowIpc();
     const [progressValue, setProgressValue] = useState<number>(0);
     const [isDeleted, setIsDeleted] = useState<boolean>(data.isDeleted);
@@ -210,14 +210,11 @@ export function FileMessage({ data, progressing, database, messageDispatch ,setI
             if (!result) setFileDeleted()
         })
     }
+    function onMediaError() {
+        setIsError(true);
+    }
     if (!progressing && data.from === "phone" && !data.isDeleted && fileFullPathRef.current !== null && isSupportedImageFormat(data.displayName)) {
-        function onImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
-            setIsError(true);
-            // setFileDeleted();
-            console.log("Err");
-            console.log(e.nativeEvent);
-        }
-        function openImagePreview(){
+        function openImagePreview() {
             setImagePreview(fileFullPathRef.current)
         }
         return (
@@ -229,7 +226,7 @@ export function FileMessage({ data, progressing, database, messageDispatch ,setI
                             <div className="text-[gray]">加载失败</div>
                         </div>
                         :
-                        <img src={fileFullPathRef.current} onErrorCapture={onImageError} className="object-contain cursor-zoom-in" onClick={openImagePreview}/>
+                        <img src={fileFullPathRef.current} onErrorCapture={onMediaError} className="object-contain cursor-zoom-in" onClick={openImagePreview} />
                 }
             </div>
 
