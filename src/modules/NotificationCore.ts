@@ -33,6 +33,7 @@ class NotificationCore {
     private hasNotificationPermission;//虽然用不到 暂时留着吧
     private hasXmlPermission: boolean;
     private blockedNotificationInLockScreenCount: number = 0;
+    private iconCachePath: string;
     config: config;
     filterText: Set<string>;
     configWindow: BrowserWindow | null
@@ -53,6 +54,8 @@ class NotificationCore {
         this.configPath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/notification.json`;
         //应用配置文件路径
         this.profilePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/notification/profile.json`;
+        //图标缓存路径
+        this.iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconCache/`;
         this.server = server;
         //主配置
         if (fs.existsSync(this.configPath)) {
@@ -130,11 +133,13 @@ class NotificationCore {
             content?: string,
             appName?: string,
             enableTextFilter: boolean,
-            show: boolean
+            show: boolean,
+            showAppIcon:boolean
         } = {
             useProfile: false,
             enableTextFilter: true,
-            show: true
+            show: true,
+            showAppIcon:true
         };
         //实时通知显示 暂定不进行处理 直接推
         this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing, progress });
@@ -195,6 +200,7 @@ class NotificationCore {
                         result.appName = "Suisho Connector";
                         result.title = "新通知";
                         result.content = "连接的手机收到一条通知";
+                        result.showAppIcon=false;
                         break
                     case "nameOnly":
                         //只出来个应用名
@@ -233,6 +239,7 @@ class NotificationCore {
                     result.appName = "Suisho Connector";
                     result.title = "新通知";
                     result.content = "连接的手机收到一条通知";
+                    result.showAppIcon=false;
                     break
                 default:
                     logger.writeWarn(`Unknown notification forward show mode:${global.deviceConfig.getConfigProp("defaultNotificationShowMode")}`, this.LOG_TAG);
@@ -279,7 +286,7 @@ class NotificationCore {
         if (!this.hasXmlPermission) {
             this.showCommonNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
         } else {
-            this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName)
+            this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName,result.showAppIcon);
         }
     }
     /**
@@ -317,7 +324,7 @@ class NotificationCore {
      * @description 发送Windows Xml格式通知 支持显示应用名
      * @memberof NotificationCore
      */
-    showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string): void {
+    showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string,showAppIcon:boolean): void {
         logger.writeInfo(`Posted a notification from:${packageName}`, this.LOG_TAG);
         const notification = new ElectronNotification({
             toastXml:
@@ -328,6 +335,8 @@ class NotificationCore {
                         <text>${xmlEscape(title)}</text>
                         <text>${xmlEscape(content)}</text>
                         <text placement="attribution">${xmlEscape(appName)}</text>
+                        ${showAppIcon?`<image placement="appLogoOverride" src="file://${this.iconCachePath}${packageName}"/>`:""}
+                        />
                     </binding>
                 </visual>
             </toast>
