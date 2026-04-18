@@ -226,7 +226,7 @@ export function FileMessage({ data, progressing, database, messageDispatch, setI
                             <div className="text-[gray]">加载失败</div>
                         </div>
                         :
-                        <img src={fileFullPathRef.current} onErrorCapture={onMediaError} className="object-contain cursor-zoom-in" onClick={openImagePreview} />
+                        <img draggable src={fileFullPathRef.current} onDragStart={onDragStart} onErrorCapture={onMediaError} className="draggable object-contain cursor-zoom-in" onClick={openImagePreview} />
                 }
             </div>
 
