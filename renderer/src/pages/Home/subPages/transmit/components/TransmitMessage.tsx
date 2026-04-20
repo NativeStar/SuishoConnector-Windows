@@ -1,4 +1,5 @@
 import { twMerge } from "tailwind-merge";
+import { confirm } from "mdui";
 import type { TransmitFileMessage } from "~/types/database";
 import { checkUrl, parseFileSize, isSupportedImageFormat } from "~/utils";
 import "mdui/components/linear-progress"
@@ -26,6 +27,7 @@ interface FileMessageProps {
     setImagePreview: (url: string | null) => void
 }
 export function TextMessage({ text, from, createRightClickMenu, database, messageDispatch, timestamp, openUrl }: TextMessageProps) {
+    const ipc = useMainWindowIpc();
     async function onContextMenuCallback(result: RightClickMenuItemId) {
         const selectedText = getSelection()?.toString();
         switch (result) {
@@ -41,12 +43,29 @@ export function TextMessage({ text, from, createRightClickMenu, database, messag
                 }
                 break;
             case RightClickMenuItemId.Delete:
-                database.deleteData(timestamp);
-                messageDispatch({
-                    type: "remove",
-                    timestamp: timestamp
-                });
-                console.debug(`Delete transmit text message:${timestamp}`);
+                if (await ipc.getDeviceConfig("deleteTransmitMessageConfirm", true)) {
+                    confirm({
+                        description: "删除该消息?",
+                        confirmText: "删除",
+                        cancelText: "取消",
+                        closeOnOverlayClick: false,
+                        onConfirm: () => {
+                            database.deleteData(timestamp);
+                            messageDispatch({
+                                type: "remove",
+                                timestamp: timestamp
+                            });
+                            console.debug(`Delete transmit text message:${timestamp}`);
+                        }
+                    })
+                } else {
+                    database.deleteData(timestamp);
+                    messageDispatch({
+                        type: "remove",
+                        timestamp: timestamp
+                    });
+                    console.debug(`Delete transmit text message:${timestamp}`);
+                }
                 break
             case RightClickMenuItemId.OpenUrl:
                 if (!selectedText || selectedText === "") {
@@ -155,15 +174,32 @@ export function FileMessage({ data, progressing, database, messageDispatch, setI
             menu[0].enabled = false;
             menu[1].enabled = false;
         }
-        ipc.createRightClickMenu(menu).then(result => {
+        ipc.createRightClickMenu(menu).then(async (result) => {
             switch (result) {
                 case RightClickMenuItemId.Delete:
-                    database.deleteData(data.timestamp);
-                    messageDispatch({
-                        type: "remove",
-                        timestamp: data.timestamp
-                    });
-                    console.debug(`Delete transmit file message:${data.timestamp}`);
+                    if (await ipc.getDeviceConfig("deleteTransmitMessageConfirm", true)) {
+                        confirm({
+                            description: "删除该消息?",
+                            confirmText: "删除",
+                            cancelText: "取消",
+                            closeOnOverlayClick: false,
+                            onConfirm: () => {
+                                database.deleteData(data.timestamp);
+                                messageDispatch({
+                                    type: "remove",
+                                    timestamp: data.timestamp
+                                });
+                                console.debug(`Delete transmit file message:${data.timestamp}`);
+                            }
+                        })
+                    } else {
+                        database.deleteData(data.timestamp);
+                        messageDispatch({
+                            type: "remove",
+                            timestamp: data.timestamp
+                        });
+                        console.debug(`Delete transmit file message:${data.timestamp}`);
+                    }
                     break
                 case RightClickMenuItemId.OpenInExplorer:
                     console.debug(`Try open file in explorer`);
@@ -183,13 +219,31 @@ export function FileMessage({ data, progressing, database, messageDispatch, setI
                     })
                     break
                 case RightClickMenuItemId.DeleteWithFile:
-                    console.debug(`Delete transmit file and message:${data.timestamp}`);
-                    ipc.deleteTransmitFile(data.name);
-                    database.deleteData(data.timestamp);
-                    messageDispatch({
-                        type: "remove",
-                        timestamp: data.timestamp
-                    });
+                    if (await ipc.getDeviceConfig("deleteTransmitMessageConfirm", true)) {
+                        confirm({
+                            description: "确认删除该消息和对应文件?",
+                            confirmText: "删除",
+                            cancelText: "取消",
+                            closeOnOverlayClick: false,
+                            onConfirm: () => {
+                                console.debug(`Delete transmit file and message:${data.timestamp}`);
+                                ipc.deleteTransmitFile(data.name);
+                                database.deleteData(data.timestamp);
+                                messageDispatch({
+                                    type: "remove",
+                                    timestamp: data.timestamp
+                                });
+                            }
+                        })
+                    } else {
+                        console.debug(`Delete transmit file and message:${data.timestamp}`);
+                        ipc.deleteTransmitFile(data.name);
+                        database.deleteData(data.timestamp);
+                        messageDispatch({
+                            type: "remove",
+                            timestamp: data.timestamp
+                        });
+                    }
                     break
                 default:
                     break;

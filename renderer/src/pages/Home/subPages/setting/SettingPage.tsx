@@ -61,6 +61,9 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSwitch title="自动检查更新" desc="在连接设备后联网检查软件更新" icon="update" configs={applicationConfig} configKey="autoCheckUpdate" setConfig={ipc.setConfig} />
                     {/* 避免外部数据更新后内部状态不会同步 */}
                     {isFileContextMenuEnabled !== null && <CommonMduiListItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" checked={isFileContextMenuEnabled} onChange={(state) => ipc.setEnableFileContextMenu(state)} />}
+                    <mdui-list-subheader className="ml-5 h-10 font-bold">数据互传</mdui-list-subheader>
+                    <SettingItemSwitch title="接收到重名文件时删除旧文件" desc="否则在新文件名中追加时间戳以继续接收" icon="downloading" configs={applicationConfig} configKey="deleteTransmitConflictFile" setConfig={ipc.setConfig} />
+                    <SettingItemSwitch title="删除消息时确认" icon="playlist_remove" desc="删除消息时是否弹出二次确认对话框" configs={deviceConfig} configKey="deleteTransmitMessageConfirm" setConfig={wrappedSetDeviceConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">通知转发</mdui-list-subheader>
                     <SettingItemSwitch title="启用通知转发" icon="fork_right" configs={deviceConfig} configKey="enableNotificationForward" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="计算机锁屏后继续推送通知" desc="即使计算机锁屏也会弹出通知(锁屏时通知内容可能被系统隐藏)" icon="close_fullscreen" configs={deviceConfig} configKey="pushNotificationOnLockedScreen" setConfig={wrappedSetDeviceConfig} />
@@ -76,7 +79,6 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemCommon title="更改密码" icon="link" onClick={() => onChangePasswordItemClick(androidId, deviceConfig, ipc)} />
                     <SettingItemSwitch title="截录屏保护" desc="阻止截图录屏获取软件内容保护隐私 适用于直播或屏幕共享等" icon="shield" configs={applicationConfig} configKey="enableContentProtection" setConfig={ipc.setConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">辅助功能</mdui-list-subheader>
-                    <SettingItemSwitch title="互传遇到重名文件时删除旧文件" desc="否则在新文件名中追加时间戳以继续接收" icon="downloading" configs={applicationConfig} configKey="deleteTransmitConflictFile" setConfig={ipc.setConfig} />
                     <SettingItemSwitch title="电池满电提醒" desc="手机电量充满时发出通知" icon="battery_4_bar" configs={deviceConfig} configKey="enableBatteryFullNotification" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="Doze模式提醒" desc="手机Doze模式状态变化时发出通知" icon="tsunami" configs={deviceConfig} configKey="enableDozeModeChangeNotification" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="开启文件同步" desc="启用文件同步功能 需前往对应页面配置" icon="sync" configs={deviceConfig} configKey="enableFileSync" setConfig={wrappedSetDeviceConfig} />

@@ -27,4 +27,6 @@ export default{
     fileSyncTargetDirectory:[],
     //锁屏时同步锁定通知转发页
     protectNotificationForwardPageOnLockedScreen:false,
+    //删除互传消息二次确认
+    deleteTransmitMessageConfirm:true,
 }
