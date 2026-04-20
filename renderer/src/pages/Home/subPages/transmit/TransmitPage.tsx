@@ -442,6 +442,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                             setHasNewTransmitMessage(false);
                         }
                     }}
+                    computeItemKey={(_index,item)=>item.timestamp.toString()}
                     itemContent={(_index, item) => {
                         switch (item.type) {
                             case "text":
