@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { prompt, snackbar } from "mdui";
 export default function TextFilterPanel() {
     const [textFilter, setTextFilter] = useState<string[]>([]);
-    const [filterMode, setFilterMode] = useState<"blacklist" | "whitelist">("blacklist");
+    const [filterMode, setFilterMode] = useState<"blacklist" | "whitelist" | null>(null);
     const ipc = useNotificationFilterWindowIpc();
     useEffect(() => {
         ipc.getTextFilterConfig().then(result => {
@@ -15,7 +15,9 @@ export default function TextFilterPanel() {
     return (
         <mdui-tab-panel slot="panel" value="textFilter" className="h-[calc(100vh-5.3rem)] overflow-y-auto">
             <mdui-list>
-                <mdui-list-subheader className="ml-5 font-bold">关键词列表({filterMode === "blacklist" ? "黑名单" : "白名单"}模式)</mdui-list-subheader>
+                {filterMode !== null ? <mdui-list-subheader className="ml-5 font-bold">关键词列表({filterMode === "blacklist" ? "黑名单" : "白名单"}模式)</mdui-list-subheader>
+                :
+                <mdui-list-subheader className="ml-5 font-bold">Loading...</mdui-list-subheader>}
                 {
                     textFilter.map((text) =>
                         <mdui-list-item key={text} headline={text}>
@@ -66,8 +68,10 @@ export default function TextFilterPanel() {
                         autoCloseDelay: 1000
                     });
                     // 切换 取反
-                    console.debug(`Change notification text filter mode to ${state === "blacklist" ? "whitelist" : "blacklist"}`);
-                    return state === "blacklist" ? "whitelist" : "blacklist"
+                    const newState = state === "blacklist" ? "whitelist" : "blacklist";
+                    console.debug(`Change notification text filter mode to ${newState}`);
+                    ipc.changeTextFilterMode();
+                    return newState
                 })} />
             </div>
         </mdui-tab-panel>
