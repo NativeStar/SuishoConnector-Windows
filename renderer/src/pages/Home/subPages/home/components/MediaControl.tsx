@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { snackbar } from "mdui";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import type { MediaSessionMetadata } from "~/types/ipc";
@@ -7,8 +8,35 @@ type MduiSliderElement = HTMLElement & { value: number };
 interface MediaControlProps {
     className?: string
 }
+interface MediaInfoTextTipProps {
+    typeText: string
+    text: string
+    children: React.ReactNode
+    hasMediaSession: boolean
+}
 // 旋转动画角度
 const rotateList = [60, 120, 180, 240, 300, 360];
+function MediaInfoTextTip({ typeText, text, children, hasMediaSession }: MediaInfoTextTipProps) {
+    //没有播放媒体 不能复制东西
+    if (!hasMediaSession) {
+        return children;
+    }
+    const copyText = useCallback(() => {
+        navigator.clipboard.writeText(text);
+        snackbar({ message: `已复制${typeText}文本`, autoCloseDelay: 750 })
+    }, [text])
+    return (
+        <mdui-tooltip placement="left">
+            <span className="whitespace-normal wrap-anywhere break-all" slot="content">{typeText}:{text}
+                <br />
+                点击以复制
+            </span>
+            <div onClick={copyText}>
+                {children}
+            </div>
+        </mdui-tooltip>
+    )
+}
 export default function MediaControl({ className }: MediaControlProps) {
     const ipc = useMainWindowIpc();
     const [playing, setPlaying] = useState(false);
@@ -101,9 +129,15 @@ export default function MediaControl({ className }: MediaControlProps) {
                 <img ref={imageRef} style={{ rotate: `${rotate}deg` }} src={mediaSessionMetadata.image === "null" ? "./audioPlayerNotPicture.png" : mediaSessionMetadata.image} className="w-24 h-24 mt-2 ml-2" />
                 {/* 元数据 */}
                 <div className="flex flex-col ml-3 mt-5 w-[67%]">
-                    <b className="truncate text-nowrap text-[gray]">{mediaSessionMetadata.title}</b>
-                    <span className="truncate text-nowrap text-[gray]">{mediaSessionMetadata.artist}</span>
-                    <small className="truncate text-nowrap mt-0.5 text-[gray]">{mediaSessionMetadata.album}</small>
+                    <MediaInfoTextTip typeText="标题" text={mediaSessionMetadata.title} hasMediaSession={controllable}>
+                        <b className="truncate text-nowrap text-[gray] hover:text-red-300">{mediaSessionMetadata.title}</b>
+                    </MediaInfoTextTip>
+                    <MediaInfoTextTip typeText="艺术家" text={mediaSessionMetadata.artist} hasMediaSession={controllable}>
+                        <small className="truncate text-nowrap text-[gray] hover:text-red-300">{mediaSessionMetadata.artist}</small>
+                    </MediaInfoTextTip>
+                    <MediaInfoTextTip typeText="专辑" text={mediaSessionMetadata.album} hasMediaSession={controllable}>
+                        <small className="truncate text-nowrap text-[gray] hover:text-red-300">{mediaSessionMetadata.album}</small>
+                    </MediaInfoTextTip>
                 </div>
             </div>
             {/* 时间显示 */}

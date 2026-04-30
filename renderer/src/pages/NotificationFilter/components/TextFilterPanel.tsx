@@ -19,7 +19,6 @@ export default function TextFilterPanel() {
 
 
     //TODO 直接下载更新包而不是只能跳github 并显示一些更新详情
-    //TODO 复制媒体控制面板内容
     return (
         <mdui-tab-panel slot="panel" value="textFilter" className="h-[calc(100vh-5.3rem)] overflow-y-auto">
             <mdui-list>
