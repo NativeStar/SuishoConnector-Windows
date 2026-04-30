@@ -7,9 +7,9 @@ import type { VirtuosoHandle } from "react-virtuoso";
 interface TransmitTextInputAreaProps {
     messageDispatch: React.ActionDispatch<TransmitMessageListDispatch>,
     database: ReturnType<typeof useDatabase<"transmit">>,
-    list:React.RefObject<VirtuosoHandle | null>
+    list: React.RefObject<VirtuosoHandle | null>
 }
-export default function TransmitTextInputArea({ messageDispatch, database ,list}: TransmitTextInputAreaProps) {
+export default function TransmitTextInputArea({ messageDispatch, database, list }: TransmitTextInputAreaProps) {
     function handleTextareaKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
         if (event.ctrlKey && event.key === "Enter") {
             sendTextMessage()
@@ -21,7 +21,7 @@ export default function TransmitTextInputArea({ messageDispatch, database ,list}
             return
         }
         ipc.sendPacket({ packetType: "transmit_text", msg: text });
-        const messageObject:TransmitTextMessage = {
+        const messageObject: TransmitTextMessage = {
             timestamp: Date.now(),
             type: "text",
             from: "computer",
@@ -31,9 +31,13 @@ export default function TransmitTextInputArea({ messageDispatch, database ,list}
             type: "add",
             messageInstance: messageObject
         });
-        database.addData(messageObject)
+        ipc.getDeviceConfig("saveTransmitMessage", true).then(value => {
+            if (value) {
+                database.addData(messageObject)
+            }
+        })
         setText("");
-        list.current?.scrollToIndex({ index: "LAST",align:"end",behavior:"smooth" });
+        list.current?.scrollToIndex({ index: "LAST", align: "end", behavior: "smooth" });
         console.debug(`Sent a transmit text message:${text}`);
     }
     const ipc = useMainWindowIpc();

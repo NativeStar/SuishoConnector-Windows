@@ -72,7 +72,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 name: file.name,
                 size: file.size
             }
-            db.addData(messageInstance);
+            putTransmitMessageDataToDatabase(messageInstance);
             messageListDispatch({
                 type: "add",
                 messageInstance
@@ -92,7 +92,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 name: file.name,
                 size: file.size
             }
-            db.addData(messageInstance);
+            putTransmitMessageDataToDatabase(messageInstance);
             messageListDispatch({
                 type: "add",
                 messageInstance
@@ -191,6 +191,13 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
             setImageViewerVisible(false);
         }
     }, []);
+    function putTransmitMessageDataToDatabase(data:TransmitFileMessage|TransmitTextMessage){
+        ipc.getDeviceConfig("saveTransmitMessage",true).then(value=>{
+            if(value){
+                db.addData(data);
+            }
+        })
+    }
     function uploadMultipleFile(fileList: (File | UploadFileDescriptor)[]) {
         if (fileList.length === 0) return
         let parsedFileInstanceList: { time: number, file: File | UploadFileDescriptor }[];
@@ -230,7 +237,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 name: fileInfo.file.name,
                 size: fileInfo.file.size
             }
-            db.addData(messageInstance);
+            putTransmitMessageDataToDatabase(messageInstance);
             messageListDispatch({
                 type: "add",
                 messageInstance
@@ -301,7 +308,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 type: "add",
                 messageInstance
             })
-            db.addData(messageInstance);
+            putTransmitMessageDataToDatabase(messageInstance);
             console.debug(`Receive new transmit text:${messageInstance.message}`);
         });
         // 接收就是有进度
@@ -318,7 +325,7 @@ const TransmitPage = forwardRef<TransmitPageRef, TransmitPageProps>(({ hidden, s
                 name: file.fileName,
                 size: file.size
             };
-            db.addData(messageInstance);
+            putTransmitMessageDataToDatabase(messageInstance);
             if (!isAtBottom.current) {
                 setHasNewTransmitMessage(true);
             }

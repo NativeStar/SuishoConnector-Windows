@@ -29,4 +29,6 @@ export default{
     protectNotificationForwardPageOnLockedScreen:false,
     //删除互传消息二次确认
     deleteTransmitMessageConfirm:true,
+    //保存互传消息
+    saveTransmitMessage:true,
 }

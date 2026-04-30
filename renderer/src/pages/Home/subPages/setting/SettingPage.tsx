@@ -64,6 +64,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <mdui-list-subheader className="ml-5 h-10 font-bold">数据互传</mdui-list-subheader>
                     <SettingItemSwitch title="接收到重名文件时删除旧文件" desc="否则在新文件名中追加时间戳以继续接收" icon="downloading" configs={applicationConfig} configKey="deleteTransmitConflictFile" setConfig={ipc.setConfig} />
                     <SettingItemSwitch title="删除消息时确认" icon="playlist_remove" desc="删除消息时是否弹出二次确认对话框" configs={deviceConfig} configKey="deleteTransmitMessageConfirm" setConfig={wrappedSetDeviceConfig} />
+                    <SettingItemSwitch title="保存互传消息" icon="data_array" desc="将互传消息持久化保存 关闭后重启软件消息将丢失(接收的文件不会从磁盘删除)" configs={deviceConfig} configKey="saveTransmitMessage" setConfig={wrappedSetDeviceConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">通知转发</mdui-list-subheader>
                     <SettingItemSwitch title="启用通知转发" icon="fork_right" configs={deviceConfig} configKey="enableNotificationForward" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="计算机锁屏后继续推送通知" desc="即使计算机锁屏也会弹出通知(锁屏时通知内容可能被系统隐藏)" icon="close_fullscreen" configs={deviceConfig} configKey="pushNotificationOnLockedScreen" setConfig={wrappedSetDeviceConfig} />
