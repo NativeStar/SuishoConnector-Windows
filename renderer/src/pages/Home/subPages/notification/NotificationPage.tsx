@@ -52,6 +52,7 @@ function ButtonGroup({ setShowFilterCard, protectType, setCurrentProtectState, d
             // 只有左键能锁定
             if (button === 0) {
                 setCurrentProtectState("protected");
+                ipc.closeNotificationForwardConfigWindow();
                 console.debug("Locked notification forward page");
             }
             return

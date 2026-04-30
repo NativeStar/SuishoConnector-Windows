@@ -350,6 +350,12 @@ class NotificationCore {
             logger.writeDebug("Open config window", this.LOG_TAG)
             this.openConfigWindow(pkgName, appName);
         });
+        ipcMain.handle("notification_closeConfigWindow",()=>{
+            logger.writeDebug("Close config window", this.LOG_TAG);
+            if(this.configWindow&&!this.configWindow.isDestroyed()){
+                this.configWindow.close();
+            }
+        })
         //获取数据
         ipcMain.handle("notificationForward_getTextFilterConfig", (_event): config => {
             logger.writeDebug("Request get text filter config", this.LOG_TAG);

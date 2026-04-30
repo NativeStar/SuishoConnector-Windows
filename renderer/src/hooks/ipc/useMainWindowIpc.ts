@@ -89,6 +89,7 @@ function useMainWindowIpc() {
         getDeviceConfig: window.electronMainProcess.getDeviceConfig,
         startAuthorization: window.electronMainProcess.startAuthorization,
         openNotificationForwardConfigWindow: window.electronMainProcess.openNotificationForwardConfigWindow,
+        closeNotificationForwardConfigWindow:window.electronMainProcess.closeNotificationForwardConfigWindow,
         getNotificationProfile: window.electronMainProcess.getNotificationProfile,
         getDeviceAllConfig: window.electronMainProcess.getDeviceAllConfig,
         getAllConfig: window.electronMainProcess.getAllConfig,

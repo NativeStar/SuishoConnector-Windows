@@ -29,6 +29,8 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     transmitUploadFile:(name,path,size,form=1)=>ipcRenderer.invoke("transmit_uploadFile",name,path,size,form),
     //打开通知转发配置页
     openNotificationForwardConfigWindow:(pkgName,appName)=>{ipcRenderer.invoke("notification_openConfigWindow",pkgName,appName)},
+    //关闭通知转发配置页
+    closeNotificationForwardConfigWindow:()=>{ipcRenderer.invoke("notification_closeConfigWindow")},
     //获取设备数据路径
     getDeviceDataPath:()=>{return ipcRenderer.invoke("main_getDeviceDataPath")},
     //获取配置信息

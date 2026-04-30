@@ -29,6 +29,7 @@ declare global {
             readonly sendRequestPacket: <T>(packet: object) => Promise<T>;
             readonly transmitUploadFile: (name: string, path: string, size: number) => Promise<void>;
             readonly openNotificationForwardConfigWindow: (pkgName?: string, appName?: string) => Promise<void>;
+            readonly closeNotificationForwardConfigWindow:()=>Promise<void>;
             readonly getDeviceDataPath: () => Promise<string>;
             readonly getAllConfig: () => Promise<{ [key: string]: string | number | boolean }>;
             readonly setConfig: (key: string, value: string | number | boolean|null) => Promise<void>;
