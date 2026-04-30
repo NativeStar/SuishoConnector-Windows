@@ -271,8 +271,8 @@ export function FileMessage({ data, progressing, database, messageDispatch, setI
                     ipc.openFile(data.name).then(result => {
                         if (!result) setFileDeleted()
                     })
-                }
-            });
+                },
+            }).catch(() => { });
             return
         }
         ipc.openFile(data.name).then(result => {
@@ -295,7 +295,7 @@ export function FileMessage({ data, progressing, database, messageDispatch, setI
                             <div className="text-[gray]">加载失败</div>
                         </div>
                         :
-                        <img draggable src={fileFullPathRef.current} onDragStart={onDragStart} onErrorCapture={onMediaError} className="draggable object-contain cursor-zoom-in" onClick={openImagePreview} />
+                        <img draggable src={fileFullPathRef.current} onDragEnd={()=>console.log("end drag")} onDragStart={onDragStart} onErrorCapture={onMediaError} className="draggable object-contain cursor-zoom-in" onClick={openImagePreview} />
                 }
             </div>
 
