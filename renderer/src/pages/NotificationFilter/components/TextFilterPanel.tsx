@@ -12,6 +12,10 @@ export default function TextFilterPanel() {
             console.info("Init text filter panel success");
         })
     }, []);
+    // TODO 锁定转发页时关闭配置窗口
+    //TODO 直接下载更新包而不是只能跳github 并显示一些更新详情
+    //TODO 不保存互传消息?
+    //TODO 复制媒体控制面板内容
     return (
         <mdui-tab-panel slot="panel" value="textFilter" className="h-[calc(100vh-5.3rem)] overflow-y-auto">
             <mdui-list>

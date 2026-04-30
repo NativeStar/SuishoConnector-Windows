@@ -1,7 +1,7 @@
 import { twMerge } from "tailwind-merge";
 import { confirm } from "mdui";
 import type { TransmitFileMessage } from "~/types/database";
-import { checkUrl, parseFileSize, isSupportedImageFormat } from "~/utils";
+import { checkUrl, parseFileSize, isSupportedImageFormat, isWindowsExecutableFile } from "~/utils";
 import "mdui/components/linear-progress"
 import { useEffect, useRef, useState } from "react";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
@@ -257,9 +257,24 @@ export function FileMessage({ data, progressing, database, messageDispatch, setI
         })
         console.debug(`Start drag file message:${data.name}`);
     }
-    function openFile() {
+    async function openFile() {
         if (data.from === "computer" || data.isDeleted) return
         console.debug("Try open file");
+        if (isWindowsExecutableFile(data.name)) {
+            console.debug("Show open Windows executable file confirm");
+            await confirm({
+                headline: "打开文件警告",
+                description: "即将打开的文件为Windows可执行或命令行文件 请确保其安全性\n是否确认打开?",
+                confirmText: "打开",
+                cancelText: "取消",
+                onConfirm: () => {
+                    ipc.openFile(data.name).then(result => {
+                        if (!result) setFileDeleted()
+                    })
+                }
+            });
+            return
+        }
         ipc.openFile(data.name).then(result => {
             if (!result) setFileDeleted()
         })

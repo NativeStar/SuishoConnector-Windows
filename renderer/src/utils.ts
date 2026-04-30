@@ -159,3 +159,6 @@ export function getAndroidVersionInfoBySdkVersion(version: number): AndroidVersi
 export function isSupportedImageFormat(fileName:string){
     return fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".gif") || fileName.endsWith(".webp")
 }
+export function isWindowsExecutableFile(fileName:string){
+    return fileName.endsWith(".exe") || fileName.endsWith(".com")|| fileName.endsWith(".bat")|| fileName.endsWith(".cmd")|| fileName.endsWith(".ps1")
+}
