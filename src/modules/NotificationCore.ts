@@ -24,6 +24,7 @@ declare global {
         protocolVersion: number,
         toString: Function,
         sessionId: string,
+        //旧版本不会上报
         clientVersionCode?: number
     }
 }

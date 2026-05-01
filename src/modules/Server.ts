@@ -75,6 +75,7 @@ class Server {
             protocolVersion: 0,
             model: "UnknownModel",
             oem: "UnknownOEM",
+            clientVersionCode: 0,
             androidId: "failed",
             sessionId: randomThing.number_en(32)
         };
@@ -262,7 +263,7 @@ class Server {
                 global.clientMetadata.model = jsonObj.modelName;
                 global.clientMetadata.oem = jsonObj.oem;
                 global.clientMetadata.androidId = jsonObj.androidId;
-                global.clientMetadata.clientVersionCode = jsonObj.clientVersionCode;
+                global.clientMetadata.clientVersionCode = jsonObj.clientVersionCode??0;
                 //检查时间 如果从首次握手到完成不足350ms就将延迟拉到350ms
                 //不然一下子闪过去太诡异了
                 /*虽然正常这点东西不会拖那么久的*/
@@ -294,6 +295,7 @@ class Server {
                 }
                 this.notificationCore = new NotificationCore(this);
                 this.scheduleDisposableTask();
+                logger.writeDebug(`Device android version:${global.clientMetadata.androidSdkVersion} protocolVersion:${global.clientMetadata.protocolVersion} model:${global.clientMetadata.model} clientVersion:${global.clientMetadata.clientVersionCode}`)
                 break
             case "action_transmit":
                 logger.writeDebug(`Received a new transmit packet.Type:${jsonObj.messageType}`);
