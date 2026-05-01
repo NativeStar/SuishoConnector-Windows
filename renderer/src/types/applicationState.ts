@@ -1,5 +1,6 @@
-import { confirm } from "mdui";
+import { confirm, dialog, snackbar } from "mdui";
 import type { StateAction } from "~/pages/Home/Home";
+import type { UpdateJson } from "./chaos";
 export const ApplicationStateLevel = {
     Checked: 0,
     Busy: 1,
@@ -12,7 +13,7 @@ export interface ApplicationState {
     title: string,
     content: string,
     clickable: boolean,
-    onClick?: (dispatch:React.ActionDispatch<StateAction>) => void
+    onClick?: (dispatch: React.ActionDispatch<StateAction>) => void
 }
 const States = {
     busy_waiting_icon_pack: {
@@ -21,13 +22,40 @@ const States = {
         content: "这会需要一段时间",
         clickable: false,
     },
-    info_update_available:{
+    info_update_available: {
         level: ApplicationStateLevel.Info,
         title: "发现新版本",
         content: "点击跳转至Github下载",
         clickable: true,
         onClick() {
-            window.electronMainProcess.openUrl("https://github.com/NativeStar/SuishoConnector-Windows/releases")
+            snackbar({
+                message: "解析更新数据...",
+                autoCloseDelay: 750
+            });
+            const rawUpdateJsonString = sessionStorage.getItem("updateJson");
+            if (!rawUpdateJsonString) {
+                confirm({
+                    headline: "解析数据失败",
+                    description: "但您仍可以前往Github Release页面手动检查和下载更新",
+                    confirmText: "跳转",
+                    cancelText: "取消",
+                    onConfirm: () => {
+                        window.electronMainProcess.openUrl("https://github.com/NativeStar/SuishoConnector-Windows/releases")
+                    }
+                }).catch(() => { });
+                return
+            }
+            const updateJson :UpdateJson= JSON.parse(rawUpdateJsonString)
+            dialog({
+                actions: [
+                    { text: "前往发布页" ,onClick:()=>window.electronMainProcess.openUrl("https://github.com/NativeStar/SuishoConnector-Windows/releases")},
+                    { text: "取消" },
+                    // 跳转浏览器下载
+                    { text: "下载" ,onClick:()=>window.electronMainProcess.openUrl(updateJson.downloadUrl)}
+                ],
+                headline: `发现新版本:${updateJson.versionName}`,
+                description: updateJson.description
+            })
         }
     },
     info_device_not_trusted: {
@@ -36,7 +64,7 @@ const States = {
         content: "将只运行基础功能",
         clickable: false
     },
-    info_device_idle:{
+    info_device_idle: {
         level: ApplicationStateLevel.Info,
         title: "Doze模式",
         content: "设备已进入低功耗模式 数据同步可能延迟",
@@ -60,14 +88,14 @@ const States = {
             })
         },
     },
-    warn_watch_directory_missing:{
+    warn_watch_directory_missing: {
         level: ApplicationStateLevel.Warn,
         title: "已取消同步异常的文件夹",
         content: "部分目录无法读取\n可能是目录被删除或发生权限变更\n点击关闭该通知",
         clickable: true,
-        onClick(dispatch){
+        onClick(dispatch) {
             //只是提醒用状态 移除自身
-            dispatch({type:"remove",id:"warn_watch_directory_missing"})
+            dispatch({ type: "remove", id: "warn_watch_directory_missing" })
         }
     },
     warn_android_client_version_low: {

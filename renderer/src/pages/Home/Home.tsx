@@ -13,6 +13,7 @@ import { setColorScheme } from "mdui";
 import { releaseFfmpeg } from "~/utils";
 import useLogger from "~/hooks/useLogger";
 import ApplicationVersion from "shared/const/ApplicationVersion"
+import type { UpdateJson } from "~/types/chaos";
 export type StatesListObject = { [key in States]?: ApplicationState };
 export type StateAction = [{
   type: "add" | "remove"
@@ -169,14 +170,10 @@ export default function Home() {
         requestIdleCallback(async () => {
           console.log("Start check update");
           try {
-            type UpdateJson = {
-              versionName: string,
-              versionCode: number,
-            }
-            const updateJson: UpdateJson = await (await fetch("https://raw.githubusercontent.com/NativeStar/SuishoConnector-Windows/master/update_debug.json")).json();
+            const updateJson: UpdateJson = await (await fetch("https://raw.githubusercontent.com/NativeStar/SuishoConnector-Windows/master/update.json")).json();
             if (ApplicationVersion.APPLICATION_VERSION_CODE < updateJson.versionCode) {
               console.log(`Find new version:${updateJson.versionCode}`);
-              //TODO 可以用sessionStorage暂存更新json数据
+              sessionStorage.setItem("updateJson", JSON.stringify(updateJson));
               applicationStatesDispatch({
                 type: "add",
                 id: "info_update_available"

@@ -16,9 +16,6 @@ export default function TextFilterPanel() {
     //TODO 修复导航栏可能触发两次振动效果
     //TODO 优化扫码 判定位置有点诡异了
     //TODO 优化通知过滤 pc端关闭配置窗口时将黑名单同步到手机 避免全部发给pc才过滤 节省带宽
-
-
-    //TODO 直接下载更新包而不是只能跳github 并显示一些更新详情
     return (
         <mdui-tab-panel slot="panel" value="textFilter" className="h-[calc(100vh-5.3rem)] overflow-y-auto">
             <mdui-list>
