@@ -8,8 +8,9 @@ import "mdui/components/select"
 import "mdui/components/menu-item"
 import { useEffect, useState } from "react";
 import useNotificationFilterWindowIpc from "~/hooks/ipc/useNotificationFilterWindowIpc";
-import type { ApplicationListData, ApplicationNotificationProfile } from "~/types/ipc";
+import type { ApplicationNotificationProfile } from "~/types/ipc";
 import { snackbar } from "mdui";
+import {type ApplicationListData} from "shared"
 import FixedMduiSelect, { type SelectItem } from "~/components/FixedMduiSelect";
 interface CollapseListItemProp {
     setSearchText: React.Dispatch<React.SetStateAction<string>>;

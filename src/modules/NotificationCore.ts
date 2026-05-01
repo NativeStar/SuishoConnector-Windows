@@ -14,6 +14,7 @@ import xmlEscape from "xml-escape";
 import Util from "./Util";
 import NotificationProfileType, { NotificationDetailShowMode } from "../interface/INotificationProfile";
 import type Server from "./Server";
+import {type ApplicationListData } from "shared/index";
 declare global {
     var clientMetadata: {
         androidId: string | "failed",
@@ -22,7 +23,8 @@ declare global {
         oem: "UnknownOEM" | string,
         protocolVersion: number,
         toString: Function,
-        sessionId: string
+        sessionId: string,
+        clientVersionCode?:number
     }
 }
 class NotificationCore {
@@ -120,9 +122,9 @@ class NotificationCore {
  
      * @returns 
      */
-    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, isLockedScreen:boolean): void {
+    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, isLockedScreen: boolean): void {
         let blockedByLockScreen = false;
-        let forwardToRendererProcess=true;
+        let forwardToRendererProcess = true;
         logger.writeDebug(`New notification from ${packageName}`, this.LOG_TAG);
         //检测
         //单配置检测(优先级最高 强制绕检测等)
@@ -134,12 +136,12 @@ class NotificationCore {
             appName?: string,
             enableTextFilter: boolean,
             show: boolean,
-            showAppIcon:boolean
+            showAppIcon: boolean
         } = {
             useProfile: false,
             enableTextFilter: true,
             show: true,
-            showAppIcon:true
+            showAppIcon: true
         };
         //实时通知显示 暂定不进行处理 直接推
         this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing, progress });
@@ -160,7 +162,7 @@ class NotificationCore {
             blockedByLockScreen = true;
         };
         //手机锁屏检测
-        if(!isLockedScreen&&global.deviceConfig.getConfigProp("blockNotificationOnDeviceUnlock",false)){
+        if (!isLockedScreen && global.deviceConfig.getConfigProp("blockNotificationOnDeviceUnlock", false)) {
             logger.writeDebug(`Hide notification because device screen unlock:${packageName}`, this.LOG_TAG);
             result.show = false;
         }
@@ -200,7 +202,7 @@ class NotificationCore {
                         result.appName = "Suisho Connector";
                         result.title = "新通知";
                         result.content = "连接的手机收到一条通知";
-                        result.showAppIcon=false;
+                        result.showAppIcon = false;
                         break
                     case "nameOnly":
                         //只出来个应用名
@@ -216,7 +218,7 @@ class NotificationCore {
             }
         }
         //无配置文件
-        if (result.show&&!result.useProfile) {
+        if (result.show && !result.useProfile) {
             switch (global.deviceConfig.getConfigProp<NotificationDetailShowMode>("defaultNotificationShowMode", "all")) {
                 case "all":
                     logger.writeDebug(`Notification pushed all:${packageName}`, this.LOG_TAG);
@@ -239,7 +241,7 @@ class NotificationCore {
                     result.appName = "Suisho Connector";
                     result.title = "新通知";
                     result.content = "连接的手机收到一条通知";
-                    result.showAppIcon=false;
+                    result.showAppIcon = false;
                     break
                 default:
                     logger.writeWarn(`Unknown notification forward show mode:${global.deviceConfig.getConfigProp("defaultNotificationShowMode")}`, this.LOG_TAG);
@@ -286,7 +288,7 @@ class NotificationCore {
         if (!this.hasXmlPermission) {
             this.showCommonNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
         } else {
-            this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName,result.showAppIcon);
+            this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName, result.showAppIcon);
         }
     }
     /**
@@ -324,7 +326,7 @@ class NotificationCore {
      * @description 发送Windows Xml格式通知 支持显示应用名
      * @memberof NotificationCore
      */
-    showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string,showAppIcon:boolean): void {
+    showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string, showAppIcon: boolean): void {
         logger.writeInfo(`Posted a notification from:${packageName}`, this.LOG_TAG);
         const notification = new ElectronNotification({
             toastXml:
@@ -335,7 +337,7 @@ class NotificationCore {
                         <text>${xmlEscape(title)}</text>
                         <text>${xmlEscape(content)}</text>
                         <text placement="attribution">${xmlEscape(appName)}</text>
-                        ${showAppIcon?`<image placement="appLogoOverride" src="file://${this.iconCachePath}${packageName}"/>`:""}
+                        ${showAppIcon ? `<image placement="appLogoOverride" src="file://${this.iconCachePath}${packageName}"/>` : ""}
                         />
                     </binding>
                 </visual>
@@ -350,9 +352,9 @@ class NotificationCore {
             logger.writeDebug("Open config window", this.LOG_TAG)
             this.openConfigWindow(pkgName, appName);
         });
-        ipcMain.handle("notification_closeConfigWindow",()=>{
+        ipcMain.handle("notification_closeConfigWindow", () => {
             logger.writeDebug("Close config window", this.LOG_TAG);
-            if(this.configWindow&&!this.configWindow.isDestroyed()){
+            if (this.configWindow && !this.configWindow.isDestroyed()) {
                 this.configWindow.close();
             }
         })
@@ -513,11 +515,11 @@ class NotificationCore {
         powerMonitor.on("unlock-screen", () => {
             if (this.blockedNotificationInLockScreenCount === 0) return
             if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen", false) && global.deviceConfig.getConfigProp("showBlockedNotificationCountOnUnlockScreen", true)) {
-                const notificationInstance=new ElectronNotification({
+                const notificationInstance = new ElectronNotification({
                     title: "欢迎回来",
                     body: `在计算机锁定时 连接的设备收到了${this.blockedNotificationInLockScreenCount}条通知`,
                 });
-                notificationInstance.on("click",()=>{
+                notificationInstance.on("click", () => {
                     this.onNotificationClick()
                 })
                 // 加一点延迟提升观感
@@ -531,6 +533,25 @@ class NotificationCore {
     recheckXmlPermission(): void {
         this.hasXmlPermission = this.checkXmlPermission();
         logger.writeInfo(`Recheck xml notification permission result: ${this.hasXmlPermission}`, this.LOG_TAG)
+    }
+    /**
+     * 清除被卸载应用的通知转发profile 避免配置文件膨胀
+     */
+    async cleanupProfile(appListCache: {data: ApplicationListData[]}) {
+        logger.writeInfo(`Cleanup profile start`, this.LOG_TAG);
+        const tmpPackageNameList = appListCache.data.map(app => app.packageName);
+        if (tmpPackageNameList.length===0) {
+            logger.writeInfo(`Cleanup profile canceled because app list empty`, this.LOG_TAG);
+            return
+        }
+        for (const [pkgName] of this.profile) {
+            if (!tmpPackageNameList.includes(pkgName)) {
+                logger.writeDebug(`Cleanup package profile: ${pkgName}`, this.LOG_TAG);
+                this.profile.delete(pkgName);
+            }
+        }
+        await fs.writeJson(this.profilePath, Object.fromEntries(this.profile));
+        logger.writeInfo(`Cleanup profile success`, this.LOG_TAG);
     }
 }
 export default NotificationCore;

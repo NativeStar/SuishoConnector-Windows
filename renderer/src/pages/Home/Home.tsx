@@ -176,6 +176,7 @@ export default function Home() {
             const updateJson: UpdateJson = await (await fetch("https://raw.githubusercontent.com/NativeStar/SuishoConnector-Windows/master/update.json")).json();
             if (ApplicationVersion.APPLICATION_VERSION_CODE < updateJson.versionCode) {
               console.log(`Find new version:${updateJson.versionCode}`);
+              //TODO 可以用sessionStorage暂存更新json数据
               applicationStatesDispatch({
                 type: "add",
                 id: "info_update_available"

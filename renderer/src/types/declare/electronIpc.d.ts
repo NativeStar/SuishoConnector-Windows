@@ -1,5 +1,6 @@
-import type { InitServerResult, DeviceBaseInfo ,ApplicationListData,ApplicationNotificationProfile,TextFilterConfig, FileItem,AudioForwardResponse} from "~/types/ipc"
+import type { InitServerResult, DeviceBaseInfo,ApplicationNotificationProfile,TextFilterConfig, FileItem,AudioForwardResponse} from "~/types/ipc"
 import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
+import type {ApplicationListData} from "shared"
 declare global {
     interface Window { 
         readonly electronMainProcess: {

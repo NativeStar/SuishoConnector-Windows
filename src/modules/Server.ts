@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, app, ipcMain, Notification, Tray } from "electron";
+import { BrowserWindow, dialog, app, ipcMain, Notification, Tray, powerMonitor } from "electron";
 import { IncomingMessage } from "http";
 import https from "https";
 import ws, { AddressInfo } from "ws";
@@ -16,6 +16,7 @@ import ConnectionCloseReasonString from "../constant/CloseCodeReasonString";
 import path from "path";
 import DeviceConfig from "./DeviceConfig";
 import { SocketFileWriter } from "./SocketFileWriter";
+import { type ApplicationListData } from "shared/index";
 declare global {
     var serverAddress: string | null
 }
@@ -261,6 +262,7 @@ class Server {
                 global.clientMetadata.model = jsonObj.modelName;
                 global.clientMetadata.oem = jsonObj.oem;
                 global.clientMetadata.androidId = jsonObj.androidId;
+                global.clientMetadata.clientVersionCode = jsonObj.clientVersionCode;
                 //检查时间 如果从首次握手到完成不足350ms就将延迟拉到350ms
                 //不然一下子闪过去太诡异了
                 /*虽然正常这点东西不会拖那么久的*/
@@ -291,6 +293,7 @@ class Server {
                     }, 350);
                 }
                 this.notificationCore = new NotificationCore(this);
+                this.scheduleDisposableTask();
                 break
             case "action_transmit":
                 logger.writeDebug(`Received a new transmit packet.Type:${jsonObj.messageType}`);
@@ -312,7 +315,7 @@ class Server {
                                 //有重名
                                 if (global.config.deleteTransmitConflictFile) {
                                     await fs.remove(fileDirPath + dirFileName);
-                                }else{
+                                } else {
                                     //设置显示名称 尝试逃过浅拷贝
                                     jsonObj.displayName = `${jsonObj.name}`;
                                     //改为文件原名+时间戳+原后缀
@@ -619,6 +622,19 @@ class Server {
     }
     getNotificationManager() {
         return this.notificationCore;
+    }
+    private scheduleDisposableTask() {
+        const autoCleanupAppProfileTask = setInterval(() => {
+            const idleTime= powerMonitor.getSystemIdleTime();
+            logger.writeDebug(`Idle time:${idleTime}`);
+            //设备无操作5分钟
+            if (idleTime > 300 && this.appListCache && this.notificationCore) {
+                this.notificationCore.cleanupProfile(this.appListCache as { data: ApplicationListData[] }).catch(error => {
+                    logger.writeError(`Cleanup app profile failed:${error}`);
+                });
+                clearInterval(autoCleanupAppProfileTask);
+            }
+        }, 60 * 1000);
     }
     /**
      * @description 跨进程消息处理

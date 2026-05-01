@@ -1,3 +1,4 @@
-export const test=[
-    "monorepo-test"
-]
+export type ApplicationListData = {
+    appName: string,
+    packageName: string
+}

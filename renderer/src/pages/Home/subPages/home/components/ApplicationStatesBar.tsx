@@ -12,6 +12,7 @@ const LevelIcon = {
     [ApplicationStateLevel.Error]: "error_outline",
     [ApplicationStateLevel.Warn]: "warning_amber",
 } as const;
+//TODO 窗口置顶功能开关
 const LevelText = {
     [ApplicationStateLevel.Checked]: "正常",
     [ApplicationStateLevel.Busy]: "忙碌",
