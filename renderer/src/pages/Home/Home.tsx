@@ -173,7 +173,7 @@ export default function Home() {
               versionName: string,
               versionCode: number,
             }
-            const updateJson: UpdateJson = await (await fetch("https://raw.githubusercontent.com/NativeStar/SuishoConnector-Windows/master/update.json")).json();
+            const updateJson: UpdateJson = await (await fetch("https://raw.githubusercontent.com/NativeStar/SuishoConnector-Windows/master/update_debug.json")).json();
             if (ApplicationVersion.APPLICATION_VERSION_CODE < updateJson.versionCode) {
               console.log(`Find new version:${updateJson.versionCode}`);
               //TODO 可以用sessionStorage暂存更新json数据
