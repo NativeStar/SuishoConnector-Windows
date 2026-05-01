@@ -1,6 +1,6 @@
 {
-    "versionCode":10,
-    "versionName":"1.1.4",
+    "versionCode":66,
+    "versionName":"6.6.6",
     "downloadUrl":"https://raw.githubusercontent.com/NativeStar/SuishoConnector-Windows/master/update_debug.json",
     "description": "update log \nnew line\nline again"
 }
