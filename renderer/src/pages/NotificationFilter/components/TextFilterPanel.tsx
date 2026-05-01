@@ -12,8 +12,6 @@ export default function TextFilterPanel() {
             console.info("Init text filter panel success");
         })
     }, []);
-    //android todos
-    //TODO 优化通知过滤 pc端关闭配置窗口时将黑名单同步到手机 避免全部发给pc才过滤 节省带宽
     return (
         <mdui-tab-panel slot="panel" value="textFilter" className="h-[calc(100vh-5.3rem)] overflow-y-auto">
             <mdui-list>

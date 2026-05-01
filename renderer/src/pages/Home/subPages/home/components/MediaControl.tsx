@@ -61,7 +61,7 @@ export default function MediaControl({ className }: MediaControlProps) {
         const updateMediaSessionMetadataCleanup = ipc.on("updateMediaSessionMetadata", data => {
             if (data.image === "keep") {
                 setMediaSessionMetadata(prev => ({
-                    ...prev,
+                    ...data,
                     image: prev.image
                 }));
                 console.debug("update media session with keep image");
@@ -110,6 +110,7 @@ export default function MediaControl({ className }: MediaControlProps) {
             updateMediaSessionPlaybackStateCleanup();
         }
     }, []);
+    // 更新进度条
     useEffect(() => {
         if (playing) {
             durationLooper = setInterval(() => {
