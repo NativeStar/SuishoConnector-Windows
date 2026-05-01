@@ -55,7 +55,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 //阻止媒体控制
 app.commandLine.appendSwitch('disable-features', 'MediaSessionService,HardwareMediaKeyHandling');
-process.on("uncaughtException", (error,origin)=>Util.onUncaughtException(error,origin,mainWindow))
+process.on("uncaughtException", (error, origin) => Util.onUncaughtException(error, origin, mainWindow))
 process.on("unhandledRejection", (reason, promise) => {
     logger.writeError(`Unhandled rejection at: ${promise} reason: ${reason}`);
     Util.onUncaughtException(reason as Error, "unhandledRejection", mainWindow)
@@ -81,6 +81,7 @@ app.on("ready", async (_event, _info) => {
         },
         width: 330,
         height: 600,
+        alwaysOnTop: config.windowAlwaysOnTop,
         webPreferences: {
             contextIsolation: true,
             preload: path.join(__dirname, "preload/connectPhonePreload.js")
@@ -192,6 +193,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 resizable: false,
                 autoHideMenuBar: true,
                 frame: false,
+                alwaysOnTop: config.windowAlwaysOnTop,
                 titleBarOverlay: {
                     height: 40,
                     color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
@@ -274,9 +276,9 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             //不走代理
             mainWindow.webContents.session.setProxy({ mode: "direct" });
             //关机提醒
-            mainWindow.on("query-session-end",(e)=>{
-                if (e.reasons.includes("shutdown")||e.reasons.includes("logoff")) {
-                    connectedDevice.socket?.close(ConnectionCloseCode.ComputerWillShutdown,CloseReason[ConnectionCloseCode.ComputerWillShutdown])
+            mainWindow.on("query-session-end", (e) => {
+                if (e.reasons.includes("shutdown") || e.reasons.includes("logoff")) {
+                    connectedDevice.socket?.close(ConnectionCloseCode.ComputerWillShutdown, CloseReason[ConnectionCloseCode.ComputerWillShutdown])
                 }
             })
             //关闭和发起连接有关的服务
@@ -554,6 +556,11 @@ ipcMain.handle("main_setConfig", (_event, prop: string, value: string | number |
             browserWindow.setContentProtection(value as boolean);
         }
         logger.writeInfo(`${value ? "enabled" : "disabled"} content protection`);
+    } else if (prop === "windowAlwaysOnTop") {
+        for (const browserWindow of BrowserWindow.getAllWindows()) {
+            browserWindow.setAlwaysOnTop(value as boolean);
+        }
+        logger.writeInfo(`${value ? "enabled" : "disabled"} windows always on top`);
     }
 });
 //写入设备配置

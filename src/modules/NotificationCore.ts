@@ -14,7 +14,7 @@ import xmlEscape from "xml-escape";
 import Util from "./Util";
 import NotificationProfileType, { NotificationDetailShowMode } from "../interface/INotificationProfile";
 import type Server from "./Server";
-import {type ApplicationListData } from "shared/index";
+import { type ApplicationListData } from "shared/index";
 declare global {
     var clientMetadata: {
         androidId: string | "failed",
@@ -24,7 +24,7 @@ declare global {
         protocolVersion: number,
         toString: Function,
         sessionId: string,
-        clientVersionCode?:number
+        clientVersionCode?: number
     }
 }
 class NotificationCore {
@@ -447,6 +447,7 @@ class NotificationCore {
                 autoHideMenuBar: true,
                 frame: false,
                 show: false,
+                alwaysOnTop: config.windowAlwaysOnTop,
                 titleBarOverlay: {
                     height: 40,
                     color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
@@ -537,10 +538,10 @@ class NotificationCore {
     /**
      * 清除被卸载应用的通知转发profile 避免配置文件膨胀
      */
-    async cleanupProfile(appListCache: {data: ApplicationListData[]}) {
+    async cleanupProfile(appListCache: { data: ApplicationListData[] }) {
         logger.writeInfo(`Cleanup profile start`, this.LOG_TAG);
         const tmpPackageNameList = appListCache.data.map(app => app.packageName);
-        if (tmpPackageNameList.length===0) {
+        if (tmpPackageNameList.length === 0) {
             logger.writeInfo(`Cleanup profile canceled because app list empty`, this.LOG_TAG);
             return
         }

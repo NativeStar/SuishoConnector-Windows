@@ -8,6 +8,7 @@ export default {
     deleteTransmitConflictFile:false,
     enableContentProtection:false,
     autoCheckUpdate:true,
+    windowAlwaysOnTop:false,
     "internal:lastConnectionAddress":"",
     "internal:lastConnectionName":""
 }
