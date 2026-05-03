@@ -1,5 +1,5 @@
 const ApplicationVersion={
-    APPLICATION_VERSION_CODE:10,
-    APPLICATION_VERSION_NAME:"1.1.4",
+    APPLICATION_VERSION_CODE:11,
+    APPLICATION_VERSION_NAME:"1.1.5",
 } as const;
 export default ApplicationVersion;
