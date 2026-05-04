@@ -7,13 +7,15 @@ import { FileManagerDownload, FileManagerStarDirectory, FileManagerUnStarDirecto
 import "react-modal-video/css/modal-video.css"
 import { FileManagerResultCode, FileManagerResultCodeMessage, isDotPopPathResultCode } from "~/types/fileManagerResultCodes";
 import type { FileItem } from "~/types/ipc";
-import ModalVideo from 'react-modal-video';
+import ModalVideoOrigin from 'react-modal-video';
 import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constance";
 import { PhotoSlider } from "react-photo-view";
 import AudioModal from "./components/AudioModal";
 import { releaseFfmpeg } from "~/utils";
 import AndroidIdContext from "~/context/AndroidIdContext";
-
+//TODO 先这样保证跑起来 后面自己重新写一个
+const ModalVideo =
+  (ModalVideoOrigin as unknown as { default?: typeof ModalVideoOrigin }).default ?? ModalVideoOrigin;
 interface FileManagerPageProps {
     hidden: boolean
 }

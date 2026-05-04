@@ -68,7 +68,7 @@ class Util {
      * @memberof Util
      */
     static async loadConfig(): Promise<typeof config> {
-        const { v4 } = require("uuid");
+        const { v4 } = await import("uuid");
         //文件路径
         const configFile = `${app.getPath("userData")}/programData/appCfg.json`;
         if (await fs.exists(configFile)) {

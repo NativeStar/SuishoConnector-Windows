@@ -22,7 +22,7 @@ export const OpenSourceList:OpenSourceList=[
     },
     {
         name:"crypto-random-string",
-        url:"://github.com/sindresorhus/crypto-random-string",
+        url:"https://github.com/sindresorhus/crypto-random-string",
     },
     {
         name:"dexie",
