@@ -18,7 +18,7 @@ export default function SettingItemSwitch({ icon, title, desc, className, onChan
         setSwitchChecked(configs[configKey] as boolean)
     }, [configs])
     const switchRef = useRef<HTMLInputElement>(null);
-    function internalOnChange(e: React.FormEvent<HTMLInputElement>) {
+    function internalOnChange(e: React.ChangeEvent<HTMLInputElement>) {
         e.stopPropagation();
         if (onChange?.((e.target as HTMLInputElement).checked) === false) {
             e.preventDefault();
