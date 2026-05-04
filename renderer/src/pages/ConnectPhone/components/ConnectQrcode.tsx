@@ -17,7 +17,7 @@ export function ConnectQrcode({ data, showMark }: ConnectQrcodeProps) {
     return (
         <>
             {showMark &&
-                <div className="opacity-75 size-[175px] bg-white z-10 absolute text-center top-[36%]">
+                <div className="opacity-75 size-43.75 bg-white z-10 absolute text-center top-[35.5%]">
                     <mdui-circular-progress className="fixed top-[45%] left-[44.5%]" />
                     <span className="absolute left-[35.5%] top-[58%]">连接中...</span>
                 </div>

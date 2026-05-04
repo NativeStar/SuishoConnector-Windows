@@ -16,8 +16,7 @@ export default function AudioForwardPanel({ className }: AudioForwardPanelProps)
                 if (!value.result) {
                     snackbar({
                         message: value.exception ? `启动时发生异常:${value.exception}` : "功能涉及特殊权限 请先在Android设备上手动授权",
-                        autoCloseDelay: 3000,
-                        closeable: true
+                        autoCloseDelay: 2000,
                     });
                     setLoading(false);
                     console.debug(`Failed to start audio forward:${value.exception ? value.exception : "not permission"}`);
