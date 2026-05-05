@@ -37,6 +37,7 @@ class NotificationCore {
     private hasXmlPermission: boolean;
     private blockedNotificationInLockScreenCount: number = 0;
     private iconCachePath: string;
+    private notificationIconCachePath: string;
     config: config;
     filterText: Set<string>;
     configWindow: BrowserWindow | null
@@ -59,6 +60,8 @@ class NotificationCore {
         this.profilePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/notification/profile.json`;
         //图标缓存路径
         this.iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconCache/`;
+        //通知图标缓存路径
+        this.notificationIconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/notificationIcons/`
         this.server = server;
         //主配置
         if (fs.existsSync(this.configPath)) {
@@ -123,7 +126,7 @@ class NotificationCore {
  
      * @returns 
      */
-    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, isLockedScreen: boolean): void {
+    onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, isLockedScreen: boolean, iconHash: string | null): void {
         let blockedByLockScreen = false;
         let forwardToRendererProcess = true;
         logger.writeDebug(`New notification from ${packageName}`, this.LOG_TAG);
@@ -137,12 +140,14 @@ class NotificationCore {
             appName?: string,
             enableTextFilter: boolean,
             show: boolean,
-            showAppIcon: boolean
+            showAppIcon: boolean,
+            showNotificationIcon: boolean
         } = {
             useProfile: false,
             enableTextFilter: true,
             show: true,
-            showAppIcon: true
+            showAppIcon: true,
+            showNotificationIcon: true
         };
         //实时通知显示 暂定不进行处理 直接推
         this.window?.webContents.send("webviewEvent", "currentNotificationUpdate", { type: "add", key, packageName, appName, title, content, time, ongoing, progress });
@@ -204,6 +209,7 @@ class NotificationCore {
                         result.title = "新通知";
                         result.content = "连接的手机收到一条通知";
                         result.showAppIcon = false;
+                        result.showNotificationIcon = false;
                         break
                     case "nameOnly":
                         //只出来个应用名
@@ -211,6 +217,7 @@ class NotificationCore {
                         result.appName = "Suisho Connector";
                         result.title = "新通知";
                         result.content = `收到来自'${appName}'的通知`;
+                        result.showNotificationIcon = false;
                         break
                     default:
                         logger.writeWarn(`Unknown notification forward show mode:${profile.detailShowMode}`, this.LOG_TAG);
@@ -231,6 +238,7 @@ class NotificationCore {
                     result.appName = "Suisho Connector";
                     result.title = "新通知";
                     result.content = `收到来自'${appName}'的通知`;
+                    result.showNotificationIcon = false;
                     break
                 case "none":
                     //不推送
@@ -243,6 +251,7 @@ class NotificationCore {
                     result.title = "新通知";
                     result.content = "连接的手机收到一条通知";
                     result.showAppIcon = false;
+                    result.showNotificationIcon = false;
                     break
                 default:
                     logger.writeWarn(`Unknown notification forward show mode:${global.deviceConfig.getConfigProp("defaultNotificationShowMode")}`, this.LOG_TAG);
@@ -289,7 +298,8 @@ class NotificationCore {
         if (!this.hasXmlPermission) {
             this.showCommonNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName);
         } else {
-            this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName, result.showAppIcon);
+            //appIcon可能涉及隐私
+            this.showXmlNotification(packageName, time, result.title || title, result.content || content, result.appName ?? appName, result.showAppIcon, result.showNotificationIcon ? iconHash : null);
         }
     }
     /**
@@ -327,8 +337,10 @@ class NotificationCore {
      * @description 发送Windows Xml格式通知 支持显示应用名
      * @memberof NotificationCore
      */
-    showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string, showAppIcon: boolean): void {
+    async showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string, showAppIcon: boolean, iconHash: string | null): Promise<void> {
         logger.writeInfo(`Posted a notification from:${packageName}`, this.LOG_TAG);
+        const iconExists = iconHash && await fs.exists(`${this.notificationIconCachePath}${iconHash}`);
+        //TODO 清理缓存功能要包含新的图标缓存目录
         const notification = new ElectronNotification({
             toastXml:
                 `
@@ -338,8 +350,7 @@ class NotificationCore {
                         <text>${xmlEscape(title)}</text>
                         <text>${xmlEscape(content)}</text>
                         <text placement="attribution">${xmlEscape(appName)}</text>
-                        ${showAppIcon ? `<image placement="appLogoOverride" src="file://${this.iconCachePath}${packageName}"/>` : ""}
-                        />
+                        ${showAppIcon ? `<image placement="appLogoOverride" src="file://${iconHash && iconExists ? this.notificationIconCachePath : this.iconCachePath}${iconExists ? iconHash ?? packageName : packageName}"/>` : ""}
                     </binding>
                 </visual>
             </toast>

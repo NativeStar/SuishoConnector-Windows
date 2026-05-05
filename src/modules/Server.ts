@@ -370,8 +370,19 @@ class Server {
                 }
                 break
             case "action_notificationForward":
+                //避免出现图标同步问题 无论是否开启通知 收到图标都要写入
+                if (jsonObj.iconBase64&&jsonObj.iconHash) {
+                    logger.writeDebug(`Receive icon from notification:${jsonObj.iconHash}`);
+                    const iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/notificationIcons`;
+                    const iconFile=`${iconCachePath}/${jsonObj.iconHash}`;
+                    await fs.ensureDir(iconCachePath);
+                    if(!await fs.exists(iconFile)){
+                        await fs.writeFile(`${iconCachePath}/${jsonObj.iconHash}`, Buffer.from(jsonObj.iconBase64, "base64"));
+                        logger.writeDebug(`Write icon to cache:${iconFile}`);
+                    }
+                }
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen,jsonObj.iconHash);
                 break
             case "syncIconPack"://同步应用图标资源包
                 logger.writeDebug("Request sync icon pack");
