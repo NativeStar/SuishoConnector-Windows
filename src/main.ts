@@ -690,6 +690,7 @@ ipcMain.handle("main_deleteCache", async () => {
     const logPath = `${app.getPath("userData")}/programData/logs`;
     const filesList = await fs.readdir(logPath);
     const currentLogFileName = logger.getLogFileName();
+    //日志
     for (const file of filesList) {
         //跳过本次运行产生的日志文件
         if (file !== currentLogFileName) {
@@ -701,6 +702,9 @@ ipcMain.handle("main_deleteCache", async () => {
             }
         }
     }
+    //直接轻松assets目录 目前里面都是缓存数据
+    const iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets`;
+    await fs.rm(iconCachePath, { recursive: true })
     logger.writeInfo("Deleted all caches");
 });
 app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
