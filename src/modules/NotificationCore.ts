@@ -340,7 +340,6 @@ class NotificationCore {
     async showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string, showAppIcon: boolean, iconHash: string | null): Promise<void> {
         logger.writeInfo(`Posted a notification from:${packageName}`, this.LOG_TAG);
         const iconExists = iconHash && await fs.exists(`${this.notificationIconCachePath}${iconHash}`);
-        //TODO 清理缓存功能要包含新的图标缓存目录
         const notification = new ElectronNotification({
             toastXml:
                 `
