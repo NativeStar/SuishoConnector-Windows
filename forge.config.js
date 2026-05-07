@@ -4,7 +4,7 @@ const fsp = require('fs/promises');
 async function safeRm(targetPath) {
   try {
     await fsp.rm(targetPath, { recursive: true, force: true });
-  } catch {}
+  } catch { }
 }
 function walkDirSync(dirPath, handlers) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -34,12 +34,12 @@ module.exports = {
       FileDescription: 'Suisho Connector',
       OriginalFilename: 'Suisho Connector.exe',
     },
-    win:{
+    win: {
       "publisherName": "Suisho Apps",
     },
     asar: true,
     derefSymlinks: true,
-    ignore:[
+    ignore: [
       ".js.map$",
       "psd",
       "drawio",
@@ -62,7 +62,21 @@ module.exports = {
       "temp_index.txt",
       "(^/shared/|^/shared$)",
       "(^/scripts/|^/scripts$)",
-      "WixUI_zh-CN.wxl"
+      "mdAssets",
+      "FAQS.md",
+      "README.md",
+      "LICENSE",
+      "update.json",
+      "^/node_modules/\\.package-lock\\.json$",
+      "^/node_modules/node-forge/dist(/|$)",
+      "^/node_modules/node-forge/flash(/|$)",
+      "^/node_modules/speaker/build/deps(/|$)",
+      "^/node_modules/speaker/build/Release/obj(/|$)",
+      "^/node_modules/speaker/build/Release/.*\\.(pdb|ipdb|iobj|lib|exp|ilk)$",
+      "^/node_modules/windows-notification-state/build/Release/obj(/|$)",
+      "^/node_modules/windows-notification-state/build/Release/.*\\.(pdb|ipdb|iobj|lib|exp|ilk)$",
+      "^/node_modules/speaker/bin(/|$)",
+      "^/node_modules/windows-notification-state/bin(/|$)",
     ]
   },
   hooks: {
@@ -137,7 +151,7 @@ module.exports = {
           return {
             productName: "Suisho Connector",  // 安装时显示的名称（顶层配置）
             artifactName: "Suisho Connector Setup ${version}.${ext}",
-            appId:"com.suisho.connector",
+            appId: "com.suisho.connector",
             nsis: {
               installerIcon: path.resolve(__dirname, 'res', 'icon.ico'),
               uninstallerIcon: path.resolve(__dirname, 'res', 'icon.ico'),
