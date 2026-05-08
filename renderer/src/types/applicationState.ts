@@ -25,7 +25,7 @@ const States = {
     info_update_available: {
         level: ApplicationStateLevel.Info,
         title: "发现新版本",
-        content: "点击跳转至Github下载",
+        content: "点击查看更新详情",
         clickable: true,
         onClick() {
             snackbar({
