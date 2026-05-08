@@ -302,7 +302,7 @@ export function FileMessage({ data, progressing, database, messageDispatch, setI
         )
     }
     return (
-        <mdui-card draggable={data.from === "phone" && !isDeleted} onDragStart={onDragStart} onContextMenu={onContextMenu} onClick={openFile} clickable={!isDeleted && data.from === "phone"} className={twMerge("draggable mdui-theme-auto w-65 h-23.5 rounded-[9px] mt-1 whitespace-pre-wrap text-ellipsis", data.from === "phone" ? "bg-[#ede7ed]" : "bg-[#f3ebf3] ml-109")} variant="elevated">
+        <mdui-card draggable={data.from === "phone" && !isDeleted} onDragStart={onDragStart} onContextMenu={onContextMenu} onClick={openFile} clickable={!isDeleted && data.from === "phone"} className={twMerge("draggable mdui-theme-auto w-65 h-23.5 rounded-[9px] mt-1 whitespace-pre-wrap text-ellipsis", data.from === "phone" ? "bg-[#ede7ed]" : "bg-[#f3ebf3] ml-105")} variant="elevated">
             <img src="./transmit_file_default.png" className="w-[32%] h-[85%] float-left mt-1.5" />
             <div className="flex flex-col" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>
                 <b className="whitespace-nowrap text-ellipsis overflow-hidden mt-1.5 ml-15px" style={{ cursor: isDeleted || data.from === "computer" ? "default" : "pointer" }}>{data.displayName}</b>
