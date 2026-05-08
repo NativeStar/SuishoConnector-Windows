@@ -73,10 +73,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     appendLog:(logs)=>ipcRenderer.send("appendRendererLog",logs),
     //请求打包日志
     requestArchiveLog:()=>ipcRenderer.invoke("main_archiveLogs"),
-    //控制系统右键菜单
-    setEnableFileContextMenu:(enable)=>ipcRenderer.invoke("main_setEnableFileContextMenu",enable),
-    //是否已注册系统右键菜单
-    isEnabledFileContextMenu:()=>ipcRenderer.invoke("main_isEnabledFileContextMenu"),
     //创建缓存文件
     createCacheFile:(name,data)=>{return ipcRenderer.invoke("main_createCacheFile",name,data)},
     //添加路径监听

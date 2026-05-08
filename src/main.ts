@@ -551,17 +551,18 @@ ipcMain.handle("main_setConfig", (_event, prop: string, value: string | number |
     logger.writeDebug(`Set config ${prop} to ${value}`);
     //对防录屏配置的处理 即时生效
     //如果未来需要即时生效的配置增加则独立出去
-    if (prop === "enableContentProtection") {
-        for (const browserWindow of BrowserWindow.getAllWindows()) {
-            browserWindow.setContentProtection(value as boolean);
-        }
-        logger.writeInfo(`${value ? "enabled" : "disabled"} content protection`);
-    } else if (prop === "windowAlwaysOnTop") {
-        for (const browserWindow of BrowserWindow.getAllWindows()) {
-            browserWindow.setAlwaysOnTop(value as boolean);
-        }
-        logger.writeInfo(`${value ? "enabled" : "disabled"} windows always on top`);
-    }
+    onApplicationConfigChange(prop, value);
+    // if (prop === "enableContentProtection") {
+    //     for (const browserWindow of BrowserWindow.getAllWindows()) {
+    //         browserWindow.setContentProtection(value as boolean);
+    //     }
+    //     logger.writeInfo(`${value ? "enabled" : "disabled"} content protection`);
+    // } else if (prop === "windowAlwaysOnTop") {
+    //     for (const browserWindow of BrowserWindow.getAllWindows()) {
+    //         browserWindow.setAlwaysOnTop(value as boolean);
+    //     }
+    //     logger.writeInfo(`${value ? "enabled" : "disabled"} windows always on top`);
+    // }
 });
 //写入设备配置
 ipcMain.handle("main_setDeviceConfig", (_event, prop: string, value: string | number | boolean | null) => {
@@ -777,12 +778,6 @@ ipcMain.handle("main_archiveLogs", async () => {
 powerMonitor.on("lock-screen", () => {
     mainWindow?.webContents.send("webviewEvent", "lockScreen")
 })
-ipcMain.handle("main_setEnableFileContextMenu", (_event, enable) => {
-    enable ? Util.registerContextMenu() : Util.unregisterContextMenu();
-});
-ipcMain.handle("main_isEnabledFileContextMenu", () => {
-    return Util.hasSystemContextMenu();
-});
 // 创建缓存文件
 ipcMain.handle("main_createCacheFile", async (_event, name: string, data: ArrayBuffer) => {
     const filePath = path.join(app.getPath("temp"), name);
@@ -824,3 +819,29 @@ app.on("before-quit", (event) => {
     app.exit();
     // logger?.closeStream();
 });
+function onApplicationConfigChange(prop: string, value: string | boolean|number|null) {
+    switch (prop) {
+        case "enableContentProtection":
+            for (const browserWindow of BrowserWindow.getAllWindows()) {
+                browserWindow.setContentProtection(value as boolean);
+            }
+            logger.writeInfo(`${value ? "enabled" : "disabled"} content protection`);
+            break;
+        case "windowAlwaysOnTop":
+            for (const browserWindow of BrowserWindow.getAllWindows()) {
+                browserWindow.setAlwaysOnTop(value as boolean);
+            }
+            logger.writeInfo(`${value ? "enabled" : "disabled"} windows always on top`);
+            break
+        case "enableFileContextMenu":
+            const newValue=value as boolean;
+            if (newValue) {
+                Util.registerContextMenu()
+            }else{
+                Util.unregisterContextMenu()
+            }
+            break
+        default:
+            break;
+    }
+}

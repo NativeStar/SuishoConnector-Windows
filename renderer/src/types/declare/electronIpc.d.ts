@@ -57,8 +57,6 @@ declare global {
             readonly setAudioForwardEnable:(enable:boolean)=>Promise<AudioForwardResponse>
             readonly appendLog:(log:string[])=>Promise<void>
             readonly requestArchiveLog:()=>Promise<boolean>
-            readonly setEnableFileContextMenu:(enabled:boolean)=>Promise<void>
-            readonly isEnabledFileContextMenu:()=>Promise<boolean>
             readonly createCacheFile:(name:string,data:ArrayBuffer)=>Promise<string>
             readonly addWatchPath:(path:string)=>Promise<boolean>
             readonly removeWatchPath:(path:string)=>Promise<void>

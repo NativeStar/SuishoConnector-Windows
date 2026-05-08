@@ -637,6 +637,7 @@ class Server {
         return this.notificationCore;
     }
     private scheduleDisposableTask() {
+        //清理无用通知转发profile
         const autoCleanupAppProfileTask = setInterval(() => {
             const idleTime= powerMonitor.getSystemIdleTime();
             logger.writeDebug(`Idle time:${idleTime}`);
@@ -648,6 +649,11 @@ class Server {
                 clearInterval(autoCleanupAppProfileTask);
             }
         }, 60 * 1000);
+        //检查右键菜单设置
+        queueMicrotask(()=>{
+            global.config.enableFileContextMenu?Util.registerContextMenu():Util.unregisterContextMenu();
+            logger.writeDebug("Update file context menu status");
+        })
     }
     /**
      * @description 跨进程消息处理

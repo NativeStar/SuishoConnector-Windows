@@ -268,6 +268,7 @@ class Util {
         return { key: key.toString("base64"), iv: iv.toString("base64") };
     }
     static registerContextMenu() {
+        if(this.hasSystemContextMenu()) return
         // 选项
         child_process.execFileSync("reg", ["add", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile", "/f", "/t", "REG_SZ", "/d", "发送到手机", "/ve"]);
         //图标
@@ -276,9 +277,10 @@ class Util {
         child_process.execFileSync("reg", ["add", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile\\command", "/f", "/t", "REG_SZ", "/d", `"${process.execPath}" "%1"`]);
     }
     static unregisterContextMenu() {
+        if(!this.hasSystemContextMenu()) return
         child_process.execFileSync("reg", ["delete", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile", "/f"]);
     }
-    static hasSystemContextMenu() {
+    private static hasSystemContextMenu() {
         try {
             child_process.execFileSync("reg", ["query", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile"])
             return true

@@ -103,8 +103,6 @@ function useMainWindowIpc() {
         appendMediaSessionControl: window.electronMainProcess.appendMediaSessionControl,
         setAudioForwardEnable:window.electronMainProcess.setAudioForwardEnable,
         requestArchiveLog:window.electronMainProcess.requestArchiveLog,
-        setEnableFileContextMenu:window.electronMainProcess.setEnableFileContextMenu,
-        isEnabledFileContextMenu:window.electronMainProcess.isEnabledFileContextMenu,
         createCacheFile:window.electronMainProcess.createCacheFile,
         addWatchPath:window.electronMainProcess.addWatchPath,
         removeWatchPath:window.electronMainProcess.removeWatchPath,

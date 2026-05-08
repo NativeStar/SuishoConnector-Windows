@@ -9,6 +9,7 @@ export default {
     enableContentProtection:false,
     autoCheckUpdate:true,
     windowAlwaysOnTop:false,
+    enableFileContextMenu:true,
     "internal:lastConnectionAddress":"",
     "internal:lastConnectionName":""
 }

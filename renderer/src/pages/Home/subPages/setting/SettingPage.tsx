@@ -10,7 +10,7 @@ import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteCacheItemCli
 import type { ProtectMethod } from "~/utils"
 import AboutDialog from "./components/AboutDialog"
 import { alert } from "mdui"
-import CommonMduiListItemSwitch from "~/components/CommonMduiListItemSwitch"
+// import CommonMduiListItemSwitch from "~/components/CommonMduiListItemSwitch"
 interface SettingPageProps {
     hidden: boolean
 }
@@ -21,14 +21,14 @@ export default function SettingPage({ hidden }: SettingPageProps) {
     const [applicationConfig, setApplicationConfig] = useState<{ [key: string]: string | number | boolean; }>({});
     const [boundDeviceId, setBoundDeviceId] = useState<string | null>(null);
     const [showAboutDialog, setShowAboutDialog] = useState(false);
-    const [isFileContextMenuEnabled, setIsFileContextMenuEnabled] = useState<boolean | null>(null);
+    // const [isFileContextMenuEnabled, setIsFileContextMenuEnabled] = useState<boolean | null>(null);
     useEffect(() => {
         ipc.getDeviceAllConfig().then(res => setDeviceConfig(res));
         ipc.getAllConfig().then(res => {
             setBoundDeviceId(res.boundDeviceId as string);
             setApplicationConfig(res);
         });
-        ipc.isEnabledFileContextMenu().then(value => setIsFileContextMenuEnabled(value));
+        // ipc.isEnabledFileContextMenu().then(value => setIsFileContextMenuEnabled(value));
     }, []);
     //便于在需要时disabled组件
     function wrappedSetDeviceConfig(key: string, value: string | number | boolean) {
@@ -60,7 +60,8 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSelect title="日志输出等级" desc="方便调试 可能对性能有微弱影响" icon="library_books" items={logLevelOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="logLevel" onChange={onLogLevelChangeTip} />
                     <SettingItemSwitch title="自动检查更新" desc="在连接设备后联网检查软件更新" icon="update" configs={applicationConfig} configKey="autoCheckUpdate" setConfig={ipc.setConfig} />
                     {/* 避免外部数据更新后内部状态不会同步 */}
-                    {isFileContextMenuEnabled !== null && <CommonMduiListItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" checked={isFileContextMenuEnabled} onChange={(state) => ipc.setEnableFileContextMenu(state)} />}
+                    {/* {isFileContextMenuEnabled !== null && <CommonMduiListItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" checked={isFileContextMenuEnabled} onChange={(state) => ipc.setEnableFileContextMenu(state)} />} */}
+                    <SettingItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" configKey="enableFileContextMenu" configs={applicationConfig} setConfig={ipc.setConfig}/>
                     <SettingItemSwitch title="窗口置顶" desc="将应用窗口始终至于顶层 避免被其他软件窗口覆盖" icon="vertical_align_top" configs={applicationConfig} configKey="windowAlwaysOnTop" setConfig={ipc.setConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">数据互传</mdui-list-subheader>
                     <SettingItemSwitch title="接收到重名文件时删除旧文件" desc="否则在新文件名中追加时间戳以继续接收" icon="downloading" configs={applicationConfig} configKey="deleteTransmitConflictFile" setConfig={ipc.setConfig} />
