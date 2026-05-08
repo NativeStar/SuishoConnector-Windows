@@ -41,7 +41,8 @@ export default function FileSyncPage({ hidden }: FileSyncPageProps) {
                 <TooltipButton icon="help_outline" tooltip="帮助" onClick={()=>{
                     alert({
                         headline:"帮助",
-                        description:"由于系统限制 该功能仅建议用于传输非流式写入的中小文件(如屏幕截图)\nAndroid端接收文件夹位于'内部存储/Download/SuishoConnector/FileSync'\n或'应用私有目录/FileSync'\n(根据设置的设备互传接收文件夹而定)"
+                        description:"由于系统限制 该功能仅建议用于传输非流式写入的中小文件(如屏幕截图)\nAndroid端接收文件夹位于'内部存储/Download/SuishoConnector/FileSync'\n或'应用私有目录/FileSync'\n(根据设置的设备互传接收文件夹而定)",
+                        confirmText:"确定"
                     })
                 }}/>
             </div>

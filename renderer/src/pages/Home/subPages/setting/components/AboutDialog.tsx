@@ -18,13 +18,12 @@ export default function AboutDialog({ setVisible }: AboutDialogProps) {
                     <img src="./icon.png" className="size-30 mt-5" />
                     <span className="text-[gray] mt-1">Suisho Connector</span>
                     <span className="text-[gray] mt-0.5">{`${ApplicationVersion.APPLICATION_VERSION_NAME}(${ApplicationVersion.APPLICATION_VERSION_CODE})`}</span>
-                    <span className="text-[gray] mt-5">感谢支持</span>
+                    <span className="text-[gray] mt-5">感谢使用</span>
                     <div className="text-[gray] mt-1">
                         项目已在
                         <span onClick={openProjectUrl} style={{cursor:"pointer"}} className="underline pl-1 pr-1">Github</span>
                         开源
                     </div>
-                    <small className="easterEggText mt-9 text-xs">没有星星的夜里</small>
                 </div>
                 {/* 右侧 */}
                 <mdui-list className="h-full flex-1 overflow-y-scroll overflow-x-hidden">
