@@ -4,18 +4,14 @@ import { RightClickMenuItemId } from "shared/const/RightClickMenuItems";
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc";
 import useUpdateEffect from "~/hooks/useUpdateEffect";
 import { FileManagerDownload, FileManagerStarDirectory, FileManagerUnStarDirectory } from "~/types/contextMenus";
-import "react-modal-video/css/modal-video.css"
+import VideoModal from "./components/VideoModal";
 import { FileManagerResultCode, FileManagerResultCodeMessage, isDotPopPathResultCode } from "~/types/fileManagerResultCodes";
 import type { FileItem } from "~/types/ipc";
-import ModalVideoOrigin from 'react-modal-video';
-import { getFileTypeIcon, getSupportType, ModalVideoClassNames } from "./constance";
+import { getFileTypeIcon, getSupportType } from "./constance";
 import { PhotoSlider } from "react-photo-view";
 import AudioModal from "./components/AudioModal";
 import { releaseFfmpeg } from "~/utils";
 import AndroidIdContext from "~/context/AndroidIdContext";
-//TODO 先这样保证跑起来 后面自己重新写一个
-const ModalVideo =
-  (ModalVideoOrigin as unknown as { default?: typeof ModalVideoOrigin }).default ?? ModalVideoOrigin;
 interface FileManagerPageProps {
     hidden: boolean
 }
@@ -253,7 +249,7 @@ export default function FileManagerPage({ hidden }: FileManagerPageProps) {
     return (
         <div style={{ display: hidden ? "none" : "block" }}>
             {audioPlayerVisible && <AudioModal setVisible={setAudioPlayerVisible} src={fileUrl.current} />}
-            <ModalVideo classNames={ModalVideoClassNames} channel="custom" url={fileUrl.current} isOpen={videoViewerVisible} onClose={() => setVideoViewerVisible(false)} />
+            {videoViewerVisible && <VideoModal setVisible={setVideoViewerVisible} src={fileUrl.current} />}
             <PhotoSlider
                 maskOpacity={0.8}
                 images={[{ key: fileUrl.current || "preview", src: fileUrl.current }]}

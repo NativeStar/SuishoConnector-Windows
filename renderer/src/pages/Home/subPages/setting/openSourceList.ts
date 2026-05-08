@@ -77,10 +77,6 @@ export const OpenSourceList:OpenSourceList=[
         url:"https://gitee.com/dreamer365/randomthing"
     },
     {
-        name:"react-modal-video",
-        url:"https://github.com/appleple/react-modal-video"
-    },
-    {
         name:"react-photo-view",
         url:"https://github.com/MinJieLiu/react-photo-view"
     },

@@ -8,6 +8,8 @@ import ResponseManager from "./ResponseManager.js";
 import { randomUUID } from "crypto";
 
 class FileWatcher {
+    //正常使用不可能触发重复初始化异常 但调试时会
+    public static initd = false;
     private watcher: FSWatcher;
     private readonly LOG_TAG: string = "FileWatcher"
     private responseManager: ResponseManager.default;
@@ -45,6 +47,8 @@ class FileWatcher {
         this.browserWindow.webContents.send("webviewEvent", "appendFileSyncList", { id: eventId, path: filePath, fileName, state: "append" });
     }
     async init(initialPaths: string[]) {
+        if (FileWatcher.initd) return;
+        FileWatcher.initd = true;
         logger.writeDebug("Start file watcher init", this.LOG_TAG);
         this.watcher.on("add", (targetFilePath, stats) => {
             if (!stats || stats.isDirectory() || stats.size <= 0) return

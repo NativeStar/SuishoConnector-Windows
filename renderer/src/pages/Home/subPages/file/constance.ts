@@ -1,4 +1,3 @@
-import { type ClassNames } from 'react-modal-video';
 const audioFileExtensions = [".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".amr", ".mid"];
 const videoFileExtensions = [".mp4", ".webm", ".mkv", ".mov", ".flv", ".wmv"];
 const imageFileExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".ico", ".tiff", ".psd"];
@@ -93,15 +92,6 @@ const fileExtIcon: Record<string, string> = {
     xpi:"extension",
 }
 type FileOpenType = "audio" | "video" | "image" | "none";
-export const ModalVideoClassNames: ClassNames = {
-    modalVideo: "modal-video modalVideoIndex",
-    modalVideoBody: "modal-video-body modalVideoIndex",
-    modalVideoClose: "modal-video-close modalVideoIndex",
-    modalVideoCloseBtn: "modal-video-close-btn modalVideoIndex",
-    modalVideoEffect: "modal-video-effect modalVideoIndex",
-    modalVideoIframeWrap: "modal-video-movie-wrap modalVideoIndex",
-    modalVideoInner: "modal-video-inner modalVideoIndex"
-}
 export function getSupportType(fileName: string): FileOpenType {
     if (supportAudioFileExtensions.some((value) => {
         return fileName.endsWith(value);

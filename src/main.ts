@@ -190,6 +190,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 titleBarStyle: "hidden",
                 title: `Suisho Connector:${global.clientMetadata.model}`,
                 resizable: false,
+                fullscreenable: true,
                 autoHideMenuBar: true,
                 frame: false,
                 alwaysOnTop: config.windowAlwaysOnTop,
@@ -206,6 +207,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                     spellcheck: false,
                     contextIsolation: true,
                     preload: path.join(__dirname, 'preload/mainPreload.js'),
+                    disableHtmlFullscreenWindowResize: true
                 }
             });
             // 隐藏窗口右键菜单
@@ -279,7 +281,16 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 if (e.reasons.includes("shutdown") || e.reasons.includes("logoff")) {
                     connectedDevice.socket?.close(ConnectionCloseCode.ComputerWillShutdown, CloseReason[ConnectionCloseCode.ComputerWillShutdown])
                 }
-            })
+            });
+            //视频全屏
+            mainWindow.on("enter-html-full-screen",()=>{
+                mainWindow?.setResizable(true);
+                mainWindow?.setFullScreen(true);
+            });
+            mainWindow.on("leave-html-full-screen",()=>{
+                mainWindow?.setFullScreen(false);
+                mainWindow?.setResizable(false);
+            });
             //关闭和发起连接有关的服务
             certDownloadServer?.close();
             certDownloadServer = null;
