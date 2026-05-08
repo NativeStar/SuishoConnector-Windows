@@ -26,29 +26,32 @@ export default function ConnectPhone() {
     });
     //连接相关初始化
     useEffect(() => {
-        setColorScheme("#895cad")
-        connectPhoneWindowIpc.initServer().then(value => {
-            const { pairCode: code, ...data } = value;
-            //空地址检测
-            if (data.address === null) {
-                alert({
-                    headline: "发生异常",
-                    description: "无法获取本机IP地址\n请检查网卡及网络连接是否正常\n或向开发者反馈此问题",
-                    confirmText: "重启",
-                    onConfirm: () => connectPhoneWindowIpc.rebootApplication(),
-                });
-                return
-            }
-            pairCode.current = code
-            setQrcodeData(data);
-            //等获取到ip才开始自动连接广播
-            connectPhoneWindowIpc.getBoundDeviceId().then(value => {
-                if (value !== null) {
-                    connectPhoneWindowIpc.startAutoConnectBroadcast();
-                    setAutoConnectorWorking(true)
+        setColorScheme("#895cad");
+        //等待首次渲染 更新Electron后不知道为啥这么卡
+        requestAnimationFrame(()=>{
+            connectPhoneWindowIpc.initServer().then(value => {
+                const { pairCode: code, ...data } = value;
+                //空地址检测
+                if (data.address === null) {
+                    alert({
+                        headline: "发生异常",
+                        description: "无法获取本机IP地址\n请检查网卡及网络连接是否正常\n或向开发者反馈此问题",
+                        confirmText: "重启",
+                        onConfirm: () => connectPhoneWindowIpc.rebootApplication(),
+                    });
+                    return
                 }
+                pairCode.current = code
+                setQrcodeData(data);
+                //等获取到ip才开始自动连接广播
+                connectPhoneWindowIpc.getBoundDeviceId().then(value => {
+                    if (value !== null) {
+                        connectPhoneWindowIpc.startAutoConnectBroadcast();
+                        setAutoConnectorWorking(true)
+                    }
+                });
             });
-        });
+        })
         window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
             setIsDarkMode(e.matches);
         });

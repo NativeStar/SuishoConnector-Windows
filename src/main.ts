@@ -97,7 +97,6 @@ app.on("ready", async (_event, _info) => {
     connectPhoneWindow.on("ready-to-show", async () => {
         connectPhoneWindow.setMaximizable(false);
         logger.writeInfo("Connect phone window created");
-        connectPhoneWindow.show();
         app.setName("Suisho Connector");
         app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     });
