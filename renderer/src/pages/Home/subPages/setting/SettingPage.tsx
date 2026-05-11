@@ -46,6 +46,18 @@ export default function SettingPage({ hidden }: SettingPageProps) {
         }
         rebootSnackbar();
     }
+    function onHeartBeatChange(value: string){
+        if (value==="DISABLED") {
+            alert({
+                headline: "轮询间隔提醒",
+                description: "停用后仍然会发送探测包 但即使响应超时也不会关闭连接\n这可能导致设备掉线后无法及时察觉 从而错失重要消息提醒\n并且可能导致意料之外的异常\n因此仅建议在特殊情况下(如OEM系统严格限制后台程序响应)使用\n(重启后生效)",
+                confirmText: "确定",
+            }).catch(() => { });
+
+            return
+        }
+        rebootSnackbar();
+    }
     return (
         <>
             {showAboutDialog && <AboutDialog setVisible={setShowAboutDialog} />}
@@ -53,7 +65,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                 <mdui-list>
                     <mdui-list-subheader className="ml-5 h-10 font-bold">全局</mdui-list-subheader>
                     <SettingItemCommon title="绑定/解绑设备" onClick={() => onBoundDeviceItemClick(androidId, boundDeviceId, setBoundDeviceId, deviceConfig, ipc)} desc={boundDeviceId ? `已绑定设备ID:${boundDeviceId}` : "未绑定"} icon="link" />
-                    <SettingItemSelect title="掉线轮询间隔" icon="monitor_heart" desc="降低设备掉线时反应时间 可能影响手机耗电量" items={heartbeatDelayOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="heartBeatDelay" onChange={rebootSnackbar} />
+                    <SettingItemSelect title="掉线轮询间隔" icon="monitor_heart" desc="降低设备掉线时反应时间 可能影响手机耗电量" items={heartbeatDelayOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="heartBeatDelay" onChange={onHeartBeatChange} />
                     <SettingItemSelect title="日志输出等级" desc="方便调试 可能对性能有微弱影响" icon="library_books" items={logLevelOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="logLevel" onChange={onLogLevelChangeTip} />
                     <SettingItemSwitch title="自动检查更新" desc="在连接设备后联网检查软件更新" icon="update" configs={applicationConfig} configKey="autoCheckUpdate" setConfig={ipc.setConfig} />
                     <SettingItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" configKey="enableFileContextMenu" configs={applicationConfig} setConfig={ipc.setConfig} />
