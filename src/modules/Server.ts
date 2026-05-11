@@ -611,7 +611,7 @@ class Server {
                 socket.removeListener("pong", onPong);
                 //手动触发回调
                 this.onSocketClose(ConnectionCloseCode.CloseHeartBeatTimeout, Buffer.allocUnsafe(1));
-            }, 10 * 1000);
+            }, 20 * 1000);
             //发起ping
             pingTime = Date.now();
             socket.ping();
