@@ -283,11 +283,11 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 }
             });
             //视频全屏
-            mainWindow.on("enter-html-full-screen",()=>{
+            mainWindow.on("enter-html-full-screen", () => {
                 mainWindow?.setResizable(true);
                 mainWindow?.setFullScreen(true);
             });
-            mainWindow.on("leave-html-full-screen",()=>{
+            mainWindow.on("leave-html-full-screen", () => {
                 mainWindow?.setFullScreen(false);
                 mainWindow?.setResizable(false);
             });
@@ -302,6 +302,11 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             //保存本次连接数据
             global.config["internal:lastConnectionAddress"] = global.serverAddress ?? ""
             global.config["internal:lastConnectionName"] = networkDriverName
+            //连接的设备就是绑定设备 更新自动连接单播地址
+            if (global.config.boundDeviceId===global.clientMetadata.androidId) {
+                global.config["internal:boundDeviceAddress"]=connectedDevice.getPhoneAddress();
+                logger.writeInfo("Updated bound device unicast address");
+            }
             logger.writeDebug("Saved last connection data");
             Util.saveConfig();
         },
@@ -829,7 +834,7 @@ app.on("before-quit", (event) => {
     app.exit();
     // logger?.closeStream();
 });
-function onApplicationConfigChange(prop: string, value: string | boolean|number|null) {
+function onApplicationConfigChange(prop: string, value: string | boolean | number | null) {
     switch (prop) {
         case "enableContentProtection":
             for (const browserWindow of BrowserWindow.getAllWindows()) {
@@ -844,13 +849,21 @@ function onApplicationConfigChange(prop: string, value: string | boolean|number|
             logger.writeInfo(`${value ? "enabled" : "disabled"} windows always on top`);
             break
         case "enableFileContextMenu":
-            const newValue=value as boolean;
+            const newValue = value as boolean;
             if (newValue) {
                 Util.registerContextMenu()
-            }else{
+            } else {
                 Util.unregisterContextMenu()
             }
             break
+        case "boundDeviceId":
+            if(value!==null){
+                global.config['internal:boundDeviceAddress']=connectedDevice.getPhoneAddress();
+            }else{
+                global.config["internal:boundDeviceAddress"]="";
+            }
+            Util.saveConfig();
+            break 
         default:
             break;
     }

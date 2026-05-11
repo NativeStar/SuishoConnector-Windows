@@ -10,6 +10,9 @@ export default {
     autoCheckUpdate:true,
     windowAlwaysOnTop:false,
     enableFileContextMenu:true,
+    additionalUnicast:false,
     "internal:lastConnectionAddress":"",
-    "internal:lastConnectionName":""
+    "internal:lastConnectionName":"",
+    //绑定设备地址
+    "internal:boundDeviceAddress":"",
 }

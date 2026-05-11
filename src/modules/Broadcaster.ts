@@ -5,11 +5,13 @@ import Util from "./Util";
 class Broadcaster {
     private socket: Socket;
     private sender: WebContents;
-    private looper: number | null | NodeJS.Timeout;
+    private broadcastLooper: number | null | NodeJS.Timeout;
+    private unicastLooper: number | null | NodeJS.Timeout;
     private deviceId: string;
     private readonly LOG_TAG = "Broadcaster";
     constructor(deviceId: string, sender: WebContents) {
-        this.looper = null;
+        this.broadcastLooper = null;
+        this.unicastLooper = null;
         this.deviceId = deviceId;
         this.sender = sender;
         this.socket = createSocket("udp4");
@@ -58,7 +60,8 @@ class Broadcaster {
         this.socket.bind(60127, () => {
             this.socket.setBroadcast(true);
             const msgBuffer = Uint8Array.from(Buffer.from(this.deviceId));
-            //不知道为什么 Windows上如果是系统启动后首次发的包会被吞
+            //不知道为什么 启动后首次发的包会被吞
+            //先快速发两个包 缩短启动后触发连接耗时
             setTimeout(() => {
                 try {
                     //如果已经完成连接 这里会崩溃
@@ -68,22 +71,38 @@ class Broadcaster {
             }, 1000);
             setTimeout(() => {
                 try {
-                    //如果已经完成连接 这里会崩溃
-                    this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
+                    if (global.config.additionalUnicast && global.config["internal:boundDeviceAddress"] && global.config["internal:boundDeviceAddress"] !== "") {
+                        this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, global.config["internal:boundDeviceAddress"]);
+                    } else {
+                        this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
+                    }
                     if (!this.sender.isDestroyed()) this.sender.send("connectPhone_broadcastSent")
-                } catch (error) { };
+                } catch { };
             }, 3000);
-            this.looper = setInterval(() => {
+            this.broadcastLooper = setInterval(() => {
                 try {
                     this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, `255.255.255.255`);
                     if (!this.sender.isDestroyed()) this.sender.send("connectPhone_broadcastSent")
-                } catch (error) { };
+                } catch { };
                 logger.writeDebug("Sent a broadcast packet");
-            }, 5 * 1000)
+            }, 5000);
+            //根据情况决定是否单播
+            if (global.config.additionalUnicast && global.config["internal:boundDeviceAddress"] && global.config["internal:boundDeviceAddress"] !== "") {
+                setTimeout(() => {
+                    this.unicastLooper = setInterval(() => {
+                        try {
+                            this.socket.send(msgBuffer, 0, msgBuffer.length, 60127, global.config["internal:boundDeviceAddress"]);
+                            if (!this.sender.isDestroyed()) this.sender.send("connectPhone_broadcastSent")
+                        } catch { }
+                        logger.writeDebug("Sent a unicast packet");
+                    }, 5000);
+                }, 2500);
+            }
         })
     }
     close() {
-        if (this.looper !== null) clearInterval(this.looper);
+        if (this.broadcastLooper !== null) clearInterval(this.broadcastLooper);
+        if (this.unicastLooper !== null) clearInterval(this.unicastLooper);
         this.socket.close();
         logger.writeInfo("Stop network broadcast", this.LOG_TAG);
     }

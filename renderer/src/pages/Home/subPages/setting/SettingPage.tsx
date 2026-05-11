@@ -56,7 +56,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSelect title="掉线轮询间隔" icon="monitor_heart" desc="降低设备掉线时反应时间 可能影响手机耗电量" items={heartbeatDelayOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="heartBeatDelay" onChange={rebootSnackbar} />
                     <SettingItemSelect title="日志输出等级" desc="方便调试 可能对性能有微弱影响" icon="library_books" items={logLevelOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="logLevel" onChange={onLogLevelChangeTip} />
                     <SettingItemSwitch title="自动检查更新" desc="在连接设备后联网检查软件更新" icon="update" configs={applicationConfig} configKey="autoCheckUpdate" setConfig={ipc.setConfig} />
-                    <SettingItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" configKey="enableFileContextMenu" configs={applicationConfig} setConfig={ipc.setConfig}/>
+                    <SettingItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" configKey="enableFileContextMenu" configs={applicationConfig} setConfig={ipc.setConfig} />
                     <SettingItemSwitch title="窗口置顶" desc="将应用窗口始终至于顶层 避免被其他软件窗口覆盖" icon="vertical_align_top" configs={applicationConfig} configKey="windowAlwaysOnTop" setConfig={ipc.setConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">数据互传</mdui-list-subheader>
                     <SettingItemSwitch title="接收到重名文件时删除旧文件" desc="否则在新文件名中追加时间戳以继续接收" icon="downloading" configs={applicationConfig} configKey="deleteTransmitConflictFile" setConfig={ipc.setConfig} />
@@ -79,7 +79,9 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <mdui-list-subheader className="ml-5 h-10 font-bold">辅助功能</mdui-list-subheader>
                     <SettingItemSwitch title="电池满电提醒" desc="手机电量充满时发出通知" icon="battery_4_bar" configs={deviceConfig} configKey="enableBatteryFullNotification" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="Doze模式提醒" desc="手机Doze模式状态变化时发出通知" icon="tsunami" configs={deviceConfig} configKey="enableDozeModeChangeNotification" setConfig={wrappedSetDeviceConfig} />
+                    <mdui-list-subheader className="ml-5 h-10 font-bold">实验性</mdui-list-subheader>
                     <SettingItemSwitch title="开启文件同步" desc="启用文件同步功能 需前往对应页面配置" icon="sync" configs={deviceConfig} configKey="enableFileSync" setConfig={wrappedSetDeviceConfig} />
+                    <SettingItemSwitch title="自动连接附加单播" desc="缓解部分OEM系统对UDP广播的接收限制 尝试修复自动连接失效" icon="broadcast_on_personal" configs={applicationConfig} configKey="additionalUnicast" setConfig={ipc.setConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">杂项</mdui-list-subheader>
                     <SettingItemCommon title="关于" icon="info" onClick={() => setShowAboutDialog(true)} />
                     <SettingItemCommon title="打包日志" desc="将日志打为压缩包以便反馈" icon="send_and_archive" onClick={() => onRequestArchiveLogsItemClick(ipc)} />
