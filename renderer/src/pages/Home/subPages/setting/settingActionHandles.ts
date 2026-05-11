@@ -10,17 +10,20 @@ export async function onBoundDeviceItemClick(
     deviceConfig: { [key: string]: string | number | boolean },
     ipc: ReturnType<typeof useMainWindowIpc>
 ) {
-    snackbar({
-        message: "此操作需要验证您是机主",
-        autoCloseDelay: 3500
-    });
-    const authResult = await autoAuthorization(deviceConfig.protectMethod as ProtectMethod, ipc.startAuthorization, androidId);
-    if (!authResult) {
+    const protectMethod = deviceConfig.protectMethod as ProtectMethod;
+    if (protectMethod !== "none") {
         snackbar({
-            message: "验证失败",
-            autoCloseDelay: 1000
+            message: "此操作需要验证您是机主",
+            autoCloseDelay: 3500
         });
-        return
+        const authResult = await autoAuthorization(protectMethod, ipc.startAuthorization, androidId);
+        if (!authResult) {
+            snackbar({
+                message: "验证失败",
+                autoCloseDelay: 1000
+            });
+            return
+        }
     }
     if (boundDeviceId) {
         const connectedBoundDevice = boundDeviceId === androidId;
@@ -249,7 +252,7 @@ export async function onProtectMethodChange(targetValue: ProtectMethod, ipc: Ret
 }
 export function onRequestArchiveLogsItemClick(ipc: ReturnType<typeof useMainWindowIpc>) {
     ipc.requestArchiveLog().then((value) => {
-        value&&snackbar({
+        value && snackbar({
             message: "打包完成",
             autoCloseDelay: 3500
         });
