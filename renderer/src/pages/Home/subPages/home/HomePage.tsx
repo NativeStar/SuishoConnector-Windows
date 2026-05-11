@@ -104,7 +104,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             <ActiveNotifications className="top-[45.5%] left-[45%]" />
             <ApplicationStatesBar states={applicationStates} className="top-[9%] right-[2.3%]" dispatch={applicationStatesDispatch} />
             <MediaControl className="right-[15%] top-[9.5%]" />
-            <AudioForwardPanel className="top-[73.5%] left-[10%]" />
+            <AudioForwardPanel className="top-[78.5%] left-[10%]" />
             <FabMenu className="bottom-[2%] right-[2%]" />
         </div>
     )
