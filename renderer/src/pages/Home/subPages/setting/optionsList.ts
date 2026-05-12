@@ -1,9 +1,5 @@
 export const heartbeatDelayOptions = [
     {
-        text: "禁用",
-        value: "DISABLED"
-    },
-    {
         text: "极长",
         value: "VERY_SLOW"
     },

@@ -37,7 +37,7 @@ class Server {
     mainHandle: MainHandle;
     notificationCore: NotificationCore | null;
     socket: ws | null;
-    heartBeatDelay: { DISABLED: number, VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number; };
+    heartBeatDelay: { VERY_SLOW: number; SLOW: number; MEDIUM: number; HIGH: number; VERY_HIGH: number; };
     websocket: ws.Server<typeof ws, typeof IncomingMessage> | null = null;
     responseManager: ResponseManager | null = null;
     connectTimestamp: number = -1;
@@ -94,7 +94,6 @@ class Server {
         });
         //心跳检测延迟
         this.heartBeatDelay = {
-            DISABLED: 120 * 1000,//会发起ping但不会关闭连接
             VERY_SLOW: 60 * 1000,
             SLOW: 45 * 1000,
             MEDIUM: 30 * 1000,
@@ -264,7 +263,7 @@ class Server {
                 global.clientMetadata.model = jsonObj.modelName;
                 global.clientMetadata.oem = jsonObj.oem;
                 global.clientMetadata.androidId = jsonObj.androidId;
-                global.clientMetadata.clientVersionCode = jsonObj.clientVersionCode ?? 0;
+                global.clientMetadata.clientVersionCode = jsonObj.clientVersionCode??0;
                 //检查时间 如果从首次握手到完成不足350ms就将延迟拉到350ms
                 //不然一下子闪过去太诡异了
                 /*虽然正常这点东西不会拖那么久的*/
@@ -372,18 +371,18 @@ class Server {
                 break
             case "action_notificationForward":
                 //避免出现图标同步问题 无论是否开启通知 收到图标都要写入
-                if (jsonObj.iconBase64 && jsonObj.iconHash) {
+                if (jsonObj.iconBase64&&jsonObj.iconHash) {
                     logger.writeDebug(`Receive icon from notification:${jsonObj.iconHash}`);
                     const iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/notificationIcons`;
-                    const iconFile = `${iconCachePath}/${jsonObj.iconHash}`;
+                    const iconFile=`${iconCachePath}/${jsonObj.iconHash}`;
                     await fs.ensureDir(iconCachePath);
-                    if (!await fs.exists(iconFile)) {
+                    if(!await fs.exists(iconFile)){
                         await fs.writeFile(`${iconCachePath}/${jsonObj.iconHash}`, Buffer.from(jsonObj.iconBase64, "base64"));
                         logger.writeDebug(`Write icon to cache:${iconFile}`);
                     }
                 }
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen, jsonObj.iconHash);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen,jsonObj.iconHash);
                 break
             case "syncIconPack"://同步应用图标资源包
                 logger.writeDebug("Request sync icon pack");
@@ -589,35 +588,11 @@ class Server {
      * @memberof server
      */
     async checkHeartBeat(socket: ws) {
-        const timeoutDelay=20*1000;
-        //确保重启才生效
-        const currentWorkingDelayMode=global.config.heartBeatDelay as keyof typeof this.heartBeatDelay;
-        let hasPong=false;
-        const onTimeout = () => {
-            clearTimeout(<number>beatTimer)
-            if (currentWorkingDelayMode !== "DISABLED") {
-                logger.writeInfo("Pong packet timeout.Android client dead");
-                //关闭连接
-                this.close();
-                //移除监听
-                socket.removeListener("pong", onPong);
-                //手动触发回调
-                this.onSocketClose(ConnectionCloseCode.CloseHeartBeatTimeout, Buffer.allocUnsafe(1));
-                return
-            }
-            logger.writeInfo("Ignore pong packet timeout because heartbeat check disabled");
-            //TODO 加一个state弱提醒用户
-            beatTimer=setTimeout(onTimeout, timeoutDelay);
-            socket.ping();
-        }
         //检测计时器
         let beatTimer: null | number | NodeJS.Timeout;
         //发起ping时间戳
         let pingTime: number = Date.now();
         const onPong = async () => {
-            //避免响应延迟后突然出现大量pong包
-            if (hasPong) return
-            hasPong=true;
             //接受到信号 移除计时器
             clearTimeout(<number>beatTimer);
             //计算延迟
@@ -625,13 +600,20 @@ class Server {
                 this.appWindow.webContents.send("webviewEvent", "updateNetworkLatency", Date.now() - pingTime);
             }
             //延迟
-            await Util.delay(this.heartBeatDelay[currentWorkingDelayMode] ?? 60000);
+            await Util.delay(this.heartBeatDelay[global.config.heartBeatDelay as keyof typeof this.heartBeatDelay] ?? 60000);
             //设置计时器
             logger.writeDebug("Received pong packet")
-            beatTimer = setTimeout(onTimeout, timeoutDelay);
+            beatTimer = setTimeout(() => {
+                logger.writeInfo("Pong packet timeout.Android client dead");
+                //关闭连接
+                this.close();
+                //移除监听
+                socket.removeListener("pong", onPong);
+                //手动触发回调
+                this.onSocketClose(ConnectionCloseCode.CloseHeartBeatTimeout, Buffer.allocUnsafe(1));
+            }, 20 * 1000);
             //发起ping
             pingTime = Date.now();
-            hasPong=false;
             socket.ping();
         }
         //设置回调
@@ -657,7 +639,7 @@ class Server {
     private scheduleDisposableTask() {
         //清理无用通知转发profile
         const autoCleanupAppProfileTask = setInterval(() => {
-            const idleTime = powerMonitor.getSystemIdleTime();
+            const idleTime= powerMonitor.getSystemIdleTime();
             logger.writeDebug(`Idle time:${idleTime}`);
             //设备无操作5分钟
             if (idleTime > 300 && this.appListCache && this.notificationCore) {
@@ -668,8 +650,8 @@ class Server {
             }
         }, 60 * 1000);
         //检查右键菜单设置
-        queueMicrotask(() => {
-            global.config.enableFileContextMenu ? Util.registerContextMenu() : Util.unregisterContextMenu();
+        queueMicrotask(()=>{
+            global.config.enableFileContextMenu?Util.registerContextMenu():Util.unregisterContextMenu();
             logger.writeDebug("Update file context menu status");
         })
     }
