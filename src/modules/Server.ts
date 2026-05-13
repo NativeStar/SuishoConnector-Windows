@@ -263,7 +263,7 @@ class Server {
                 global.clientMetadata.model = jsonObj.modelName;
                 global.clientMetadata.oem = jsonObj.oem;
                 global.clientMetadata.androidId = jsonObj.androidId;
-                global.clientMetadata.clientVersionCode = jsonObj.clientVersionCode??0;
+                global.clientMetadata.clientVersionCode = jsonObj.clientVersionCode ?? 0;
                 //检查时间 如果从首次握手到完成不足350ms就将延迟拉到350ms
                 //不然一下子闪过去太诡异了
                 /*虽然正常这点东西不会拖那么久的*/
@@ -371,18 +371,18 @@ class Server {
                 break
             case "action_notificationForward":
                 //避免出现图标同步问题 无论是否开启通知 收到图标都要写入
-                if (jsonObj.iconBase64&&jsonObj.iconHash) {
+                if (jsonObj.iconBase64 && jsonObj.iconHash) {
                     logger.writeDebug(`Receive icon from notification:${jsonObj.iconHash}`);
                     const iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/notificationIcons`;
-                    const iconFile=`${iconCachePath}/${jsonObj.iconHash}`;
+                    const iconFile = `${iconCachePath}/${jsonObj.iconHash}`;
                     await fs.ensureDir(iconCachePath);
-                    if(!await fs.exists(iconFile)){
+                    if (!await fs.exists(iconFile)) {
                         await fs.writeFile(`${iconCachePath}/${jsonObj.iconHash}`, Buffer.from(jsonObj.iconBase64, "base64"));
                         logger.writeDebug(`Write icon to cache:${iconFile}`);
                     }
                 }
                 if (!global.deviceConfig.enableNotification) break
-                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen,jsonObj.iconHash);
+                this.notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen, jsonObj.iconHash);
                 break
             case "syncIconPack"://同步应用图标资源包
                 logger.writeDebug("Request sync icon pack");
@@ -572,7 +572,13 @@ class Server {
         //判断窗口
         if (this.isInMainWindow) {
             const reasonStr = ConnectionCloseReasonString[code as ConnectionCloseCode] ?? "由于未知异常 连接断开";
-            if (!this.appWindow.isDestroyed()) this.appWindow.webContents.send("webviewEvent", "disconnect", reasonStr);
+            if (!this.appWindow.isDestroyed()) {
+                this.appWindow.webContents.send("webviewEvent", "disconnect", reasonStr)
+                if (this.appWindow.isFullScreen()) {
+                    this.appWindow.setFullScreen(false);
+                    this.appWindow.setResizable(false)
+                }
+            }
             return
         }
         try {
@@ -639,7 +645,7 @@ class Server {
     private scheduleDisposableTask() {
         //清理无用通知转发profile
         const autoCleanupAppProfileTask = setInterval(() => {
-            const idleTime= powerMonitor.getSystemIdleTime();
+            const idleTime = powerMonitor.getSystemIdleTime();
             logger.writeDebug(`Idle time:${idleTime}`);
             //设备无操作5分钟
             if (idleTime > 300 && this.appListCache && this.notificationCore) {
@@ -650,8 +656,8 @@ class Server {
             }
         }, 60 * 1000);
         //检查右键菜单设置
-        queueMicrotask(()=>{
-            global.config.enableFileContextMenu?Util.registerContextMenu():Util.unregisterContextMenu();
+        queueMicrotask(() => {
+            global.config.enableFileContextMenu ? Util.registerContextMenu() : Util.unregisterContextMenu();
             logger.writeDebug("Update file context menu status");
         })
     }

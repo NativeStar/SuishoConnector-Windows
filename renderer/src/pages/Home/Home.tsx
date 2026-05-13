@@ -103,7 +103,11 @@ export default function Home() {
         onCancel() {
           ipc.closeApplication();
         }
-      })
+      });
+      // 应对视频全屏播放时掉线
+      if (document.fullscreenElement!==null) {
+        document.exitFullscreen();
+      }
     }));
     const showAlertCleanup = ipc.on("showAlert", ({ title, content }) => {
       console.debug(`Show alert by ipc message:${title}:${content}`);

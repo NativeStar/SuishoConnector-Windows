@@ -217,19 +217,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                     mainWindow?.setEnabled(true);
                 }, 50);
             });
-            // 篡改iframe请求头 使ModalVideo库支持range请求
-            mainWindow.webContents.session.webRequest.onBeforeSendHeaders({
-                urls: [`https://${connectedDevice.getPhoneAddress()}:30767/*`],
-                types: ["subFrame"],
-            }, (detail, callback) => {
-                logger.writeDebug(`Modify iframe request header:${detail.url}`);
-                callback({
-                    requestHeaders: {
-                        ...detail.requestHeaders,
-                        "Range": "bytes=0-"
-                    }
-                })
-            });
             mainWindow.on("ready-to-show", () => {
                 mainWindow?.setMaximizable(false);
                 connectedDevice.setWindow(<BrowserWindow>mainWindow);
