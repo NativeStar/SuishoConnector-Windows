@@ -48,7 +48,7 @@ const States = {
             const updateJson :UpdateJson= JSON.parse(rawUpdateJsonString)
             dialog({
                 actions: [
-                    { text: "前往发布页" ,onClick:()=>window.electronMainProcess.openUrl("https://github.com/NativeStar/SuishoConnector-Windows/releases")},
+                    { text: "查看详情" ,onClick:()=>window.electronMainProcess.openUrl("https://github.com/NativeStar/SuishoConnector-Windows/releases")},
                     { text: "取消" },
                     // 跳转浏览器下载
                     { text: "下载" ,onClick:()=>window.electronMainProcess.openUrl(updateJson.downloadUrl)}
