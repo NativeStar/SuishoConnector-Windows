@@ -1,6 +1,6 @@
 {
-    "versionCode":12,
-    "versionName":"1.2.0",
-    "downloadUrl":"https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.0/Suisho.Connector.Setup.1.2.0.exe",
-    "description": "通知转发支持显示通知额外图标(需配套最新Android端)\n更改软件图标\n更新大量底层依赖\n修复已知问题\n详情请前往发布页查看"
+    "versionCode":13,
+    "versionName":"1.2.1",
+    "downloadUrl":"https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.1/Suisho.Connector.Setup.1.2.1.exe",
+    "description": "新增自动连接附加单播功能 尝试缓解部分OEM限制\n主页添加已连接时间显示\n修复部分已知问题 详情请查看发布页"
 }
