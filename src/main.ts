@@ -46,7 +46,7 @@ declare global {
     var config: TypeConfig
     var deviceConfig: DeviceConfig
 }
-enableCompileCache(`${path.resolve(`${app.getPath("userData")}/programData/oat/`)}`)
+enableCompileCache(`${path.resolve(`${app.getPath("userData")}/programData/oat/`)}`);
 //阻止多实例
 if (!app.requestSingleInstanceLock()) {
     //还没初始化日志模块 没必要输出
@@ -712,9 +712,12 @@ ipcMain.handle("main_deleteCache", async () => {
             }
         }
     }
-    //直接轻松assets目录 目前里面都是缓存数据
+    //直接清除assets目录 目前里面都是缓存数据
     const iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets`;
-    await fs.rm(iconCachePath, { recursive: true })
+    await fs.rm(iconCachePath, { recursive: true });
+    //优化目录
+    const optCodePath=`${path.resolve(`${app.getPath("userData")}/programData/oat/`)}`;
+    await fs.rm(optCodePath, { recursive: true });
     logger.writeInfo("Deleted all caches");
 });
 app.on("certificate-error", (event, _webContents, url, _error, cert, callback) => {
