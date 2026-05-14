@@ -469,7 +469,6 @@ class NotificationCore {
                     preload: path.resolve(app.isPackaged ? path.join(app.getAppPath(), "dist", "preload", "notificationFilterSettingPreload.js") : "./src/preload/notificationFilterSettingPreload.js")
                 }
             });
-            this.configWindow.setMenu(null);
             //成功关闭时
             this.configWindow.setContentProtection(global.config.enableContentProtection);
             this.configWindow.on("closed", () => {

@@ -71,7 +71,6 @@ class OAuthService {
                 this.authWindow?.webContents.send("createCredentials");
                 logger.writeDebug("Created oauth window",this.LOG_TAG)
             });
-            this.authWindow.setMenu(null);
             this.authWindow.webContents.setUserAgent("suisho_local_auth_request_window");
             this.authWindow.loadURL(`http://localhost:${this.port}/localAuth`);
             this.authWindow.addListener("close",()=>{
@@ -124,7 +123,6 @@ class OAuthService {
                 this.authWindow?.webContents.send("startAuthorization",this.oauthKeyBinary);
                 logger.writeDebug("Created oauth window",this.LOG_TAG)
             });
-            this.authWindow.setMenu(null);
             this.authWindow.webContents.setUserAgent("suisho_local_auth_request_window");
             this.authWindow.loadURL(`http://localhost:${this.port}/localAuth`);
             this.authWindow.addListener("close",()=>{

@@ -54,6 +54,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 //阻止媒体控制
 app.commandLine.appendSwitch('disable-features', 'MediaSessionService,HardwareMediaKeyHandling');
+Menu.setApplicationMenu(null);
 process.on("uncaughtException", (error, origin) => Util.onUncaughtException(error, origin, mainWindow))
 process.on("unhandledRejection", (reason, promise) => {
     logger.writeError(`Unhandled rejection at: ${promise} reason: ${reason}`);
@@ -101,7 +102,6 @@ app.on("ready", async (_event, _info) => {
     });
     connectPhoneWindow.setContentProtection(global.config.enableContentProtection);
     app.isPackaged ? connectPhoneWindow.loadFile("./dist/renderer/index.html", { hash: "connect-phone" }) : connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone");
-    connectPhoneWindow.setMenu(null);
     //还没连接设备就拖动上传文件
     const lastArg = process.argv[process.argv.length - 1] ?? null;
     if (app.isPackaged && lastArg !== process.execPath && await fs.exists(lastArg)) {
@@ -236,7 +236,6 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 }, 150);
                 logger.writeInfo("Opened main window");
             });
-            mainWindow.setMenu(null);
             app.isPackaged ? mainWindow.loadFile("./dist/renderer/index.html", { hash: "home" }) : mainWindow.loadURL("http://localhost:5173/#/home");
             mainWindow.setContentProtection(global.config.enableContentProtection);
             mainWindow.on("closed", () => {
@@ -673,7 +672,6 @@ ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) =>
             focusable: false,
             movable: false
         });
-        phoneFileDownloadWindow.setMenu(null);
         await phoneFileDownloadWindow.webContents.session.cookies.set({
             name: "sessionId",
             value: global.clientMetadata.sessionId,
