@@ -13,16 +13,14 @@ class TransmitFileWriter {
     writeStream: null | fs.WriteStream;
     isVerified: boolean;
     fileSocket: net.Server;
-    decipher: crypto.Decipher;
+    decipher: crypto.Decipheriv;
     private readonly LOG_TAG = "TransmitFileWriter";
     /**
-     * @module
-     * @param {String} fileName 文件名
-     * @param {String} writeDir 文件路径
-     * @param {number} fileSize 文件大小
-     * @param {BrowserWindow} webContent 浏览器窗口 发信号用
-     * @param {String} displayName 外显名称
-     * @memberof TransmitFileWriter
+     * @param fileName 文件名
+     * @param writeDir 文件路径
+     * @param fileSize 文件大小
+     * @param webContent 浏览器窗口 发信号用
+     * @param displayName 外显名称
      */
     constructor(fileName: string, writeDir: string, fileSize: number, webContent: BrowserWindow, displayName: string, encryptKeyBase64: string, encryptIvBase64: string) {
         this.fileName = fileName;
@@ -30,10 +28,6 @@ class TransmitFileWriter {
         this.fileSize = fileSize;
         this.window = webContent;
         this.displayName = displayName;
-        /**
-         * @instance
-         * @type {fs.WriteStream|null}
-         */
         this.writeStream = null;
         this.beforeQuit = this.beforeQuit.bind(this);
         //是否已通过验证

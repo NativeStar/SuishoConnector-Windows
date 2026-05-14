@@ -1,4 +1,4 @@
-import IDeviceConfig from "../interface/IDeviceConfig";
+import type IDeviceConfig from "../interface/IDeviceConfig";
 import fs from "fs-extra";
 import deviceConfigTemplate from "../constant/deviceConfigTemplate";
 type ConfigType = string | boolean | number | string[] | null;

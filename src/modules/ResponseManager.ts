@@ -1,4 +1,4 @@
-import ws from "ws";
+import type ws from "ws";
 import rt from "randomthing-js";
 interface SendableObject {
     _request_id?: string,
@@ -60,10 +60,9 @@ class ResponseManager {
     /**
      *
      * @description 删除请求 不再理会响应
-     * @param {string} id 请求id
-     * @param {boolean} [reject=false] 是否执行请求的reject
-     * @returns {boolean} 是否成功删除
-     * @memberof rm
+     * @param id 请求id
+     * @param reject 是否执行请求的reject
+     * @returns 是否成功删除
      */
     cancel(id: string, reject: boolean = false): boolean {
         if (reject && this.responseMap.has(id)) {
@@ -73,9 +72,8 @@ class ResponseManager {
         return this.responseMap.delete(id);
     }
     /**
-     * @param {String} id
-     * @param {String} data 
-     * @memberof rm
+     * @param id
+     * @param data 
      */
     // 在主接收消息回调中检查是否为返回信息
     onResponseMessage(id: string, data: string) {
@@ -90,9 +88,7 @@ class ResponseManager {
     }
 
     /**
-     * @private
      * @description 定时清理超时返回等待对象
-     * @memberof rm
      */
     private initTimeoutClearer() {
         setInterval(() => {

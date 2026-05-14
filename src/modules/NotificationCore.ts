@@ -5,14 +5,14 @@ type TextFilterEditCommand = [
     "add" | "remove",
     string
 ]
-import { app, Notification as ElectronNotification, BrowserWindow, ipcMain, nativeTheme, dialog, powerMonitor } from "electron";
+import { app, Notification as ElectronNotification, type BrowserWindow as BrowserWindowType, ipcMain } from "electron";
 import windowsNotificationState from "windows-notification-state";
 import windowsNotificationStateCode from "../constant/WindowsNotificationState";
-import path from "path";
 import fs from "fs-extra";
 import xmlEscape from "xml-escape";
 import Util from "./Util";
-import NotificationProfileType, { NotificationDetailShowMode } from "../interface/INotificationProfile";
+import type NotificationProfileType from "../interface/INotificationProfile";
+import type { NotificationDetailShowMode } from "../interface/INotificationProfile";
 import type Server from "./Server";
 import { type ApplicationListData } from "shared/index";
 declare global {
@@ -29,7 +29,7 @@ declare global {
     }
 }
 class NotificationCore {
-    private window: BrowserWindow | null;
+    private window: BrowserWindowType | null;
     private configPath: string;
     private configSaverTimer: NodeJS.Timeout | number | string | null = null;
     private configSaving: boolean = false;
@@ -40,7 +40,7 @@ class NotificationCore {
     private notificationIconCachePath: string;
     config: config;
     filterText: Set<string>;
-    configWindow: BrowserWindow | null
+    configWindow: BrowserWindowType | null
     private LOG_TAG: string = "NotificationCore";
     private profilePath: string;
     private profile: Map<string, NotificationProfileType>;
@@ -96,7 +96,9 @@ class NotificationCore {
                 this.profile = new Map(Object.entries(fs.readJsonSync(this.profilePath)));
             } catch (error) {
                 logger.writeError(`recreate notification profile file because crash:${error}`, this.LOG_TAG);
-                dialog.showErrorBox("通知配置文件损坏", "将会重置配置以尝试修复 请在之后重新进行相关设置\n带来不便深感抱歉\n如该情况频繁发生请发送反馈");
+                import("electron").then(({ dialog }) => {
+                    dialog.showErrorBox("通知配置文件损坏", "将会重置配置以尝试修复 请在启动后重新进行相关设置\n带来不便深感抱歉\n如该情况频繁发生请发送反馈");
+                })
                 this.profile = new Map();
                 fs.outputFileSync(this.profilePath, "{}");
             }
@@ -115,7 +117,6 @@ class NotificationCore {
         logger.writeInfo("Notification manager init success", this.LOG_TAG);
     }
     /**
-     * 
      * @param packageName 应用包名
      * @param time 时间戳
      * @param title 通知标题
@@ -123,8 +124,6 @@ class NotificationCore {
      * @param appName 应用名
      * @param ongoing 是否常驻通知
      * @param forwardToRendererProcess 是否转发给渲染进程
- 
-     * @returns 
      */
     onNewNotification(packageName: string, time: number, title: string, content: string, appName: string, key: string, progress: number, ongoing: boolean, isLockedScreen: boolean, iconHash: string | null): void {
         let blockedByLockScreen = false;
@@ -304,14 +303,12 @@ class NotificationCore {
     }
     /**
      * @description 检查是否允许发送通知
-     * @memberof NotificationCore
      */
     checkNotificationPermission(): boolean {
         return windowsNotificationStateCode.sendable(windowsNotificationState.shQueryUserNotificationState());
     }
     /**
      * @description 检查xml格式通知权限
-     * @memberof NotificationCore
      */
     checkXmlPermission(): boolean {
         //是否有开始菜单快捷方式
@@ -319,7 +316,6 @@ class NotificationCore {
     }
     /**
      * @description  发送Electron自带最简单通知
-     * @memberof NotificationCore
      */
     showCommonNotification(packageName: string, _time: number, title: string, content: string, appName: string): void {
         logger.writeInfo(`Posted a common notification from:${packageName}`, this.LOG_TAG);
@@ -335,7 +331,6 @@ class NotificationCore {
     }
     /**
      * @description 发送Windows Xml格式通知 支持显示应用名
-     * @memberof NotificationCore
      */
     async showXmlNotification(packageName: string, _time: number, title: string, content: string, appName: string, showAppIcon: boolean, iconHash: string | null): Promise<void> {
         logger.writeInfo(`Posted a notification from:${packageName}`, this.LOG_TAG);
@@ -403,7 +398,7 @@ class NotificationCore {
             logger.writeDebug("Saved notification app profile", this.LOG_TAG)
         });
     };
-    setWindow(window: BrowserWindow): void {
+    setWindow(window: BrowserWindowType): void {
         this.window = window;
         logger.writeDebug("Set main window instance", this.LOG_TAG);
         //拿到窗口对象 检测通知权限
@@ -447,9 +442,11 @@ class NotificationCore {
             logger.writeDebug("Notification forward config file saved", this.LOG_TAG)
         }, 300);
     }
-    openConfigWindow(pkgName: string | null = null, appName: string | null = null) {
+    async openConfigWindow(pkgName: string | null = null, appName: string | null = null) {
         if (this.configWindow === null) {
             logger.writeInfo("Create notification filter setting window", this.LOG_TAG);
+            const { BrowserWindow, nativeTheme } = await import("electron");
+            const path=(await import("path")).default;
             this.configWindow = new BrowserWindow({
                 center: true,
                 titleBarStyle: "hidden",
@@ -524,22 +521,24 @@ class NotificationCore {
         logger.writeDebug("Config object update success", this.LOG_TAG)
     }
     private initLockScreenListener() {
-        powerMonitor.on("unlock-screen", () => {
-            if (this.blockedNotificationInLockScreenCount === 0) return
-            if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen", false) && global.deviceConfig.getConfigProp("showBlockedNotificationCountOnUnlockScreen", true)) {
-                const notificationInstance = new ElectronNotification({
-                    title: "欢迎回来",
-                    body: `在计算机锁定时 连接的设备收到了${this.blockedNotificationInLockScreenCount}条通知`,
-                });
-                notificationInstance.on("click", () => {
-                    this.onNotificationClick()
-                })
-                // 加一点延迟提升观感
-                setTimeout(() => {
-                    notificationInstance.show();
-                }, 600);
-                this.blockedNotificationInLockScreenCount = 0;
-            }
+        import("electron").then(({ powerMonitor }) => {
+            powerMonitor.on("unlock-screen", () => {
+                if (this.blockedNotificationInLockScreenCount === 0) return
+                if (!global.deviceConfig.getConfigProp("pushNotificationOnLockedScreen", false) && global.deviceConfig.getConfigProp("showBlockedNotificationCountOnUnlockScreen", true)) {
+                    const notificationInstance = new ElectronNotification({
+                        title: "欢迎回来",
+                        body: `在计算机锁定时 连接的设备收到了${this.blockedNotificationInLockScreenCount}条通知`,
+                    });
+                    notificationInstance.on("click", () => {
+                        this.onNotificationClick()
+                    })
+                    // 加一点延迟提升观感
+                    setTimeout(() => {
+                        notificationInstance.show();
+                    }, 600);
+                    this.blockedNotificationInLockScreenCount = 0;
+                }
+            })
         })
     }
     recheckXmlPermission(): void {

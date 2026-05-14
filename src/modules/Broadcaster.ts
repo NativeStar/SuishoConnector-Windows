@@ -1,6 +1,5 @@
-import { createSocket, Socket } from "dgram";
-import { app, dialog, type WebContents } from "electron";
-import { exec } from "child_process";
+import { createSocket,type Socket } from "dgram";
+import { type WebContents } from "electron";
 import Util from "./Util";
 class Broadcaster {
     private socket: Socket;
@@ -19,6 +18,8 @@ class Broadcaster {
             logger.writeWarn(`Socket open error:${err}`, this.LOG_TAG);
             this.sender.send("main_autoConnectError");
             const processInfo = await Util.getUsingPortProcessNameAndPid(60127);
+            const {dialog,app}=await import("electron");
+            const {exec}=await import("child_process");
             if (processInfo) {
                 logger.writeWarn(`Process ${processInfo.name} is using port 60127`, this.LOG_TAG);
                 const dialogResult = await dialog.showMessageBox({

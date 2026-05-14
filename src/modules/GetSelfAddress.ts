@@ -1,7 +1,6 @@
 import { execFile } from "child_process"
 import { promisify } from "util"
 import type os from "os"
-import { VirtualNetworkDriverName } from "../constant/VirtualNetworkDriverName"
 type NetworkInfo = {
     name: string | null;
     address: string | null;
@@ -139,7 +138,8 @@ export async function getSelfAddressWithPowerShell(): Promise<NetworkInfo> {
         return {address: null,name:null}
     }
 }
-function checkNetworkDriverName(name: string) {
+async function checkNetworkDriverName(name: string) {
+    const VirtualNetworkDriverName=(await import("../constant/VirtualNetworkDriverName.js")).default.VirtualNetworkDriverName
     for (const virtualName of VirtualNetworkDriverName) {
         if (name.toLowerCase().includes(virtualName.toLowerCase())) {
             logger.writeInfo(`Found virtual network driver:${name}`, LOG_TAG);
@@ -149,11 +149,11 @@ function checkNetworkDriverName(name: string) {
     return false;
 }
 //旧方法 可能给TUN骗 但真的很快
-export function getSelfAddressWithLegacy(interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>) {
+export async function getSelfAddressWithLegacy(interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>) {
     logger.writeDebug("Getting self address with legacy method", LOG_TAG);
     for (let devName in interfaces) {
         //跳过虚拟网卡 仅排查我碰到过的
-        if (checkNetworkDriverName(devName)) {
+        if (await checkNetworkDriverName(devName)) {
             logger.writeDebug(`Skipping virtual network device:${devName}`, LOG_TAG);
             continue
         }

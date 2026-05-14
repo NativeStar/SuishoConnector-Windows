@@ -3,8 +3,8 @@ import { app } from "electron";
 import ws from "ws";
 import path from "path";
 import { createServer } from "https";
-import { AddressInfo } from "net";
-import {FileUploaderEventHandle} from "../interface/FileUploaderEventHandle"
+import type { AddressInfo } from "net";
+import type {FileUploaderEventHandle} from "../interface/FileUploaderEventHandle"
 class TransmitFileUploader {
     filePath: string;
     fileSize: number;

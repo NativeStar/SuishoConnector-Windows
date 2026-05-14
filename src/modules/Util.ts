@@ -1,12 +1,10 @@
 import fs from "fs-extra";
-import crypto from "crypto";
-import { app, type BrowserWindow, dialog, type MessageBoxOptions, shell } from "electron";
+import type crypto from "crypto";
+import { app, type BrowserWindow, type MessageBoxOptions } from "electron";
 import path from "path";
-import child_process from 'child_process';
 import build from "../constant/build.prop.json";
 import configTemp from "../constant/configTemplate";
-import os from "os";
-import { getSelfAddressWithLegacy, getSelfAddressWithPowerShell } from "./GetSelfAddress";
+import type os from "os";
 type Config = typeof configTemp;
 type NetworkInfo = {
     name: string | null;
@@ -18,7 +16,6 @@ class Util {
     //url判断正则
     private static urlRegexp = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
     private static LOG_TAG = "Util";
-
     static delay(ms = 0) {
         return new Promise<void>((resolve) => {
             setTimeout(() => {
@@ -29,8 +26,9 @@ class Util {
     static async getIPAddress(interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]>): Promise<NetworkInfo> {
         const lastConnectionAddress: string = global.config["internal:lastConnectionAddress"]
         const lastConnectionName: string = global.config["internal:lastConnectionName"]
+        const { getSelfAddressWithLegacy, getSelfAddressWithPowerShell } = await import("./GetSelfAddress.js");
         if (lastConnectionAddress && lastConnectionName) {
-            const legacyGetAddressResult = getSelfAddressWithLegacy(interfaces);
+            const legacyGetAddressResult = await getSelfAddressWithLegacy(interfaces);
             //缓存和快速获取的数据一致 直接使用
             if (legacyGetAddressResult && legacyGetAddressResult.address === lastConnectionAddress && legacyGetAddressResult.name === lastConnectionName) {
                 logger.writeInfo("Using last connection address", this.LOG_TAG);
@@ -45,8 +43,8 @@ class Util {
     }
     /**
      * 
-     * @param {String} name 文件名
-     * @returns {boolean} 是否含有保留字
+     * @param name 文件名
+     * @returns 是否含有保留字
      */
     static detectWindowsReservedWords(name: string): boolean {
         const filteredName = name.replaceAll(" ", "");
@@ -54,18 +52,12 @@ class Util {
     }
     /**
      * @description 是否处于开发模式
-     *
-     * @readonly
-     * @static
-     * @memberof Util
      */
     static get isDeveloping(): boolean {
         return !app.isPackaged
     }
     /**
      * @static
-     * @return {Object} 
-     * @memberof Util
      */
     static async loadConfig(): Promise<typeof config> {
         const { v4 } = await import("uuid");
@@ -78,6 +70,7 @@ class Util {
                 return await fs.readJSON(configFile, { encoding: "utf-8" });
             } catch (error) {
                 logger.writeError(`Load config file error:${error}`, this.LOG_TAG);
+                const { dialog } = await import("electron");
                 dialog.showErrorBox("配置文件损坏", "将会重置配置以尝试修复 请在之后重新进行部分设置\n带来不便深感抱歉\n如该情况频繁发生请发送反馈");
                 const baseConfig = structuredClone(configTemp);
                 baseConfig.deviceId = v4().replaceAll("-", "");
@@ -101,6 +94,7 @@ class Util {
      * @returns SHA256
      */
     static async getSHA256(file: string | Buffer, isPath?: boolean): Promise<string> {
+        const crypto = await import("crypto");
         const hash = crypto.createHash("sha256");
         let fileData;
         if (isPath) {
@@ -113,8 +107,6 @@ class Util {
     }
     /**
      * @description 检查及创建证书
-     * @static
-     * @memberof Util
      */
     static async ensureCert() {
         const certPath: string = `${app.getPath("userData")}/programData/cert/`;
@@ -174,22 +166,14 @@ class Util {
         await fs.writeFile(`${certPath}certs.pak`, Buffer.concat([lenBuf, crtData, p12Data]));
         logger.writeInfo("Certificate generated", this.LOG_TAG);
     }
-    /**
-     * @description 创建桌面快捷方式
-     * @static
-     * @memberof Util
-     */
-    static createDesktopShortcut(): void {
-        shell.writeShortcutLink(path.resolve(app.getPath("desktop"), `${build.APPLICATION_SHORTCUT_NAME}.lnk`), "create", { target: process.execPath });
-        logger.writeInfo("Create desktop shortcut", this.LOG_TAG);
-    }
     static hasDesktopShortcut(): boolean {
         return fs.existsSync(path.resolve(app.getPath("desktop"), `${build.APPLICATION_SHORTCUT_NAME}.lnk`));
     }
     static hasStartMenuShortcut(): boolean {
         return fs.existsSync(path.resolve(`${app.getPath("appData")}/Microsoft/Windows/Start Menu/Programs/${build.APPLICATION_SHORTCUT_NAME}.lnk`));
     }
-    static createStartMenuShortcut(): void {
+    static async createStartMenuShortcut(): Promise<void> {
+        const { shell } = await import("electron");
         shell.writeShortcutLink(path.resolve(app.getPath("appData"), `Microsoft/Windows/Start Menu/Programs/${build.APPLICATION_SHORTCUT_NAME}.lnk`), "create", { target: process.execPath });
         logger.writeInfo("Created start menu shortcut", this.LOG_TAG);
     }
@@ -227,6 +211,7 @@ class Util {
      * @param port 目标端口
      */
     static async getUsingPortProcessNameAndPid(port: number): Promise<{ name: string, pid: number } | null> {
+        const child_process = await import("child_process");
         return new Promise(async (resolve) => {
             child_process.exec(`netstat -ano | findstr "${port}"`, (err, stdout) => {
                 if (err) {
@@ -262,13 +247,15 @@ class Util {
         }
         if (taskName) logger.writeError(`Task "${taskName}" full failed`, "Retry task");
     }
-    static createAes128GcmKey() {
+    static async createAes128GcmKey() {
+        const crypto = await import("crypto");
         const key = crypto.randomBytes(16);
         const iv = crypto.randomBytes(12);
         return { key: key.toString("base64"), iv: iv.toString("base64") };
     }
-    static registerContextMenu() {
-        if(this.hasSystemContextMenu()) return
+    static async registerContextMenu() {
+        if (await this.hasSystemContextMenu()) return
+        const child_process = await import("child_process");
         // 选项
         child_process.execFileSync("reg", ["add", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile", "/f", "/t", "REG_SZ", "/d", "发送到手机", "/ve"]);
         //图标
@@ -276,13 +263,15 @@ class Util {
         //执行
         child_process.execFileSync("reg", ["add", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile\\command", "/f", "/t", "REG_SZ", "/d", `"${process.execPath}" "%1"`]);
     }
-    static unregisterContextMenu() {
-        if(!this.hasSystemContextMenu()) return
+    static async unregisterContextMenu() {
+        if (!await this.hasSystemContextMenu()) return
+        const child_process = await import("child_process");
         child_process.execFileSync("reg", ["delete", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile", "/f"]);
     }
-    private static hasSystemContextMenu() {
+    private static async hasSystemContextMenu() {
         try {
-            child_process.execFileSync("reg", ["query", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile"])
+            const { execFileSync } = await import("child_process");
+            execFileSync("reg", ["query", "HKCU\\Software\\Classes\\*\\shell\\SuishoConnector.TransmitUploadFile"])
             return true
         } catch {
             return false
@@ -292,36 +281,38 @@ class Util {
     static onUncaughtException(error: Error, origin: NodeJS.UncaughtExceptionOrigin, mainWindow: BrowserWindow | null) {
         logger.writeError(`New ${origin}`);
         logger.writeError(error);
-        //未捕获异常弹窗 给点功能选择
-        dialog.showMessageBox({
-            type: "error",
-            title: "应用程序异常",
-            message: `主进程发生异常:\n${error.name}:${error.message}\n${error.stack}`,
-            buttons: ["忽略", "重启", "退出"],
-            defaultId: 0,
-            cancelId: -1
-        } as MessageBoxOptions).then((result) => {
-            console.log(result.response);
-            switch (result.response) {
-                case 0:
-                    //忽略
-                    logger.writeWarn("User ignored uncaught exception dialog");
-                    break;
-                case 1:
-                    //重启
-                    logger.writeWarn("App relaunching because uncaught exception");
-                    mainWindow?.destroy();
-                    app.relaunch();
-                    app.quit();
-                    break;
-                case -1:
-                case 2:
-                    //关闭对话框或选择退出
-                    logger.writeWarn("App close because uncaught exception");
-                    mainWindow?.destroy();
-                    app.quit();
-                    break;
-            }
+        import("electron").then(({ dialog }) => {
+            //未捕获异常弹窗 给点功能选择
+            dialog.showMessageBox({
+                type: "error",
+                title: "应用程序异常",
+                message: `主进程发生异常:\n${error.name}:${error.message}\n${error.stack}`,
+                buttons: ["忽略", "重启", "退出"],
+                defaultId: 0,
+                cancelId: -1
+            } as MessageBoxOptions).then((result) => {
+                console.log(result.response);
+                switch (result.response) {
+                    case 0:
+                        //忽略
+                        logger.writeWarn("User ignored uncaught exception dialog");
+                        break;
+                    case 1:
+                        //重启
+                        logger.writeWarn("App relaunching because uncaught exception");
+                        mainWindow?.destroy();
+                        app.relaunch();
+                        app.quit();
+                        break;
+                    case -1:
+                    case 2:
+                        //关闭对话框或选择退出
+                        logger.writeWarn("App close because uncaught exception");
+                        mainWindow?.destroy();
+                        app.quit();
+                        break;
+                }
+            });
         });
     }
 }

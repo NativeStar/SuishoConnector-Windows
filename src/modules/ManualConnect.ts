@@ -1,4 +1,4 @@
-import { createServer, Server } from "https";
+import { createServer,type Server } from "https";
 import fs from "fs-extra";
 import randomThing from "randomthing-js"
 import { app } from "electron";

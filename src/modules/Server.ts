@@ -1,7 +1,7 @@
-import { BrowserWindow, dialog, app, ipcMain, Notification, Tray, powerMonitor } from "electron";
-import { IncomingMessage } from "http";
+import { type BrowserWindow as BrowserWindowType, app, ipcMain, type Tray } from "electron";
+import type { IncomingMessage } from "http";
 import https from "https";
-import ws, { AddressInfo } from "ws";
+import ws, { type AddressInfo } from "ws";
 import randomThing from "randomthing-js";
 import fs from "fs-extra";
 import Util from "./Util";
@@ -10,12 +10,10 @@ import TransmitFileWriter from "./TransmitFileWriter";
 import TransmitFileUploader from "./TransmitFileUploader";
 import NotificationCore from "./NotificationCore";
 import RequestId from "../constant/RequestId";
-import os from "os";
 import ConnectionCloseCode from "../enum/ConnectionCloseCode";
 import ConnectionCloseReasonString from "../constant/CloseCodeReasonString";
 import path from "path";
 import DeviceConfig from "./DeviceConfig";
-import { SocketFileWriter } from "./SocketFileWriter";
 import { type ApplicationListData } from "shared/index";
 declare global {
     var serverAddress: string | null
@@ -30,7 +28,7 @@ class Server {
     isConnectVerified: boolean;
     private readonly protocolVersion: number;
     phoneAddress: string | undefined = undefined;
-    appWindow: BrowserWindow;
+    appWindow: BrowserWindowType;
     isInMainWindow: boolean;
     isClosed: boolean;
     showDefaultDisconnectAlert: boolean;
@@ -44,7 +42,7 @@ class Server {
     connectTimeoutTimer: NodeJS.Timeout | number | null = null;
     handshakeTime: number = 0;
     private appListCache: Object | null = null;
-    constructor(window: BrowserWindow, onMessageMainCallbacks: MainHandle) {
+    constructor(window: BrowserWindowType, onMessageMainCallbacks: MainHandle) {
         // 是否通过验证 协议版本等
         this.isConnectVerified = false;
         //客户端协议版本
@@ -112,17 +110,19 @@ class Server {
         } catch (error: any) {
             //严重错误处理
             logger.writeError(error);
-            dialog.showMessageBox(this.appWindow, {
-                title: "发生异常",
-                message: `出现致命异常,无法继续运行\n${error.stack}`,
-                buttons: ["重启", "关闭"],
-                cancelId: 1
-            }).then(value => {
-                if (value.response === 0) {
-                    logger.writeInfo("App relaunching because fatal error");
-                    app.relaunch();
-                }
-                app.exit();
+            import("electron").then(({ dialog }) => {
+                dialog.showMessageBox(this.appWindow, {
+                    title: "发生异常",
+                    message: `出现致命异常,无法继续运行\n${error.stack}`,
+                    buttons: ["重启", "关闭"],
+                    cancelId: 1
+                }).then(value => {
+                    if (value.response === 0) {
+                        logger.writeInfo("App relaunching because fatal error");
+                        app.relaunch();
+                    }
+                    app.exit();
+                })
             })
         };
         this.websocket!.on("connection", (socket, connectRequest) => {
@@ -237,6 +237,7 @@ class Server {
                 //清除旧定时器
                 clearTimeout(<number>this.connectTimeoutTimer);
                 //握手包
+                const os=await import("os");
                 socket.send(JSON.stringify({ packetType: "connect_ping", msg: global.config.deviceId, name: os.hostname(), time: Date.now() }));
                 //重设定时器
                 this.connectTimeoutTimer = setTimeout(() => {
@@ -402,6 +403,7 @@ class Server {
                     }
                 }
                 logger.writeDebug("Starting download icon pack");
+                const SocketFileWriter=(await import("./SocketFileWriter.js")).default.SocketFileWriter;
                 const fileSocket = new SocketFileWriter(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`, null, jsonObj.key, jsonObj.iv);
                 try {
                     await fileSocket.init();
@@ -508,11 +510,7 @@ class Server {
 
     }
     /**
-     *@private
      *@description 断开连接时回调
-     * @param {number} code
-     * @param {Buffer} reason
-     * @memberof server
      */
     onSocketClose(code: number, reason: Buffer) {
         if (this.isClosed) return
@@ -527,47 +525,51 @@ class Server {
             //直接用Electron自带通知
             const canSendXmlNotification = Util.hasStartMenuShortcut();
             logger.writeInfo(`Post device disconnect notification with ${canSendXmlNotification ? "xml" : "vanilla"}`);
-            const notification = new Notification({
-                title: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : "连接中断",
-                body: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : `${global.clientMetadata.model}已断开连接`,
-                toastXml:
-                    `
-            <toast activationType="protocol" launch="suisho:clickNotification">
-                <visual>
-                    <binding template="ToastGeneric">
-                        <text>连接中断</text>
-                        <text>${global.clientMetadata.model}已断开连接</text>
-                    </binding>
-                </visual>
-            </toast>
-            `
-            });
-            !canSendXmlNotification && notification.on("click", _event => {
-                if (this.appWindow !== null && !this.appWindow.isDestroyed()) {
-                    this.appWindow.show();
-                    if (this.appWindow.isMinimized()) {
-                        this.appWindow.restore();
+            import("electron").then(({ Notification }) => {
+                const notification = new Notification({
+                    title: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : "连接中断",
+                    body: canSendXmlNotification ? "suisho_disconnect_notification_placeholder" : `${global.clientMetadata.model}已断开连接`,
+                    toastXml:
+                        `
+                <toast activationType="protocol" launch="suisho:clickNotification">
+                    <visual>
+                        <binding template="ToastGeneric">
+                            <text>连接中断</text>
+                            <text>${global.clientMetadata.model}已断开连接</text>
+                        </binding>
+                    </visual>
+                </toast>
+                `
+                });
+                !canSendXmlNotification && notification.on("click", _event => {
+                    if (this.appWindow !== null && !this.appWindow.isDestroyed()) {
+                        this.appWindow.show();
+                        if (this.appWindow.isMinimized()) {
+                            this.appWindow.restore();
+                        }
+                        this.appWindow.focus();
                     }
-                    this.appWindow.focus();
-                }
-                notification.close();
-            });
-            notification.show();
+                    notification.close();
+                });
+                notification.show();
+            })
         }
         //只留下主窗口
-        BrowserWindow.getAllWindows().forEach(window => {
-            if (!window.title.startsWith("Suisho Connector:")) {
-                //如果这些窗口在焦点 则将主窗口拉起
-                if (window.isFocused()) {
-                    this.appWindow.show();
-                    if (this.appWindow.isMinimized()) {
-                        this.appWindow.restore();
+        import("electron").then(({ BrowserWindow }) => {
+            BrowserWindow.getAllWindows().forEach(window => {
+                if (!window.title.startsWith("Suisho Connector:")) {
+                    //如果这些窗口在焦点 则将主窗口拉起
+                    if (window.isFocused()) {
+                        this.appWindow.show();
+                        if (this.appWindow.isMinimized()) {
+                            this.appWindow.restore();
+                        }
+                        this.appWindow.focus();
                     }
-                    this.appWindow.focus();
+                    window.close();
                 }
-                window.close();
-            }
-        });
+            });
+        })
         //关闭窗口时会触发 但窗口已经关闭了 所以会报错
         //判断窗口
         if (this.isInMainWindow) {
@@ -590,8 +592,6 @@ class Server {
     }
     /**
      * @description 连接心跳检测
-     * @param {ws} socket
-     * @memberof server
      */
     async checkHeartBeat(socket: ws) {
         //检测计时器
@@ -631,10 +631,8 @@ class Server {
 
     /**
      * @description 设置BrowserWindow对象
-     * @param {BrowserWindow} bw
-     * @memberof server
      */
-    setWindow(bw: BrowserWindow) {
+    setWindow(bw: BrowserWindowType) {
         this.appWindow = bw;
         this.notificationCore?.setWindow(bw);
         logger.writeDebug("Server set main window instance");
@@ -642,8 +640,9 @@ class Server {
     getNotificationManager() {
         return this.notificationCore;
     }
-    private scheduleDisposableTask() {
+    private async scheduleDisposableTask() {
         //清理无用通知转发profile
+        const { powerMonitor } = await import("electron")
         const autoCleanupAppProfileTask = setInterval(() => {
             const idleTime = powerMonitor.getSystemIdleTime();
             logger.writeDebug(`Idle time:${idleTime}`);
@@ -663,9 +662,6 @@ class Server {
     }
     /**
      * @description 跨进程消息处理
-     * @typedef {ws.WebSocket} sc
-     * @param {ws} socket
-     * @memberof server
      */
     async initWebviewHandles(socket: ws) {
         ipcMain.handle("main_getDeviceDetailInfo", async (_event) => {

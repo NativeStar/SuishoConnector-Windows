@@ -11,7 +11,7 @@ class SocketFileWriter {
     writeStream: fs.WriteStream | undefined;
     eventHandle?: FileWriterEventHandle;
     filePath: string;
-    decipher: crypto.Decipher;
+    decipher: crypto.Decipheriv;
     private readonly LOG_TAG = "SocketFileWriter";
     constructor(writeDir: string, filePath: string, fileSize: number | null, encryptKeyBase64: string, encryptIvBase64: string) {
         this.target = writeDir;

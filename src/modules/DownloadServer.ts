@@ -1,6 +1,6 @@
-import { createServer, Server } from "https";
+import { createServer,type Server } from "https";
 import fs from "fs-extra";
-import { AddressInfo } from "net";
+import type { AddressInfo } from "net";
 import { app } from "electron";
 import path from "path";
 class DownloadServer {
@@ -76,7 +76,7 @@ class DownloadServer {
         this.fileStream?.close();
         logger.writeInfo(`Download server${this.label?`:${this.label} `:" "}closed`,this.LOG_TAG);
     }
-    get serverPost(): number {
+    get serverPort(): number {
         return <number>this.port?? (this.server?.address() as AddressInfo).port;
     }
 }

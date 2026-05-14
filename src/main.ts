@@ -1,24 +1,22 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, Tray, nativeImage, Menu, MessageBoxOptions, nativeTheme, MenuItem, session, powerMonitor } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell, type Tray as TrayType, nativeImage, Menu, type MessageBoxOptions, nativeTheme, MenuItem } from "electron";
 import path from "path";
-import os from "os";
 import { X509Certificate } from "crypto"
 import fs from "fs-extra";
-import PhoneServer from "./modules/Server";
+import type PhoneServerType from "./modules/Server";
 import Util from "./modules/Util";
-import DownloadServer from "./modules/DownloadServer";
-import { Config as TypeConfig } from "./modules/Util"
+import type DownloadServerType from "./modules/DownloadServer";
+import type { Config as TypeConfig } from "./modules/Util"
 import { Logger, LogLevel } from "./modules/Logger";
-import ManualConnect from "./modules/ManualConnect";
+import type ManualConnectType from "./modules/ManualConnect";
 import type OAuthService from "./modules/OAuthService";
-import DeviceConfig from "./modules/DeviceConfig";
-import Broadcaster from "./modules/Broadcaster";
+import type DeviceConfig from "./modules/DeviceConfig";
+import type BroadcasterType from "./modules/Broadcaster";
 import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
 import ConnectionCloseCode from "./enum/ConnectionCloseCode";
 import type ApkDownloadServer from "./modules/ApkServer";
-import AudioForward from "./modules/AudioForward";
 import configTemplate from "./constant/configTemplate";
-import CloseReason from "./constant/CloseCodeReasonString";
-let connectedDevice: PhoneServer;
+import { enableCompileCache } from "node:module";
+let connectedDevice: PhoneServerType;
 /**
  * @description 连接手机窗口
 */
@@ -28,19 +26,19 @@ let connectPhoneWindow: BrowserWindow;
 */
 let mainWindow: BrowserWindow | null = null;
 //SSL证书下载服务器实例
-let certDownloadServer: DownloadServer | null = null;
+let certDownloadServer: DownloadServerType | null = null;
 //手动连接中转服务器
-let manualConnectRedirectServer: ManualConnect | null = null;
+let manualConnectRedirectServer: ManualConnectType | null = null;
 let oauthService: OAuthService | null = null;
 //udp广播 自动连接
-let broadcaster: Broadcaster | null = null;
+let broadcaster: BroadcasterType | null = null;
 let apkDownloadServerInstance: ApkDownloadServer | null = null;
 let phoneFileDownloadWindow: BrowserWindow | null = null;
 /* 
 如果不这么搞触发will-download回调内读取的文件名永远是第一次触发的文件名
 */
 let phoneFileDownloadPathTemp: string = "";
-let trayInstance: Tray | null = null;
+let trayInstance: TrayType | null = null;
 let localCertFingerprint256: string | null = null;
 const cacheFilesList = new Set<string>();
 declare global {
@@ -48,6 +46,7 @@ declare global {
     var config: TypeConfig
     var deviceConfig: DeviceConfig
 }
+enableCompileCache(`${path.resolve(`${app.getPath("userData")}/programData/oat/`)}`)
 //阻止多实例
 if (!app.requestSingleInstanceLock()) {
     //还没初始化日志模块 没必要输出
@@ -181,6 +180,8 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     let trayInitd = false;
     let networkDriverName = "";
     await Util.ensureCert();
+    const { default: PhoneServer } = (await import("./modules/Server.js")).default;
+    const { default: ManualConnect } = ((await import("./modules/ManualConnect.js"))).default;
     connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
             logger.writeDebug("Invoke open main window");
@@ -266,7 +267,10 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             //关机提醒
             mainWindow.on("query-session-end", (e) => {
                 if (e.reasons.includes("shutdown") || e.reasons.includes("logoff")) {
-                    connectedDevice.socket?.close(ConnectionCloseCode.ComputerWillShutdown, CloseReason[ConnectionCloseCode.ComputerWillShutdown])
+                    import("./constant/CloseCodeReasonString.js").then(v => {
+                        const CloseReason = v.default.default
+                        connectedDevice.socket?.close(ConnectionCloseCode.ComputerWillShutdown, CloseReason[ConnectionCloseCode.ComputerWillShutdown])
+                    })
                 }
             });
             //视频全屏
@@ -286,12 +290,19 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             broadcaster?.close();
             broadcaster = null;
             apkDownloadServerInstance?.close();
+            //锁屏监听
+            import("electron").then(obj => {
+                const powerMonitor = obj.powerMonitor;
+                powerMonitor.on("lock-screen", () => {
+                    mainWindow?.webContents.send("webviewEvent", "lockScreen")
+                })
+            })
             //保存本次连接数据
             global.config["internal:lastConnectionAddress"] = global.serverAddress ?? ""
             global.config["internal:lastConnectionName"] = networkDriverName
             //连接的设备就是绑定设备 更新自动连接单播地址
-            if (global.config.boundDeviceId===global.clientMetadata.androidId) {
-                global.config["internal:boundDeviceAddress"]=connectedDevice.getPhoneAddress();
+            if (global.config.boundDeviceId === global.clientMetadata.androidId) {
+                global.config["internal:boundDeviceAddress"] = connectedDevice.getPhoneAddress();
                 logger.writeInfo("Updated bound device unicast address");
             }
             logger.writeDebug("Saved last connection data");
@@ -303,16 +314,18 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     });
     //SSL证书下载服务器
     if (certDownloadServer === null) {
+        const { default: DownloadServer } = (await import("./modules/DownloadServer.js")).default
         certDownloadServer = new DownloadServer(`${path.resolve(`${app.getPath("userData")}/programData/cert/certs.pak`)}`, 6735, "SSLCertDownload", connectedDevice.pairToken);
         await certDownloadServer.init();
-        logger.writeInfo(`Cert download server started at port:${certDownloadServer.serverPost}`);
+        logger.writeInfo(`Cert download server started at port:${certDownloadServer.serverPort}`);
     } else {
         logger.writeDebug("Skipped download server init")
     }
     const serverPort = await connectedDevice.getPortAsync();
     //手动连接服务
-    manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPost, global.config.deviceId, connectedDevice.pairToken);
+    manualConnectRedirectServer = new ManualConnect(serverPort, certDownloadServer.serverPort, global.config.deviceId, connectedDevice.pairToken);
     manualConnectRedirectServer.init();
+    const os = await import("os");
     const networkInterfaces = os.networkInterfaces();
     logger.writeInfo(`Network interfaces:${Reflect.ownKeys(networkInterfaces)}`);
     const networkInfo = await Util.getIPAddress(networkInterfaces)
@@ -323,15 +336,16 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
     return {
         address: global.serverAddress,
         port: serverPort,
-        certDownloadPort: certDownloadServer.serverPost,
+        certDownloadPort: certDownloadServer.serverPort,
         id: global.config.deviceId,
         token: connectedDevice.pairToken,
         pairCode: manualConnectRedirectServer.pairCode
     }
 });
-function initTray() {
+async function initTray() {
     //创建托盘图标
     const trayImage: Electron.NativeImage = nativeImage.createFromPath(path.join(app.getAppPath(), "res", "icon.ico"));
+    const Tray = (await import("electron")).Tray;
     trayInstance = new Tray(trayImage);
     trayInstance.setTitle("Suisho Connector");
     trayInstance.setToolTip("Suisho Connector");
@@ -507,9 +521,12 @@ ipcMain.on("main_startAutoConnectBroadcast", (event) => {
         sender.send("main_autoConnectError");
         return
     }
-    broadcaster = new Broadcaster(global.config.boundDeviceId as any, sender);
-    broadcaster.start();
-    logger.writeInfo("Start auto connect broadcast")
+    import("./modules/Broadcaster.js").then(obj => {
+        const Broadcaster = obj.default.default;
+        broadcaster = new Broadcaster(global.config.boundDeviceId as any, sender);
+        broadcaster.start();
+        logger.writeInfo("Start auto connect broadcast")
+    })
 });
 //退出应用
 ipcMain.on("close_application", (_event): void => {
@@ -554,17 +571,6 @@ ipcMain.handle("main_setConfig", (_event, prop: string, value: string | number |
     //对防录屏配置的处理 即时生效
     //如果未来需要即时生效的配置增加则独立出去
     onApplicationConfigChange(prop, value);
-    // if (prop === "enableContentProtection") {
-    //     for (const browserWindow of BrowserWindow.getAllWindows()) {
-    //         browserWindow.setContentProtection(value as boolean);
-    //     }
-    //     logger.writeInfo(`${value ? "enabled" : "disabled"} content protection`);
-    // } else if (prop === "windowAlwaysOnTop") {
-    //     for (const browserWindow of BrowserWindow.getAllWindows()) {
-    //         browserWindow.setAlwaysOnTop(value as boolean);
-    //     }
-    //     logger.writeInfo(`${value ? "enabled" : "disabled"} windows always on top`);
-    // }
 });
 //写入设备配置
 ipcMain.handle("main_setDeviceConfig", (_event, prop: string, value: string | number | boolean | null) => {
@@ -593,8 +599,8 @@ ipcMain.handle("main_startAuthorization", async () => {
     return await oauthService.startAuthorization();
 });
 //创建桌面快捷方式
-ipcMain.handle("main_createStartMenuShortcut", () => {
-    Util.createStartMenuShortcut();
+ipcMain.handle("main_createStartMenuShortcut", async () => {
+    await Util.createStartMenuShortcut();
     connectedDevice.getNotificationManager()?.recheckXmlPermission();
     const result = Util.hasStartMenuShortcut();
     result && mainWindow?.webContents.send("webviewEvent", "editState", { type: "remove", id: "warn_xml_notification_cannot_show" });
@@ -687,6 +693,7 @@ ipcMain.on("main_downloadPhoneFile", async (_event, downloadFilePath: string) =>
 });
 // 情况缓存和日志
 ipcMain.handle("main_deleteCache", async () => {
+    const session = (await import("electron")).session;
     const currentSession = session.defaultSession;
     await currentSession.clearCache();
     await currentSession.clearCodeCaches({});
@@ -733,8 +740,9 @@ app.on("certificate-error", (event, _webContents, url, _error, cert, callback) =
 });
 ipcMain.handle("main_setAudioForward", async (_event, enable: boolean) => {
     logger.writeInfo(`Request set audio forward ${enable ? "enable" : "disable"}`);
+    const AudioForward = (await import("./modules/AudioForward.js")).default.default;
     if (enable) {
-        const { iv, key } = Util.createAes128GcmKey();
+        const { iv, key } = await Util.createAes128GcmKey();
         const result: any = await connectedDevice.responseManager?.send({ packetType: "main_startAudioForward", key, iv });
         if (result.result) {
             AudioForward.start(connectedDevice.getPhoneAddress(), key, iv);
@@ -777,9 +785,6 @@ ipcMain.handle("main_archiveLogs", async () => {
     logger.writeInfo("Archive log file success")
     return true
 });
-powerMonitor.on("lock-screen", () => {
-    mainWindow?.webContents.send("webviewEvent", "lockScreen")
-})
 // 创建缓存文件
 ipcMain.handle("main_createCacheFile", async (_event, name: string, data: ArrayBuffer) => {
     const filePath = path.join(app.getPath("temp"), name);
@@ -803,8 +808,6 @@ app.on("before-quit", (event) => {
     for (const client of connectedDevice?.clients || []) {
         client.close(ConnectionCloseCode.CloseFromServer);
     }
-    //关闭音频转发进程
-    AudioForward.stop();
     //发生异常时无法调用close
     connectedDevice?.close();
     // 清理缓存文件
@@ -817,8 +820,16 @@ app.on("before-quit", (event) => {
             }
         });
     }
-    logger?.writeInfo("App quit");
-    app.exit();
+    //关闭音频转发进程
+    import("./modules/AudioForward.js").then(module => {
+        try {
+            module.default.default.stop();
+            logger?.writeInfo("App quit");
+        } catch {
+        } finally {
+            app.exit();
+        }
+    })
     // logger?.closeStream();
 });
 function onApplicationConfigChange(prop: string, value: string | boolean | number | null) {
@@ -844,13 +855,13 @@ function onApplicationConfigChange(prop: string, value: string | boolean | numbe
             }
             break
         case "boundDeviceId":
-            if(value!==null){
-                global.config['internal:boundDeviceAddress']=connectedDevice.getPhoneAddress();
-            }else{
-                global.config["internal:boundDeviceAddress"]="";
+            if (value !== null) {
+                global.config['internal:boundDeviceAddress'] = connectedDevice.getPhoneAddress();
+            } else {
+                global.config["internal:boundDeviceAddress"] = "";
             }
             Util.saveConfig();
-            break 
+            break
         default:
             break;
     }
