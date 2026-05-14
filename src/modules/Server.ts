@@ -237,7 +237,7 @@ class Server {
                 //清除旧定时器
                 clearTimeout(<number>this.connectTimeoutTimer);
                 //握手包
-                const os=await import("os");
+                const os = await import("os");
                 socket.send(JSON.stringify({ packetType: "connect_ping", msg: global.config.deviceId, name: os.hostname(), time: Date.now() }));
                 //重设定时器
                 this.connectTimeoutTimer = setTimeout(() => {
@@ -403,7 +403,7 @@ class Server {
                     }
                 }
                 logger.writeDebug("Starting download icon pack");
-                const SocketFileWriter=(await import("./SocketFileWriter.js")).default.SocketFileWriter;
+                const SocketFileWriter = (await import("./SocketFileWriter.js")).default.SocketFileWriter;
                 const fileSocket = new SocketFileWriter(filePath, `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/`, null, jsonObj.key, jsonObj.iv);
                 try {
                     await fileSocket.init();
@@ -655,7 +655,7 @@ class Server {
             }
         }, 60 * 1000);
         //检查右键菜单设置
-        queueMicrotask(() => {
+        setImmediate(() => {
             global.config.enableFileContextMenu ? Util.registerContextMenu() : Util.unregisterContextMenu();
             logger.writeDebug("Update file context menu status");
         })

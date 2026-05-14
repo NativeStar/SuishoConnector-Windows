@@ -66,7 +66,6 @@ app.on("ready", async (_event, _info) => {
     global.config = await Util.loadConfig();
     await Util.updateConfig();
     global.logger.setLevel(Reflect.get(LogLevel, config.logLevel));
-    app.setAsDefaultProtocolClient("suisho", process.execPath, [app.getAppPath()]);
     connectPhoneWindow = new BrowserWindow({
         titleBarStyle: "hidden",
         center: true,
@@ -110,70 +109,74 @@ app.on("ready", async (_event, _info) => {
             message: "你需要先连接设备才能进行此操作"
         });
     }
-    //阻止多开
-    app.on("second-instance", async (_event, args, _dir, _data) => {
-        //主窗口
-        if (mainWindow != null && !mainWindow?.isDestroyed()) {
-            logger.writeDebug("Restore main window because of second instance");
-            mainWindow.setAlwaysOnTop(true);
-            if (mainWindow.isMinimized()) mainWindow?.restore();
-            mainWindow?.show();
-            mainWindow?.focus();
-            mainWindow.setAlwaysOnTop(false);
-            mainWindow.flashFrame(false);
-            const lastArg = args[args.length - 1];
-            // console.log(lastArg);
-            if (lastArg != null && await fs.exists(lastArg)) {
-                logger.writeDebug("Transmit drag item to app icon");
-                const fileStat = await fs.stat(lastArg);
-                if (fileStat.isFile()) {
-                    logger.writeInfo(`Transmit file from drag app icon:${lastArg}`);
-                    mainWindow?.webContents.send("webviewEvent", "transmitDragFile", { filename: path.basename(lastArg), filePath: lastArg, size: fileStat.size });
-                } else if (fileStat.isDirectory()) {
-                    mainWindow.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "暂仅支持通过拖入互传窗口处理文件夹" });
-                }
-            }
-        } else if (connectPhoneWindow != null && !connectPhoneWindow.isDestroyed()) {
-            //连接窗口
-            logger.writeDebug("Restore connect window because of second instance");
-            connectPhoneWindow.restore();
-            connectPhoneWindow.show();
-            connectPhoneWindow.focus();
-        }
-        for (const argString of args) {
-            if (argString.startsWith("suisho:")) {
-                logger.writeDebug(`Handle protocol in second instance:${argString}`);
-                if (argString.endsWith("clickNotification")) {
-                    connectedDevice?.notificationCore?.onNotificationClick();
-                }
+    //一些不急的初始化
+    setImmediate(() => {
+        app.setAsDefaultProtocolClient("suisho", process.execPath, [app.getAppPath()]);
+        //开控制台
+        ipcMain.handle("openConsole", (event) => {
+            //仅允许调试模式
+            if (!Util.isDeveloping) return
+            //如果未开启则打开 否则置于前台
+            if (event.sender.isDevToolsOpened()) {
+                logger.writeDebug("Devtools request focus")
+                event.sender.devToolsWebContents?.focus();
                 return
             }
-        }
-    });
-    //开控制台 记得删掉
-    ipcMain.handle("openConsole", (event) => {
-        //仅允许调试模式
-        if (!Util.isDeveloping) return
-        //如果未开启则打开 否则置于前台
-        if (event.sender.isDevToolsOpened()) {
-            logger.writeDebug("Devtools request focus")
-            event.sender.devToolsWebContents?.focus();
-            return
-        }
-        logger.writeInfo("Open devtools")
-        event.sender.openDevTools({ mode: 'undocked' })
-    });
-    //深色模式适配
-    nativeTheme.addListener("updated", () => {
-        logger.writeInfo(`Native theme updated to:${nativeTheme.shouldUseDarkColors ? "dark" : "light"}`);
-        for (const browserWindow of BrowserWindow.getAllWindows()) {
-            browserWindow.setTitleBarOverlay({
-                height: 40,
-                color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
-                symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
-            })
-        }
-    });
+            logger.writeInfo("Open devtools")
+            event.sender.openDevTools({ mode: 'undocked' })
+        });
+        //深色模式适配
+        nativeTheme.addListener("updated", () => {
+            logger.writeInfo(`Native theme updated to:${nativeTheme.shouldUseDarkColors ? "dark" : "light"}`);
+            for (const browserWindow of BrowserWindow.getAllWindows()) {
+                browserWindow.setTitleBarOverlay({
+                    height: 40,
+                    color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
+                    symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
+                })
+            }
+        });
+        //阻止多开
+        app.on("second-instance", async (_event, args, _dir, _data) => {
+            //主窗口
+            if (mainWindow != null && !mainWindow?.isDestroyed()) {
+                logger.writeDebug("Restore main window because of second instance");
+                mainWindow.setAlwaysOnTop(true);
+                if (mainWindow.isMinimized()) mainWindow?.restore();
+                mainWindow?.show();
+                mainWindow?.focus();
+                mainWindow.setAlwaysOnTop(false);
+                mainWindow.flashFrame(false);
+                const lastArg = args[args.length - 1];
+                // console.log(lastArg);
+                if (lastArg != null && await fs.exists(lastArg)) {
+                    logger.writeDebug("Transmit drag item to app icon");
+                    const fileStat = await fs.stat(lastArg);
+                    if (fileStat.isFile()) {
+                        logger.writeInfo(`Transmit file from drag app icon:${lastArg}`);
+                        mainWindow?.webContents.send("webviewEvent", "transmitDragFile", { filename: path.basename(lastArg), filePath: lastArg, size: fileStat.size });
+                    } else if (fileStat.isDirectory()) {
+                        mainWindow.webContents.send("webviewEvent", "showAlert", { title: "上传文件失败", content: "暂仅支持通过拖入互传窗口处理文件夹" });
+                    }
+                }
+            } else if (connectPhoneWindow != null && !connectPhoneWindow.isDestroyed()) {
+                //连接窗口
+                logger.writeDebug("Restore connect window because of second instance");
+                connectPhoneWindow.restore();
+                connectPhoneWindow.show();
+                connectPhoneWindow.focus();
+            }
+            for (const argString of args) {
+                if (argString.startsWith("suisho:")) {
+                    logger.writeDebug(`Handle protocol in second instance:${argString}`);
+                    if (argString.endsWith("clickNotification")) {
+                        connectedDevice?.notificationCore?.onNotificationClick();
+                    }
+                    return
+                }
+            }
+        });
+    })
 });
 //ipc
 ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
@@ -714,7 +717,7 @@ ipcMain.handle("main_deleteCache", async () => {
     const iconCachePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets`;
     await fs.rm(iconCachePath, { recursive: true });
     //优化目录
-    const optCodePath=`${path.resolve(`${app.getPath("userData")}/programData/oat/`)}`;
+    const optCodePath = `${path.resolve(`${app.getPath("userData")}/programData/oat/`)}`;
     await fs.rm(optCodePath, { recursive: true });
     logger.writeInfo("Deleted all caches");
 });
