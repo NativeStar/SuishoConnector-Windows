@@ -43,7 +43,7 @@ export default function PathList({ paths, setPaths }: PathListProps) {
         <mdui-list className="w-4/12">
             <mdui-list-subheader>路径列表</mdui-list-subheader>
             <div className="smallScrollBar overflow-y-auto max-h-[calc(100vh-9.4rem)]">
-                {paths.length === 0 && <span className="text-[gray] absolute left-12.5">暂无同步路径</span>}
+                {paths.length === 0 && <span className="text-[gray] absolute left-10">暂无同步路径</span>}
                 {paths.map(path => <PathListItem path={path} key={path} onRemove={removeItem} />)}
             </div>
         </mdui-list>

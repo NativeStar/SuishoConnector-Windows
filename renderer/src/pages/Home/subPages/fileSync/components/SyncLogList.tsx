@@ -52,7 +52,7 @@ export default function SyncLogList({ logs, setLogs }: SyncLogListProps) {
         <mdui-list className="w-full">
             <mdui-list-subheader>同步记录(仅显示本次启动时数据)</mdui-list-subheader>
             <div className="smallScrollBar overflow-y-auto max-h-[calc(100vh-9.4rem)]">
-                {logs.length === 0 && <span className="text-[gray] absolute right-50">暂无同步记录</span>}
+                {logs.length === 0 && <span className="text-[gray] absolute right-58">暂无同步记录</span>}
                 {logs.map(log => <SyncLogItem event={log} key={log.id}/>)}
             </div>
         </mdui-list>
