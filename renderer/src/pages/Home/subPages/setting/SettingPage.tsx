@@ -52,7 +52,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
             <div style={{ display: hidden ? "none" : "block" }} className="flex flex-col h-full overflow-y-scroll">
                 <mdui-list>
                     <mdui-list-subheader className="ml-5 h-10 font-bold">全局</mdui-list-subheader>
-                    <SettingItemCommon title="绑定/解绑设备" onClick={() => onBoundDeviceItemClick(androidId, boundDeviceId, setBoundDeviceId, deviceConfig, ipc)} desc={boundDeviceId ? `已绑定设备ID:${boundDeviceId}` : "未绑定"} icon="link" />
+                    <SettingItemCommon title="绑定/解绑自动连接设备" onClick={() => onBoundDeviceItemClick(androidId, boundDeviceId, setBoundDeviceId, deviceConfig, ipc)} desc={boundDeviceId ? `已绑定设备ID:${boundDeviceId}` : "未绑定"} icon="link" />
                     <SettingItemSelect title="掉线轮询间隔" icon="monitor_heart" desc="降低设备掉线时反应时间 可能影响手机耗电量" items={heartbeatDelayOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="heartBeatDelay" onChange={rebootSnackbar} />
                     <SettingItemSelect title="日志输出等级" desc="方便调试 可能对性能有微弱影响" icon="library_books" items={logLevelOptions} configs={applicationConfig} setConfig={ipc.setConfig} configKey="logLevel" onChange={onLogLevelChangeTip} />
                     <SettingItemSwitch title="自动检查更新" desc="在连接设备后联网检查软件更新" icon="update" configs={applicationConfig} configKey="autoCheckUpdate" setConfig={ipc.setConfig} />
