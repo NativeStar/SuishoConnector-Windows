@@ -100,3 +100,7 @@ mdui-dialog::part(description) {
 mdui-slider[disabled]:not([disabled="false" i]) {
   pointer-events: none;
 }
+/* 选中文本背景色 */
+::selection {
+  background-color: rgba(var(--mdui-color-surface-container-highest), 1.0);
+}
