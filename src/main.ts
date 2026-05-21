@@ -66,6 +66,7 @@ app.on("ready", async (_event, _info) => {
     global.config = await Util.loadConfig();
     await Util.updateConfig();
     global.logger.setLevel(Reflect.get(LogLevel, config.logLevel));
+    app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     connectPhoneWindow = new BrowserWindow({
         titleBarStyle: "hidden",
         center: true,
@@ -97,7 +98,6 @@ app.on("ready", async (_event, _info) => {
         connectPhoneWindow.setMaximizable(false);
         logger.writeInfo("Connect phone window created");
         app.setName("Suisho Connector");
-        app.setAppUserModelId(app.isPackaged ? "com.suisho.connector" : process.execPath);
     });
     connectPhoneWindow.setContentProtection(global.config.enableContentProtection);
     app.isPackaged ? connectPhoneWindow.loadFile("./dist/renderer/index.html", { hash: "connect-phone" }) : connectPhoneWindow.loadURL("http://localhost:5173/#/connect-phone");
