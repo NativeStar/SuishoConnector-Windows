@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react"
+import ModalLayout from "~/components/ModalLayout"
 
 interface FolderListDialogProps {
     itemList: FileSystemEntry[]
@@ -38,7 +39,7 @@ export function FolderListDialog({ itemList, setItemList, uploadMultipleFiles }:
     const [checkedFiles, setCheckedFiles] = useState<FileSystemEntry[]>([]);
     const [loading, setLoading] = useState(false);
     return (
-        <div className="w-full h-full fixed bg-black/50 left-0 z-10" onClick={() => setItemList(null)}>
+        <ModalLayout onLayoutClick={() => setItemList(null)}>
             <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-highest))] rounded-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <span className="text-[gray] ml-3 text-bold">勾选需要上传的文件</span>
                 <mdui-list className="overflow-y-scroll h-10/12">
@@ -46,7 +47,7 @@ export function FolderListDialog({ itemList, setItemList, uploadMultipleFiles }:
                 </mdui-list>
                 <div className="flex mt-2 justify-end mr-4 gap-1">
                     <mdui-checkbox className="text-[gray] mt-2 ml-3 flex-1" checked={checkedFiles.length > 0 && checkedFiles.length === fileCount.current} indeterminate={checkedFiles.length > 0 && checkedFiles.length < fileCount.current} onChange={() => {
-                        setCheckedFiles(prev=>prev.length === fileCount.current ? [] : sortedList.filter(item => item.isFile))
+                        setCheckedFiles(prev => prev.length === fileCount.current ? [] : sortedList.filter(item => item.isFile))
                     }}>全选文件</mdui-checkbox>
                     <mdui-button variant="text" onClick={() => setItemList(null)}>取消</mdui-button>
                     <mdui-button loading={loading} variant="text" onClick={async () => {
@@ -73,6 +74,6 @@ export function FolderListDialog({ itemList, setItemList, uploadMultipleFiles }:
                     }}>发送</mdui-button>
                 </div>
             </div>
-        </div>
+        </ModalLayout>
     )
 }
