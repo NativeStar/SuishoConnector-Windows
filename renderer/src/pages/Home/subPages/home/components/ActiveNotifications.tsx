@@ -63,7 +63,7 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
         ipc.sendRequestPacket<{ list: ActiveNotification[], code: number }>({ packetType: "main_getCurrentNotificationsList" }).then(value => {
             switch (value.code) {
                 case ActiveNotificationResultCode.NORMAL:
-                    setTipText("");
+                    notificationVisible && setTipText("");
                     activeNotificationDispatch({ type: "set", initNotificationList: value.list });
                     break
                 case ActiveNotificationResultCode.NOT_PERMiSSION:
@@ -148,7 +148,7 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
             updateNotification();
             console.info("Refresh active notification by updated icon pack");
         });
-        if(!notificationVisible){
+        if (!notificationVisible) {
             setTipText("已禁用通知显示");
         }
         return () => {
@@ -161,33 +161,39 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
                 <small className="text-[gray]">通知列表</small>
                 <div className="ml-auto flex items-center text-[gray]">
                     {/* 可见性按钮 */}
-                    <mdui-icon hidden={!enableInteraction} name={notificationVisible ? "visibility" : "visibility_off"} className="cursor-pointer ml-1" onClick={() => {
-                        setTipText(!notificationVisible ? "" : "已禁用通知显示");
-                        setNotificationVisible(!notificationVisible);
-                        localStorage.setItem("notificationVisible", String(!notificationVisible));
-                    }}
-                    />
+                    <mdui-tooltip content={`${notificationVisible ? "隐藏" : "显示"}实时通知`} placement="bottom">
+                        <mdui-icon hidden={!enableInteraction} name={notificationVisible ? "visibility_off" : "visibility"} className="cursor-pointer ml-1" onClick={() => {
+                            setTipText(!notificationVisible ? "" : "已禁用通知显示");
+                            setNotificationVisible(!notificationVisible);
+                            localStorage.setItem("notificationVisible", String(!notificationVisible));
+                        }}
+                        />
+                    </mdui-tooltip>
                     {/* 刷新按钮 */}
-                    <mdui-icon hidden={!enableInteraction} name="refresh" className="cursor-pointer ml-1" onClick={() => {
-                        setEnableInteraction(false);
-                        activeNotificationDispatch({ type: "clear" });
-                        updateNotification();
-                    }}
-                    />
+                    <mdui-tooltip content="刷新通知" placement="bottom">
+                        <mdui-icon hidden={!enableInteraction} name="refresh" className="cursor-pointer ml-1" onClick={() => {
+                            setEnableInteraction(false);
+                            activeNotificationDispatch({ type: "clear" });
+                            updateNotification();
+                        }}
+                        />
+                    </mdui-tooltip>
                     {/* 清空按钮 */}
-                    <mdui-icon hidden={!enableInteraction} name="clear_all" className="cursor-pointer ml-1" onClick={() => {
-                        setEnableInteraction(false);
-                        activeNotificationDispatch({ type: "clear" });
-                        ipc.sendPacket({ packetType: "removeCurrentNotification", key: "all" });
-                        updateNotification();
-                    }}
-                    />
+                    <mdui-tooltip content="清理通知" placement="bottom">
+                        <mdui-icon hidden={!enableInteraction} name="clear_all" className="cursor-pointer ml-1" onClick={() => {
+                            setEnableInteraction(false);
+                            activeNotificationDispatch({ type: "clear" });
+                            ipc.sendPacket({ packetType: "removeCurrentNotification", key: "all" });
+                            updateNotification();
+                        }}
+                        />
+                    </mdui-tooltip>
                 </div>
             </div>
             <mdui-divider />
             <div className="flex-1 overflow-hidden">
                 {tipText !== "" && <div className="text-center text-[gray]">{tipText}</div>}
-                {(tipText !== "" && tipText !== "已禁用通知显示") && <div className="text-center text-[gray]">请在手机上修改相关设置后点击刷新按钮</div>}
+                {(tipText !== "" && notificationVisible) && <div className="text-center text-[gray]">请在手机上修改相关设置后点击刷新按钮</div>}
                 {notificationVisible && <div className="h-full overflow-y-scroll pr-1 activeNotificationsList">
                     {
                         activeNotification.map(value => (

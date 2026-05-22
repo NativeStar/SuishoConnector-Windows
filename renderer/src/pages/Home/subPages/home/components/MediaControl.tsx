@@ -131,13 +131,13 @@ export default function MediaControl({ className }: MediaControlProps) {
                 {/* 元数据 */}
                 <div className="flex flex-col ml-3 mt-5 w-[67%]">
                     <MediaInfoTextTip typeText="标题" text={mediaSessionMetadata.title} hasMediaSession={controllable}>
-                        <b className={twMerge("block w-full truncate text-[gray]",controllable?"hover:text-red-300":"")}>{mediaSessionMetadata.title}</b>
+                        <b className={twMerge("block w-full truncate text-[gray]", controllable ? "hover:text-red-300" : "")}>{mediaSessionMetadata.title}</b>
                     </MediaInfoTextTip>
                     <MediaInfoTextTip typeText="艺术家" text={mediaSessionMetadata.artist} hasMediaSession={controllable}>
-                        <small className={twMerge("block w-full truncate text-[gray]",controllable?"hover:text-red-300":"")}>{mediaSessionMetadata.artist}</small>
+                        <small className={twMerge("block w-full truncate text-[gray]", controllable ? "hover:text-red-300" : "")}>{mediaSessionMetadata.artist}</small>
                     </MediaInfoTextTip>
                     <MediaInfoTextTip typeText="专辑" text={mediaSessionMetadata.album} hasMediaSession={controllable}>
-                        <small className={twMerge("block w-full truncate text-[gray]",controllable?"hover:text-red-300":"")}>{mediaSessionMetadata.album}</small>
+                        <small className={twMerge("block w-full truncate text-[gray]", controllable ? "hover:text-red-300" : "")}>{mediaSessionMetadata.album}</small>
                     </MediaInfoTextTip>
                 </div>
             </div>
@@ -149,9 +149,15 @@ export default function MediaControl({ className }: MediaControlProps) {
             <mdui-slider key={mediaSessionMetadata.duration} onPointerDown={() => userControllingSlider.current = true} onPointerUp={() => userControllingSlider.current = false} onChange={onSliderChange} nolabel value={duration} disabled={!controllable} max={mediaSessionMetadata.duration === 0 ? 1 : mediaSessionMetadata.duration} className="w-11/12 ml-3.5 mt-3" />
             {/* 控制按钮 */}
             <div className="flex justify-between w-11/12 ml-3.5 mt-2.5">
-                <mdui-button-icon disabled={!controllable} icon="skip_previous" onClick={() => ipc.appendMediaSessionControl("previous")}></mdui-button-icon>
-                <mdui-button-icon disabled={!controllable} icon={playing ? "pause" : "play_arrow"} onClick={() => ipc.appendMediaSessionControl("changePlayState")}></mdui-button-icon>
-                <mdui-button-icon disabled={!controllable} icon="skip_next" onClick={() => ipc.appendMediaSessionControl("next")}></mdui-button-icon>
+                <mdui-tooltip content="上一曲">
+                    <mdui-button-icon disabled={!controllable} icon="skip_previous" onClick={() => ipc.appendMediaSessionControl("previous")}></mdui-button-icon>
+                </mdui-tooltip>
+                <mdui-tooltip content={playing ? "暂停" : "播放"}>
+                    <mdui-button-icon disabled={!controllable} icon={playing ? "pause" : "play_arrow"} onClick={() => ipc.appendMediaSessionControl("changePlayState")}></mdui-button-icon>
+                </mdui-tooltip>
+                <mdui-tooltip content="下一曲">
+                    <mdui-button-icon disabled={!controllable} icon="skip_next" onClick={() => ipc.appendMediaSessionControl("next")}></mdui-button-icon>
+                </mdui-tooltip>
             </div>
         </mdui-card>
     )
