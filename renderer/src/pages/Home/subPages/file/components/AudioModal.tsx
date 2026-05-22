@@ -6,6 +6,7 @@ import { parseBuffer } from "music-metadata"
 import { useAsyncEffect } from "use-async-effect"
 import AutoScrollLyric, { type LyricItemType } from "./AutoScrollLyric";
 import { alert } from "mdui";
+import ModalLayout from "~/components/ModalLayout";
 // 旋转动画角度
 const rotateList = [60, 120, 180, 240, 300, 360];
 interface AudioModalProps {
@@ -154,7 +155,7 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
         audioRef.current!.currentTime = newValue;
     }
     return (
-        <div className="w-full h-full fixed bg-black/70 left-0 z-10" onClick={() => setVisible(false)}>
+        <ModalLayout onLayoutClick={() => setVisible(false)}>
             <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-low))] rounded-xl flex" onClick={(e) => e.stopPropagation()}>
                 {/* 左侧 信息显示和控制 */}
                 <div className="h-full flex flex-col flex-1 items-center mt-6">
@@ -196,6 +197,6 @@ export default function AudioModal({ setVisible, src }: AudioModalProps) {
                     <AutoScrollLyric audioRef={audioRef} currentTime={currentTime * 1000 + lyricOffset/* 转换为ms 和歌词数组对应*/} lyric={lyric} enableLyricAutoScroll={enableLyricAutoScroll} setEnableLyricAutoScroll={setEnableLyricAutoScroll} />
                 </div>
             </div>
-        </div>
+        </ModalLayout>
     )
 }

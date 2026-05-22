@@ -4,6 +4,7 @@ import { OpenSourceList } from "../openSourceList";
 import type { UpdateJson } from "~/types/chaos";
 import { useState } from "react";
 import { dialog, snackbar } from "mdui";
+import ModalLayout from "~/components/ModalLayout";
 
 interface AboutDialogProps {
     setVisible: React.Dispatch<React.SetStateAction<boolean>>
@@ -50,7 +51,7 @@ export default function AboutDialog({ setVisible }: AboutDialogProps) {
         }
     }
     return (
-        <div className="w-full h-full fixed bg-black/50 left-0 z-10" onClick={() => setVisible(false)}>
+        <ModalLayout onLayoutClick={() => setVisible(false)}>
             <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-highest))] rounded-xl flex" onClick={(e) => e.stopPropagation()}>
                 {/* 左侧 */}
                 <div className="h-full flex flex-col flex-1 items-center mt-6">
@@ -78,6 +79,6 @@ export default function AboutDialog({ setVisible }: AboutDialogProps) {
                     }
                 </mdui-list>
             </div>
-        </div>
+        </ModalLayout>
     )
 }
