@@ -14,6 +14,7 @@ export interface ApplicationState {
     content: string,
     clickable: boolean,
     onClick?: (dispatch: React.ActionDispatch<StateAction>) => void
+    icon?:string
 }
 const States = {
     busy_waiting_icon_pack: {
@@ -21,12 +22,14 @@ const States = {
         title: "正在下载图标包",
         content: "这会需要一段时间",
         clickable: false,
+        icon:"insert_emoticon"
     },
     info_update_available: {
         level: ApplicationStateLevel.Info,
         title: "发现新版本",
         content: "点击查看更新详情",
         clickable: true,
+        icon:"system_update",
         onClick() {
             snackbar({
                 message: "解析更新数据...",
@@ -62,19 +65,22 @@ const States = {
         level: ApplicationStateLevel.Info,
         title: "此计算机不被信任",
         content: "将只运行基础功能",
-        clickable: false
+        clickable: false,
+        icon:"heart_broken"
     },
     info_device_idle: {
         level: ApplicationStateLevel.Info,
         title: "Doze模式",
         content: "设备已进入低功耗模式 数据同步可能延迟",
-        clickable: false
+        clickable: false,
+        icon:"airline_seat_individual_suite"
     },
     warn_xml_notification_cannot_show: {
         level: ApplicationStateLevel.Warn,
         title: "通知显示异常",
         content: "通知内容可能不全\n请检查桌面或开始菜单是否有该软件快捷方式\n(系统限制)",
         clickable: true,
+        icon:"notification_important",
         onClick() {
             confirm({
                 headline: "创建开始菜单快捷方式?",
@@ -93,6 +99,7 @@ const States = {
         title: "已取消同步异常的文件夹",
         content: "部分目录无法读取\n可能是目录被删除或发生权限变更\n点击关闭该通知",
         clickable: true,
+        icon:"folder_off",
         onClick(dispatch) {
             //只是提醒用状态 移除自身
             dispatch({ type: "remove", id: "warn_watch_directory_missing" })
@@ -103,6 +110,7 @@ const States = {
         title: "Android端版本低",
         content: "部分功能可能无法工作",
         clickable: false,
+        icon:"security_update_warning"
     },
     error_phone_file_server: {
         level: ApplicationStateLevel.Error,

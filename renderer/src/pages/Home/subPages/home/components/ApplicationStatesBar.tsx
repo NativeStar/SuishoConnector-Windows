@@ -5,6 +5,8 @@ import "mdui/components/card";
 import type { StateAction, StatesListObject } from "~/pages/Home/Home";
 import { ApplicationStateLevel, type ApplicationState, type States } from "~/types/applicationState";
 import { twMerge } from "tailwind-merge";
+import ModalLayout from "~/components/ModalLayout";
+import { useState } from "react";
 const LevelIcon = {
     [ApplicationStateLevel.Checked]: "checked",
     [ApplicationStateLevel.Busy]: "hourglass_top",
@@ -46,32 +48,33 @@ function getCurrentStateLevelText(states: StatesListObject): string {
     const currentLevel = getStateLevel(states);
     return LevelText[currentLevel as keyof typeof LevelText];
 }
-function ApplicationStateCard({ stateInstance ,dispatch}: ApplicationStateCardProps) {
+function ApplicationStateCard({ stateInstance, dispatch }: ApplicationStateCardProps) {
     return (
-        <mdui-card className="flex items-center min-h-16.5 min-w-65 mt-2" clickable={stateInstance.clickable}
-            onClick={()=>stateInstance.onClick?.(dispatch)}>
-            <mdui-icon name={LevelIcon[stateInstance.level]} className="ml-3" />
-            <div className="flex flex-col ml-2">
-                <b>{stateInstance.title}</b>
-                <small>{stateInstance.content}</small>
-            </div>
-        </mdui-card>
+        <mdui-list-item className={stateInstance.clickable ? "" : "pointer-events-none"} end-icon={stateInstance.clickable ? "arrow_right" : ""} icon={stateInstance.icon??LevelIcon[stateInstance.level]} headline={stateInstance.title} description={stateInstance.content} onClick={() => stateInstance.onClick?.(dispatch)}>
+        </mdui-list-item>
     )
 }
-export default function ApplicationStatesBar({ states ,className ,dispatch}: ApplicationStateBarProps) {
+export default function ApplicationStatesBar({ states, className, dispatch }: ApplicationStateBarProps) {
+    const [stateModalShow, setStateModalShow] = useState(false);
     return (
-        <mdui-dropdown placement="left-start">
-            <mdui-chip slot="trigger" elevated icon={getCurrentStateLevelIcon(states)} end-icon="more_vert" className={twMerge("fixed",className)}>{getCurrentStateLevelText(states)}</mdui-chip>
-            <mdui-menu>
-                {
-                    Reflect.ownKeys(states).map((stateId) => {
-                        const state = states[stateId as States]!;
-                        return (
-                            <ApplicationStateCard key={stateId as string} stateInstance={state} dispatch={dispatch}/>
-                        )
-                    })
-                }
-            </mdui-menu>
-        </mdui-dropdown>
+        <>
+            {stateModalShow && <ModalLayout onLayoutClick={() => setStateModalShow(false)}>
+                <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-low))] rounded-xl flex-col" onClick={(e) => e.stopPropagation()}>
+                    <mdui-list-subheader className="ml-5 h-10 font-bold">应用状态</mdui-list-subheader>
+                    {
+                        Reflect.ownKeys(states).length === 0 && <span className="text-[gray] absolute left-68 top-45">暂无状态 一切顺利</span>
+                    }
+                    {
+                        Reflect.ownKeys(states).map(key => {
+                            const state = states[key as States]!;
+                            return (
+                                <ApplicationStateCard stateInstance={state} dispatch={dispatch} key={key as string} />
+                            )
+                        })
+                    }
+                </div>
+            </ModalLayout>}
+            <mdui-chip onClick={() => setStateModalShow(true)} elevated icon={getCurrentStateLevelIcon(states)} end-icon="more_vert" className={twMerge("fixed", className)}>{getCurrentStateLevelText(states)}</mdui-chip>
+        </>
     )
 }
