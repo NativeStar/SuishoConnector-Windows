@@ -461,6 +461,7 @@ class NotificationCore {
                     color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
                     symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
                 },
+                opacity: config.windowOpacity?config.windowOpacity/100:1,
                 webPreferences: {
                     webSecurity: app.isPackaged,
                     spellcheck: false,

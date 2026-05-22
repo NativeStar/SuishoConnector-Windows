@@ -11,6 +11,7 @@ export default {
     windowAlwaysOnTop:false,
     enableFileContextMenu:true,
     additionalUnicast:false,
+    windowOpacity:100,
     "internal:lastConnectionAddress":"",
     "internal:lastConnectionName":"",
     //绑定设备地址

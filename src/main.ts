@@ -203,6 +203,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                     color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
                     symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
                 },
+                opacity: config.windowOpacity?config.windowOpacity/100:1,
                 // width: 850,
                 // height: 650,
                 show: false,
@@ -866,6 +867,13 @@ function onApplicationConfigChange(prop: string, value: string | boolean | numbe
             }
             Util.saveConfig();
             break
+        case "windowOpacity":
+            const fixedOpacity=value as number/100
+            for (const browserWindow of BrowserWindow.getAllWindows()) {
+                browserWindow.setOpacity(fixedOpacity);
+            }
+            logger.writeInfo(`Set window opacity to ${fixedOpacity}`);
+            break;
         default:
             break;
     }
