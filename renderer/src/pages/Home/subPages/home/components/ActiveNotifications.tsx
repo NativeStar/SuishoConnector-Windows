@@ -51,7 +51,7 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
                 <div ref={contentRef} className={twMerge("block ml-0.5 text-sm max-w-[99.6%] truncate")}>{notification.content}</div>
                 {notification.progress > 0 && <mdui-linear-progress max={100} value={notification.progress} className="mt-2 w-11/12" />}
             </div>
-            {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} className={notification.isOngoing?"absolute right-0":"absolute right-5"} onClick={() => {
+            {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} className={notification.isOngoing ? "absolute right-0" : "absolute right-5"} onClick={() => {
                 setSpread(!spread)
             }} />}
             {!notification.isOngoing && <mdui-icon name="close" className="absolute right-0" onClick={() => onClose(notification.key)} />}
@@ -82,6 +82,10 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
     }
     const ipc = useMainWindowIpc();
     const [dataPath, setDataPath] = useState<string>("");
+    const [notificationVisible, setNotificationVisible] = useState<boolean>((() => {
+        const localSetting = localStorage.getItem("notificationVisible");
+        return localSetting === null ? true : localSetting === "true"
+    })());
     const [activeNotification, activeNotificationDispatch] = useReducer<ActiveNotification[], ActiveNotificationReducerAction>((state, action) => {
         switch (action.type) {
             case "add":
@@ -144,6 +148,9 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
             updateNotification();
             console.info("Refresh active notification by updated icon pack");
         });
+        if(!notificationVisible){
+            setTipText("已禁用通知显示");
+        }
         return () => {
             updateNotificationCleanup();
         }
@@ -153,6 +160,13 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
             <div className="flex items-center px-2 py-1">
                 <small className="text-[gray]">通知列表</small>
                 <div className="ml-auto flex items-center text-[gray]">
+                    {/* 可见性按钮 */}
+                    <mdui-icon hidden={!enableInteraction} name={notificationVisible ? "visibility" : "visibility_off"} className="cursor-pointer ml-1" onClick={() => {
+                        setTipText(!notificationVisible ? "" : "已禁用通知显示");
+                        setNotificationVisible(!notificationVisible);
+                        localStorage.setItem("notificationVisible", String(!notificationVisible));
+                    }}
+                    />
                     {/* 刷新按钮 */}
                     <mdui-icon hidden={!enableInteraction} name="refresh" className="cursor-pointer ml-1" onClick={() => {
                         setEnableInteraction(false);
@@ -173,8 +187,8 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
             <mdui-divider />
             <div className="flex-1 overflow-hidden">
                 {tipText !== "" && <div className="text-center text-[gray]">{tipText}</div>}
-                {tipText !== "" && <div className="text-center text-[gray]">请在手机上修改相关设置后点击刷新按钮</div>}
-                <div className="h-full overflow-y-scroll pr-1 activeNotificationsList">
+                {(tipText !== "" && tipText !== "已禁用通知显示") && <div className="text-center text-[gray]">请在手机上修改相关设置后点击刷新按钮</div>}
+                {notificationVisible && <div className="h-full overflow-y-scroll pr-1 activeNotificationsList">
                     {
                         activeNotification.map(value => (
                             <ActiveNotificationCard key={value.key} dataPath={dataPath} notification={value} onClose={key => {
@@ -183,7 +197,7 @@ export default function ActiveNotifications({ className }: ActiveNotificationLis
                             }} />
                         ))
                     }
-                </div>
+                </div>}
             </div>
         </mdui-card>
     )
