@@ -42,13 +42,13 @@ function ActiveNotificationCard({ notification, dataPath, onClose }: ActiveNotif
     }, [spread])
     return (
         <mdui-card className="flex mt-1 mb-0.5 ml-1.5 pb-0.5 min-w-[98%] max-w-[98%]">
-            <img className="w-5 h-5 mt-0.5 ml-0.5" src={`${dataPath}assets/iconCache/${notification.packageName}`} onError={(e) => {
+            <img className="w-5 h-5 mt-0.5 ml-1.5" src={`${dataPath}assets/iconCache/${notification.packageName}`} onError={(e) => {
                 (e.target as HTMLImageElement).src = "/app_icon_unknown.png"
             }} />
             <div className="relative flex flex-col flex-1 select-none overflow-hidden">
-                <small className="block ml-0.5 mt-0.5 max-w-[99.6%] text-xs">{notification.appName}</small>
-                <b className="block ml-0.5 truncate max-w-[99.6%]">{notification.title}</b>
-                <div ref={contentRef} className={twMerge("block ml-0.5 text-sm max-w-[99.6%] truncate")}>{notification.content}</div>
+                <small className="block ml-1.5 mt-0.5 max-w-[99.6%] text-xs">{notification.appName}</small>
+                <b className="block ml-1.5 truncate max-w-[99.6%]">{notification.title}</b>
+                <div ref={contentRef} className={twMerge("block ml-1.5 text-sm max-w-[99.6%] truncate")}>{notification.content}</div>
                 {notification.progress > 0 && <mdui-linear-progress max={100} value={notification.progress} className="mt-2 w-11/12" />}
             </div>
             {defaultIsOverflow && <mdui-icon name={spread ? "keyboard_arrow_up" : "keyboard_arrow_down"} className={notification.isOngoing ? "absolute right-0" : "absolute right-5"} onClick={() => {
