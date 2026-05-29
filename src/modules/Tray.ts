@@ -7,7 +7,7 @@ export async function init(mainWindow: BrowserWindowType, connectedDevice: Phone
     const { nativeImage, app, Tray, shell, Menu, BrowserWindow } = await import("electron");
     const fs = (await import("fs-extra")).default
     const path = await import("path");
-    const Util = (await import("../modules/Util")).default;
+    const Util = (await import("../modules/Util.js")).default.default;
     //创建托盘图标
     const trayImage: Electron.NativeImage = nativeImage.createFromPath(path.join(app.getAppPath(), "res", "icon.ico"));
     trayInstance = new Tray(trayImage);

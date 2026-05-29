@@ -4,8 +4,6 @@ contextBridge.exposeInMainWorld("electronMainProcess",{
     devtools:()=>ipcRenderer.invoke("openConsole"),
     //重启软件
     rebootApplication:(clearConnectionCache=false)=>{ipcRenderer.send("reboot_application",clearConnectionCache)},
-    //退出
-    closeApplication:()=>{ipcRenderer.send("close_application")},
     //初始化
     initServer:()=>{return ipcRenderer.invoke("connectPhone_initServer")},
     //连接成功回调

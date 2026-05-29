@@ -1,88 +1,86 @@
-const {contextBridge,ipcRenderer,webUtils}=require("electron");
-contextBridge.exposeInMainWorld("electronMainProcess",{
-    isDeveloping:()=>{return ipcRenderer.invoke("isDeveloping")},
-    devtools:()=>{ipcRenderer.invoke("openConsole")},
-    rebootApplication:()=>{ipcRenderer.send("reboot_application")},
-    closeApplication:()=>{ipcRenderer.send("close_application")},
-    setEventHandle:handle=>{ipcRenderer.on("webviewEvent",handle)},
-    removeEventHandle:handle=>{ipcRenderer.removeListener("webviewEvent",handle)},
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
+contextBridge.exposeInMainWorld("electronMainProcess", {
+    isDeveloping: () => { return ipcRenderer.invoke("isDeveloping") },
+    devtools: () => { ipcRenderer.invoke("openConsole") },
+    closeApplication: () => { ipcRenderer.send("close_application") },
+    rebootApplication: () => { ipcRenderer.send("reboot_application") },
+    setEventHandle: handle => { ipcRenderer.on("webviewEvent", handle) },
+    removeEventHandle: handle => { ipcRenderer.removeListener("webviewEvent", handle) },
     //基础信息
-    getDeviceBaseInfo:()=>{return ipcRenderer.invoke("main_getDeviceBaseInfo")},
+    getDeviceBaseInfo: () => { return ipcRenderer.invoke("main_getDeviceBaseInfo") },
     //详细信息
-    getDeviceDetailInfo:()=>{return ipcRenderer.invoke("main_getDeviceDetailInfo")},
-    //返回数据
-    getUserPath:()=>{return ipcRenderer.invoke("main_getUserPath")},
+    getDeviceDetailInfo: () => { return ipcRenderer.invoke("main_getDeviceDetailInfo") },
     // 文件上传进度
-    registerFileUploadProgressListener:handle=>{ipcRenderer.on("fileUploadProgressUpdate",handle)},
-    unregisterFileUploadProgressListener:handle=>{ipcRenderer.removeListener("fileUploadProgressUpdate",handle)},
+    registerFileUploadProgressListener: handle => { ipcRenderer.on("fileUploadProgressUpdate", handle) },
+    unregisterFileUploadProgressListener: handle => { ipcRenderer.removeListener("fileUploadProgressUpdate", handle) },
     //打开文件
-    openFile:(file)=>{return ipcRenderer.invoke("main_shellOpenFile",file)},
+    openFile: (file) => { return ipcRenderer.invoke("main_shellOpenFile", file) },
     //拖出文件
-    getTransmitFilePath:(file)=>{return ipcRenderer.invoke("transmit_getTransmitFilePath",file)},
+    getTransmitFilePath: (file) => { return ipcRenderer.invoke("transmit_getTransmitFilePath", file) },
     //在资源管理器中打开
-    openInExplorer:(type,path)=>{return ipcRenderer.invoke("main_openInExplorer",type,path)},
+    openInExplorer: (type, path) => { return ipcRenderer.invoke("main_openInExplorer", type, path) },
     //发送数据包 不带响应
-    sendPacket:data=>ipcRenderer.invoke("main_sendPacket",data),
+    sendPacket: data => ipcRenderer.invoke("main_sendPacket", data),
     //发送请求包
-    sendRequestPacket:(data)=>{return ipcRenderer.invoke("main_sendRequestPacket",data)},
+    sendRequestPacket: (data) => { return ipcRenderer.invoke("main_sendRequestPacket", data) },
     //互传 上传文件
-    transmitUploadFile:(name,path,size,form=1)=>ipcRenderer.invoke("transmit_uploadFile",name,path,size,form),
+    transmitUploadFile: (name, path, size, form = 1) => ipcRenderer.invoke("transmit_uploadFile", name, path, size, form),
     //打开通知转发配置页
-    openNotificationForwardConfigWindow:(pkgName,appName)=>{ipcRenderer.invoke("notification_openConfigWindow",pkgName,appName)},
+    openNotificationForwardConfigWindow: (pkgName, appName) => { ipcRenderer.invoke("notification_openConfigWindow", pkgName, appName) },
     //关闭通知转发配置页
-    closeNotificationForwardConfigWindow:()=>{ipcRenderer.invoke("notification_closeConfigWindow")},
+    closeNotificationForwardConfigWindow: () => { ipcRenderer.invoke("notification_closeConfigWindow") },
     //获取设备数据路径
-    getDeviceDataPath:()=>{return ipcRenderer.invoke("main_getDeviceDataPath")},
+    getDeviceDataPath: () => { return ipcRenderer.invoke("main_getDeviceDataPath") },
     //获取配置信息
-    getConfig:(prop,defaultValue)=>{return ipcRenderer.invoke("main_getConfig",prop,defaultValue)},
+    getConfig: (prop, defaultValue) => { return ipcRenderer.invoke("main_getConfig", prop, defaultValue) },
     //获取所有配置
-    getAllConfig:()=>{return ipcRenderer.invoke("main_getAllConfig")},
+    getAllConfig: () => { return ipcRenderer.invoke("main_getAllConfig") },
     //写入配置
-    setConfig:(prop,value)=>{return ipcRenderer.invoke("main_setConfig",prop,value)},
+    setConfig: (prop, value) => { return ipcRenderer.invoke("main_setConfig", prop, value) },
     //获取设备设置
-    getDeviceConfig:(prop,defaultValue)=>{return ipcRenderer.invoke("main_getDeviceConfig",prop,defaultValue)},
+    getDeviceConfig: (prop, defaultValue) => { return ipcRenderer.invoke("main_getDeviceConfig", prop, defaultValue) },
     //获取设备所有配置
-    getDeviceAllConfig:()=>{return ipcRenderer.invoke("main_getDeviceAllConfig")},
+    getDeviceAllConfig: () => { return ipcRenderer.invoke("main_getDeviceAllConfig") },
     //写入设备配置
-    setDeviceConfig:(prop,value)=>{return ipcRenderer.invoke("main_setDeviceConfig",prop,value)},
+    setDeviceConfig: (prop, value) => { return ipcRenderer.invoke("main_setDeviceConfig", prop, value) },
     //获取应用通知配置
-    getNotificationProfile:(pkg)=>{return ipcRenderer.invoke("notificationForward_getProfile",pkg)},
+    getNotificationProfile: (pkg) => { return ipcRenderer.invoke("notificationForward_getProfile", pkg) },
     //创建凭证
-    createCredentials:()=>{return ipcRenderer.invoke("main_createCredentials")},
+    createCredentials: () => { return ipcRenderer.invoke("main_createCredentials") },
     //验证凭证
-    startAuthorization:()=>{return ipcRenderer.invoke("main_startAuthorization")},
+    startAuthorization: () => { return ipcRenderer.invoke("main_startAuthorization") },
     //创建开始菜单快捷方式
-    createStartMenuShortcut:()=>{return ipcRenderer.invoke("main_createStartMenuShortcut")},
+    createStartMenuShortcut: () => { return ipcRenderer.invoke("main_createStartMenuShortcut") },
     //native右键菜单
-    createRightClickMenu:(itemList)=>{return ipcRenderer.invoke("main_createRightClickMenu",itemList)},
+    createRightClickMenu: (itemList) => { return ipcRenderer.invoke("main_createRightClickMenu", itemList) },
     //使用浏览器打开url
-    openUrl:(url)=>{ipcRenderer.send("main_openUrl",url)},
+    openUrl: (url) => { ipcRenderer.send("main_openUrl", url) },
     //获取文件路径
-    getFilePath:(file)=>{return webUtils.getPathForFile(file)},
+    getFilePath: (file) => { return webUtils.getPathForFile(file) },
     //获取手机ip
-    getPhoneIp:()=>{return ipcRenderer.invoke("main_getPhoneIp")},
+    getPhoneIp: () => { return ipcRenderer.invoke("main_getPhoneIp") },
     //下载手机文件
-    downloadPhoneFile:(downloadPath)=>{return ipcRenderer.send("main_downloadPhoneFile",downloadPath)},
+    downloadPhoneFile: (downloadPath) => { return ipcRenderer.send("main_downloadPhoneFile", downloadPath) },
     //控制音频转发开关
-    setAudioForwardEnable:(enabled)=>{return ipcRenderer.invoke("main_setAudioForward",enabled)},
+    setAudioForwardEnable: (enabled) => { return ipcRenderer.invoke("main_setAudioForward", enabled) },
     //清除日志
-    deleteCache:()=>{return ipcRenderer.invoke("main_deleteCache")},
+    deleteCache: () => { return ipcRenderer.invoke("main_deleteCache") },
     //发送媒体会话控制
-    appendMediaSessionControl:(action,time)=>{return ipcRenderer.invoke("mediaSession_appendAction",action,time)},
+    appendMediaSessionControl: (action, time) => { return ipcRenderer.invoke("mediaSession_appendAction", action, time) },
     //追加渲染进程日志
-    appendLog:(logs)=>ipcRenderer.send("appendRendererLog",logs),
+    appendLog: (logs) => ipcRenderer.send("appendRendererLog", logs),
     //请求打包日志
-    requestArchiveLog:()=>ipcRenderer.invoke("main_archiveLogs"),
+    requestArchiveLog: () => ipcRenderer.invoke("main_archiveLogs"),
     //创建缓存文件
-    createCacheFile:(name,data)=>{return ipcRenderer.invoke("main_createCacheFile",name,data)},
+    createCacheFile: (name, data) => { return ipcRenderer.invoke("main_createCacheFile", name, data) },
     //添加路径监听
-    addWatchPath:(path)=>{return ipcRenderer.invoke("fileWatcher_addPath",path)},
+    addWatchPath: (path) => { return ipcRenderer.invoke("fileWatcher_addPath", path) },
     //移除路径监听
-    removeWatchPath:(path)=>{return ipcRenderer.invoke("fileWatcher_removePath",path)},
+    removeWatchPath: (path) => { return ipcRenderer.invoke("fileWatcher_removePath", path) },
     //打开文件夹选择器
-    showDirectoryPicker:()=>ipcRenderer.invoke("main_showDirectoryPicker"),
+    showDirectoryPicker: () => ipcRenderer.invoke("main_showDirectoryPicker"),
     //开始互传拖动文件
-    startTransmitDragFile:(fileName)=>{return ipcRenderer.invoke("transmit_startTransmitDragFile",fileName)},
+    startTransmitDragFile: (fileName) => { return ipcRenderer.invoke("transmit_startTransmitDragFile", fileName) },
     //删除指定互传文件
-    deleteTransmitFile:(fileName)=>{return ipcRenderer.invoke("transmit_deleteTransmitFile",fileName)}
+    deleteTransmitFile: (fileName) => { return ipcRenderer.invoke("transmit_deleteTransmitFile", fileName) }
 })
