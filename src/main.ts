@@ -38,14 +38,8 @@ let phoneFileDownloadWindow: BrowserWindow | null = null;
 如果不这么搞触发will-download回调内读取的文件名永远是第一次触发的文件名
 */
 let phoneFileDownloadPathTemp: string = "";
-let trayInstance: TrayType | null = null;
 let localCertFingerprint256: string | null = null;
 const cacheFilesList = new Set<string>();
-declare global {
-    var logger: Logger
-    var config: TypeConfig
-    var deviceConfig: DeviceConfig
-}
 enableCompileCache(`${path.resolve(`${app.getPath("userData")}/programData/oat/`)}`);
 //阻止多实例
 if (!app.requestSingleInstanceLock()) {
@@ -180,11 +174,11 @@ app.on("ready", async (_event, _info) => {
 });
 //ipc
 ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
-    let trayInitd = false;
     let networkDriverName = "";
     await Util.ensureCert();
     const { default: PhoneServer } = (await import("./modules/Server.js")).default;
     const { default: ManualConnect } = ((await import("./modules/ManualConnect.js"))).default;
+    const { init: trayInit } = (await import("./modules/Tray.js"))
     connectedDevice = new PhoneServer(connectPhoneWindow, {
         openMainWindow: () => {
             logger.writeDebug("Invoke open main window");
@@ -203,7 +197,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                     color: nativeTheme.shouldUseDarkColors ? "#1d1b1e" : "#fdf7fe",
                     symbolColor: nativeTheme.shouldUseDarkColors ? "#fdf7fe" : "#1d1b1e"
                 },
-                opacity: config.windowOpacity?config.windowOpacity/100:1,
+                opacity: config.windowOpacity ? config.windowOpacity / 100 : 1,
                 // width: 850,
                 // height: 650,
                 show: false,
@@ -231,10 +225,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
                 })
                 //尝试修复窗口不显示
                 mainWindow?.show();
-                if (!trayInitd) {
-                    initTray();
-                    trayInitd = true;
-                }
+                trayInit(mainWindow!,connectedDevice);
                 setTimeout(() => {
                     connectedDevice.socket?.send(JSON.stringify({ packetType: "main_server_initialled" }));
                 }, 150);
@@ -310,10 +301,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
             }
             logger.writeDebug("Saved last connection data");
             Util.saveConfig();
-        },
-        getTrayInstance() {
-            return trayInstance;
-        },
+        }
     });
     //SSL证书下载服务器
     if (certDownloadServer === null) {
@@ -345,92 +333,7 @@ ipcMain.handleOnce("connectPhone_initServer", async (_event) => {
         pairCode: manualConnectRedirectServer.pairCode
     }
 });
-async function initTray() {
-    //创建托盘图标
-    const trayImage: Electron.NativeImage = nativeImage.createFromPath(path.join(app.getAppPath(), "res", "icon.ico"));
-    const Tray = (await import("electron")).Tray;
-    trayInstance = new Tray(trayImage);
-    trayInstance.setTitle("Suisho Connector");
-    trayInstance.setToolTip("Suisho Connector");
-    trayInstance.addListener("double-click", () => {
-        if (mainWindow !== null && !mainWindow.isDestroyed()) {
-            logger.writeDebug("Show main window by tray double click");
-            mainWindow.show();
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
-            }
-            mainWindow.focus();
-        }
-    })
-    const trayMenu: Electron.MenuItemConstructorOptions[] = [
-        {
-            label: "打开互传文件夹", click: () => {
-                const dir = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`;
-                //防止首次连接还没有目录时打开报错
-                if (!fs.existsSync(dir)) {
-                    fs.ensureDirSync(dir);
-                }
-                shell.openPath(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`.replaceAll("/", "\\"));
-                logger.writeInfo(`Open folder in exploder(tray):${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/transmit_files/`)
-            }
-        },
-        {
-            type: "separator"
-        },
-        {
-            label: "重启应用",
-            click: () => {
-                if (connectedDevice.isClosed) {
-                    mainWindow?.destroy();
-                    app.relaunch()
-                    app.quit();
-                    return
-                }
-                mainWindow?.webContents.send("webviewEvent", "rebootConfirm");
-                if (mainWindow?.isMinimized()) {
-                    logger.writeDebug("Restore main window from reboot confirm")
-                    mainWindow.restore()
-                } else {
-                    logger.writeDebug("Show main window from reboot confirm")
-                    mainWindow?.show();
-                }
-            }
-        },
-        {
-            label: "退出",
-            click: () => {
-                if (connectedDevice.isClosed) {
-                    mainWindow?.destroy()
-                    app.quit();
-                    return
-                }
-                mainWindow?.webContents.send("webviewEvent", "closeConfirm");
-                if (mainWindow?.isMinimized()) {
-                    logger.writeDebug("Restore main window from close confirm")
-                    mainWindow.restore()
-                } else {
-                    logger.writeDebug("Show main window from close confirm")
-                    mainWindow?.show();
-                }
-            }
-        }
-    ];
-    if (Util.isDeveloping) {
-        trayMenu.push({
-            label: "调试功能",
-            submenu: [
-                {
-                    label: "打开调试工具",
-                    click: () => {
-                        const allWindows: BrowserWindow[] = BrowserWindow.getAllWindows();
-                        allWindows[0].webContents.openDevTools();
-                    }
-                }
-            ]
-        },)
-    }
-    trayInstance.setContextMenu(Menu.buildFromTemplate(trayMenu));
-}
+
 //是否开发模式
 ipcMain.handle("isDeveloping", _event => {
     return Util.isDeveloping;
@@ -868,7 +771,7 @@ function onApplicationConfigChange(prop: string, value: string | boolean | numbe
             Util.saveConfig();
             break
         case "windowOpacity":
-            const fixedOpacity=value as number/100
+            const fixedOpacity = value as number / 100
             for (const browserWindow of BrowserWindow.getAllWindows()) {
                 browserWindow.setOpacity(fixedOpacity);
             }

@@ -15,19 +15,6 @@ import type NotificationProfileType from "../interface/INotificationProfile";
 import type { NotificationDetailShowMode } from "../interface/INotificationProfile";
 import type Server from "./Server";
 import { type ApplicationListData } from "shared/index";
-declare global {
-    var clientMetadata: {
-        androidId: string | "failed",
-        androidSdkVersion: number,
-        model: "UnknownModel" | string,
-        oem: "UnknownOEM" | string,
-        protocolVersion: number,
-        toString: Function,
-        sessionId: string,
-        //旧版本不会上报
-        clientVersionCode?: number
-    }
-}
 class NotificationCore {
     private window: BrowserWindowType | null;
     private configPath: string;

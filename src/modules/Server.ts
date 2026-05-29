@@ -15,12 +15,12 @@ import ConnectionCloseReasonString from "../constant/CloseCodeReasonString";
 import path from "path";
 import DeviceConfig from "./DeviceConfig";
 import { type ApplicationListData } from "shared/index";
+import {getTrayInstance} from "./Tray"
 declare global {
     var serverAddress: string | null
 }
 interface MainHandle {
     openMainWindow: () => void;
-    getTrayInstance: () => Tray | null;
 }
 class Server {
     private LOG_TAG: string = "Server";
@@ -474,7 +474,7 @@ class Server {
                 break
             case "updateDeviceState":
                 //更新tray
-                const tray = this.mainHandle.getTrayInstance();
+                const tray = getTrayInstance();
                 if (tray) {
                     jsonObj.charging ? tray.setToolTip(`Suisho Connector-${jsonObj.batteryLevel}%`) : tray.setToolTip(`Suisho Connector`);
                 }
