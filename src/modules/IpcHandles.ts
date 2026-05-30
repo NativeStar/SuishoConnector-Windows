@@ -35,7 +35,7 @@ export function registerStartupIpcHandles() {
         shell.openExternal(url);
     });
     //重启程序
-    ipcMain.on("reboot_application", async (_event, clearConnectionCache = false): Promise<void> => {
+    ipcMain.once("reboot_application", async (_event, clearConnectionCache = false): Promise<void> => {
         logger.writeInfo("Reboot application");
         if (clearConnectionCache) {
             //清除缓存连接数据
@@ -64,7 +64,7 @@ export async function registerConnectedIpcHandles(connectedDevice: PhoneServer, 
     const cacheFilesList = new Set<string>();
 
     //退出应用
-    ipcMain.on("close_application", (_event): void => {
+    ipcMain.once("close_application", (_event): void => {
         logger.writeInfo("Close application")
         for (const win of BrowserWindow.getAllWindows()) {
             win.destroy();
