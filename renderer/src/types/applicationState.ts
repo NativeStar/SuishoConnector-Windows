@@ -70,8 +70,8 @@ const States = {
     },
     info_device_idle: {
         level: ApplicationStateLevel.Info,
-        title: "Doze模式",
-        content: "设备已进入低功耗模式 数据同步可能延迟",
+        title: "设备休眠(Android Doze模式)",
+        content: "手机已进入低功耗模式 数据同步可能延迟",
         clickable: false,
         icon:"airline_seat_individual_suite"
     },

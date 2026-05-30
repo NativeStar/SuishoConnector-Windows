@@ -83,7 +83,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSwitch title="截录屏保护" desc="阻止截图录屏获取软件内容保护隐私 适用于直播或屏幕共享等" icon="shield" configs={applicationConfig} configKey="enableContentProtection" setConfig={ipc.setConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">辅助功能</mdui-list-subheader>
                     <SettingItemSwitch title="电池满电提醒" desc="手机电量充满时发出通知" icon="battery_4_bar" configs={deviceConfig} configKey="enableBatteryFullNotification" setConfig={wrappedSetDeviceConfig} />
-                    <SettingItemSwitch title="Doze模式提醒" desc="手机Doze模式状态变化时发出通知" icon="tsunami" configs={deviceConfig} configKey="enableDozeModeChangeNotification" setConfig={wrappedSetDeviceConfig} />
+                    <SettingItemSwitch title="低功耗模式提醒" desc="手机进入或退出低功耗模式时发出通知" icon="tsunami" configs={deviceConfig} configKey="enableDozeModeChangeNotification" setConfig={wrappedSetDeviceConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">实验性</mdui-list-subheader>
                     <SettingItemSwitch title="开启文件同步" desc="启用文件同步功能 需前往对应页面配置" icon="sync" configs={deviceConfig} configKey="enableFileSync" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="自动连接附加单播" desc="缓解部分OEM系统对UDP广播的接收限制 尝试修复自动连接失效" icon="broadcast_on_personal" configs={applicationConfig} configKey="additionalUnicast" setConfig={ipc.setConfig} />

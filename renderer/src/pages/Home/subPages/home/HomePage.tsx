@@ -40,7 +40,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 ipc.getDeviceConfig<boolean>("enableDozeModeChangeNotification").then(enabled => {
                     if (enabled) {
                         new Notification("Doze状态变更", {
-                            body: `设备已${value.inDoze ? "进入" : "退出"}Doze模式`
+                            body: `设备已${value.inDoze ? "进入" : "退出"}低功耗模式`
                         });
                     }
                 })
