@@ -270,7 +270,7 @@ class Server {
                 /*虽然正常这点东西不会拖那么久的*/
                 const connectTime = Date.now();
                 //设备配置管理器
-                global.deviceConfig = new DeviceConfig(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/device.json`);
+                global.deviceConfig = new DeviceConfig(`${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/config/device.json`,jsonObj.modelName);
                 if ((connectTime - this.handshakeTime) < 350) {
                     logger.writeDebug("Device handshake success in 500ms");
                     setTimeout(() => {

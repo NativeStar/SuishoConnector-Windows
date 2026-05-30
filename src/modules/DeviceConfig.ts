@@ -6,7 +6,7 @@ class DeviceConfig {
     private config: IDeviceConfig;
     private configPath: string;
     private readonly LOG_TAG = "DeviceConfig";
-    constructor(configPath: string) {
+    constructor(configPath: string,deviceName: string) {
         this.configPath = configPath;
         if (fs.existsSync(configPath)) {
             try {
@@ -14,6 +14,10 @@ class DeviceConfig {
                 this.config = fs.readJsonSync(configPath);
                 //更新
                 let hasUpdate = false;
+                if (this.config.deviceName!==deviceName) {
+                    this.config.deviceName = deviceName;
+                    hasUpdate = true;
+                }
                 for (const key of Object.keys(deviceConfigTemplate)) {
                     if (!Reflect.has(this.config, key)) {
                         (this.config as any)[key] = deviceConfigTemplate[key as keyof IDeviceConfig];

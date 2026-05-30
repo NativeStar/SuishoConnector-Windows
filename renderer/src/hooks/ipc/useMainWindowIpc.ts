@@ -109,6 +109,8 @@ function useMainWindowIpc() {
         showDirectoryPicker:window.electronMainProcess.showDirectoryPicker,
         startTransmitDragFile:window.electronMainProcess.startTransmitDragFile,
         deleteTransmitFile:window.electronMainProcess.deleteTransmitFile,
+        getConnectedDevicesHistory:window.electronMainProcess.getConnectedDevicesHistory,
+        deleteConnectedHistoryDeviceData:window.electronMainProcess.deleteConnectedHistoryDeviceData
     }
 }
 export default useMainWindowIpc;

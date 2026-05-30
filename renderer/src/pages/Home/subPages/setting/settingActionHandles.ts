@@ -258,3 +258,26 @@ export function onRequestArchiveLogsItemClick(ipc: ReturnType<typeof useMainWind
         });
     })
 }
+export async function onDeviceDataManagerItemClick(
+    deviceConfig: { [key: string]: string | number | boolean },
+    ipc: ReturnType<typeof useMainWindowIpc>,
+    androidId: string,
+    setShowDeviceDataManagerDialog: React.Dispatch<React.SetStateAction<boolean>>,
+) {
+    const protectMethod = deviceConfig.protectMethod as ProtectMethod;
+    if (protectMethod !== "none") {
+        snackbar({
+            message: "此操作需要验证您是机主",
+            autoCloseDelay: 3500
+        });
+        const authResult = await autoAuthorization(protectMethod, ipc.startAuthorization, androidId);
+        if (!authResult) {
+            snackbar({
+                message: "验证失败",
+                autoCloseDelay: 1000
+            });
+            return
+        }
+    }
+    setShowDeviceDataManagerDialog(true)
+}

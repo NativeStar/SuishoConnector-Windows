@@ -385,5 +385,36 @@ export async function registerConnectedIpcHandles(connectedDevice: PhoneServer, 
             buttonLabel: "确定"
         });
         return result.canceled ? null : result.filePaths[0];
+    });
+    ipcMain.handle("main_getConnectedDeviceHistory", async () => {
+        logger.writeInfo("Generating connected device history list")
+        const deviceFolderList = await fs.readdir(`${app.getPath("userData")}/programData/devices_data/`);
+        const tempDeviceList = [];
+        for (const item of deviceFolderList) {
+            try {
+                if ((await fs.stat(`${app.getPath("userData")}/programData/devices_data/${item}`)).isDirectory()) {
+                    const deviceInfo = await fs.readJson(`${app.getPath("userData")}/programData/devices_data/${item}/config/device.json`);
+                    tempDeviceList.push({
+                        id: item,
+                        name: deviceInfo.deviceName
+                    });
+                    logger.writeDebug(`Read device info:${item}:${deviceInfo.deviceName}`);
+                }
+            } catch (error) {
+                logger.writeError(`Read device info failed:${error}`);
+                continue
+            }
+        };
+        return tempDeviceList;
+    });
+    ipcMain.handle("main_deleteConnectedHistoryDeviceData", async (_event, deviceId: string) => {
+        try {
+            logger.writeInfo(`Deleting device data:${deviceId}`);
+            await fs.rm(`${app.getPath("userData")}/programData/devices_data/${deviceId}`, { recursive: true })
+            return true
+        } catch (error) {
+            logger.writeError(`Delete device data failed:${error}`);
+            return false
+        }
     })
 }

@@ -23,4 +23,6 @@ export default interface IDeviceConfig{
      * 默认通知展示模式
      */
     defaultNotificationShowMode:"all"|"nameOnly"|"hide"|"none"
+    //设备名称
+    deviceName:string
 }

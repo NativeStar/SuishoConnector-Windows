@@ -1,4 +1,4 @@
-import type { InitServerResult, DeviceBaseInfo,ApplicationNotificationProfile,TextFilterConfig, FileItem,AudioForwardResponse} from "~/types/ipc"
+import type { InitServerResult, DeviceBaseInfo,ApplicationNotificationProfile,TextFilterConfig, FileItem,AudioForwardResponse,ConnectedDeviceHistoryList} from "~/types/ipc"
 import { RightClickMenuItemId, type RightClickMenuItem } from "shared/const/RightClickMenuItems"
 import type {ApplicationListData} from "shared"
 declare global {
@@ -62,6 +62,8 @@ declare global {
             readonly showDirectoryPicker:()=>Promise<string|null>
             readonly startTransmitDragFile:(name:string)=>Promise<boolean>
             readonly deleteTransmitFile:(fileName:string)=>Promise<void>
+            readonly getConnectedDevicesHistory:()=>Promise<ConnectedDeviceHistoryList[]>
+            readonly deleteConnectedHistoryDeviceData:(deviceId:string)=>Promise<boolean>
         }
     }
 }

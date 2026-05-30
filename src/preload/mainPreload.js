@@ -82,5 +82,9 @@ contextBridge.exposeInMainWorld("electronMainProcess", {
     //开始互传拖动文件
     startTransmitDragFile: (fileName) => { return ipcRenderer.invoke("transmit_startTransmitDragFile", fileName) },
     //删除指定互传文件
-    deleteTransmitFile: (fileName) => { return ipcRenderer.invoke("transmit_deleteTransmitFile", fileName) }
+    deleteTransmitFile: (fileName) => { return ipcRenderer.invoke("transmit_deleteTransmitFile", fileName) },
+    //获取连接过的设备列表
+    getConnectedDevicesHistory: () => { return ipcRenderer.invoke("main_getConnectedDeviceHistory") },
+    //删除指定连接过设备的数据
+    deleteConnectedHistoryDeviceData:(deviceId)=>ipcRenderer.invoke("main_deleteConnectedHistoryDeviceData",deviceId),
 })

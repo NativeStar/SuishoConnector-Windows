@@ -60,3 +60,7 @@ export type FileSyncAppendEvent = {
     fileName:string
     state: "append" | "success" | "error"
 }
+export type ConnectedDeviceHistoryList={
+    id:string,
+    name?:string//旧版没这个字段 
+}

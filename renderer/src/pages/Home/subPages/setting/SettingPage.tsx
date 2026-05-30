@@ -6,11 +6,12 @@ import SettingItemSwitch from "./components/SettingItemSwitch"
 import { useContext, useEffect, useState } from "react"
 import useMainWindowIpc from "~/hooks/ipc/useMainWindowIpc"
 import AndroidIdContext from "~/context/AndroidIdContext"
-import { onBoundDeviceItemClick, onChangePasswordItemClick, onDeleteCacheItemClick, onProtectMethodChange, onRequestArchiveLogsItemClick, rebootSnackbar } from "./settingActionHandles"
+import { onBoundDeviceItemClick, onDeviceDataManagerItemClick, onChangePasswordItemClick, onDeleteCacheItemClick, onProtectMethodChange, onRequestArchiveLogsItemClick, rebootSnackbar } from "./settingActionHandles"
 import type { ProtectMethod } from "~/utils"
 import AboutDialog from "./components/AboutDialog"
 import { alert } from "mdui"
 import SettingItemSlider from "./components/SettingItemSlider"
+import DeviceDataManagerDialog from "./components/DeviceDataManagerDialog"
 interface SettingPageProps {
     hidden: boolean
 }
@@ -21,6 +22,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
     const [applicationConfig, setApplicationConfig] = useState<{ [key: string]: string | number | boolean; }>({});
     const [boundDeviceId, setBoundDeviceId] = useState<string | null>(null);
     const [showAboutDialog, setShowAboutDialog] = useState(false);
+    const [showDeviceDataManagerDialog, setShowDeviceDataManagerDialog] = useState(false);
     useEffect(() => {
         ipc.getDeviceAllConfig().then(res => setDeviceConfig(res));
         ipc.getAllConfig().then(res => {
@@ -50,6 +52,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
     return (
         <>
             {showAboutDialog && <AboutDialog setVisible={setShowAboutDialog} />}
+            {showDeviceDataManagerDialog && <DeviceDataManagerDialog setVisibility={setShowDeviceDataManagerDialog} currentDeviceId={androidId} boundDeviceId={boundDeviceId}/>}
             <div style={{ display: hidden ? "none" : "block" }} className="flex flex-col h-full overflow-y-scroll">
                 <mdui-list>
                     <mdui-list-subheader className="ml-5 h-10 font-bold">全局</mdui-list-subheader>
@@ -59,7 +62,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSwitch title="自动检查更新" desc="在连接设备后联网检查软件更新" icon="update" configs={applicationConfig} configKey="autoCheckUpdate" setConfig={ipc.setConfig} />
                     <SettingItemSwitch title="注册系统文件右键菜单" desc="在系统菜单中快捷将文件通过互传方式发送到手机" icon="menu_open" configKey="enableFileContextMenu" configs={applicationConfig} setConfig={ipc.setConfig} />
                     <SettingItemSwitch title="窗口置顶" desc="将应用窗口始终至于顶层 避免被其他软件窗口覆盖" icon="vertical_align_top" configs={applicationConfig} configKey="windowAlwaysOnTop" setConfig={ipc.setConfig} />
-                    <SettingItemSlider title="窗口不透明度" desc="修改窗口的不透明度(为避免影响扫码 该选项对连接页无效)" icon="opacity" configs={applicationConfig} configKey="windowOpacity" setConfig={ipc.setConfig} step={1} min={10} max={100} labelFormatter={(value)=>`${value}%`}/>
+                    <SettingItemSlider title="窗口不透明度" desc="修改窗口的不透明度(为避免影响扫码 该选项对连接页无效)" icon="opacity" configs={applicationConfig} configKey="windowOpacity" setConfig={ipc.setConfig} step={1} min={10} max={100} labelFormatter={(value) => `${value}%`} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">数据互传</mdui-list-subheader>
                     <SettingItemSwitch title="接收到重名文件时删除旧文件" desc="否则在新文件名中追加时间戳以继续接收" icon="downloading" configs={applicationConfig} configKey="deleteTransmitConflictFile" setConfig={ipc.setConfig} />
                     <SettingItemSwitch title="删除消息时确认" icon="playlist_remove" desc="删除消息时是否弹出二次确认对话框" configs={deviceConfig} configKey="deleteTransmitMessageConfirm" setConfig={wrappedSetDeviceConfig} />
@@ -85,6 +88,7 @@ export default function SettingPage({ hidden }: SettingPageProps) {
                     <SettingItemSwitch title="开启文件同步" desc="启用文件同步功能 需前往对应页面配置" icon="sync" configs={deviceConfig} configKey="enableFileSync" setConfig={wrappedSetDeviceConfig} />
                     <SettingItemSwitch title="自动连接附加单播" desc="缓解部分OEM系统对UDP广播的接收限制 尝试修复自动连接失效" icon="broadcast_on_personal" configs={applicationConfig} configKey="additionalUnicast" setConfig={ipc.setConfig} />
                     <mdui-list-subheader className="ml-5 h-10 font-bold">杂项</mdui-list-subheader>
+                    <SettingItemCommon title="连接设备管理" icon="manage_accounts" onClick={() => onDeviceDataManagerItemClick(deviceConfig, ipc, androidId,setShowDeviceDataManagerDialog)} />
                     <SettingItemCommon title="关于" icon="info" onClick={() => setShowAboutDialog(true)} />
                     <SettingItemCommon title="打包日志" desc="将日志打为压缩包以便反馈" icon="send_and_archive" onClick={() => onRequestArchiveLogsItemClick(ipc)} />
                     <SettingItemCommon title="清除缓存" icon="delete_sweep" onClick={() => onDeleteCacheItemClick(ipc)} />

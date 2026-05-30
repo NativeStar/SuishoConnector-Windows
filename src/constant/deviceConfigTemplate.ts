@@ -31,4 +31,6 @@ export default{
     deleteTransmitMessageConfirm:true,
     //保存互传消息
     saveTransmitMessage:true,
+    //设备名称
+    deviceName:""
 }
