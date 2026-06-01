@@ -6,6 +6,7 @@ import type ws from "ws";
 import Util from "./Util";
 import TransmitFileWriter from "./TransmitFileWriter";
 import type NotificationCore from "./NotificationCore";
+import type Server from "./Server";
 export async function onTransmitPacket(jsonObj: any, appWindow: BrowserWindow, socket: ws) {
     logger.writeDebug(`Received a new transmit packet.Type:${jsonObj.messageType}`);
     //处理文件等
@@ -93,7 +94,7 @@ export async function onNotificationForwardPacket(jsonObj: any, notificationCore
     if (!global.deviceConfig.enableNotification) return
     notificationCore?.onNewNotification(jsonObj.package, jsonObj.time, jsonObj.title, jsonObj.content, jsonObj.appName, jsonObj.key, jsonObj.progress, jsonObj.ongoing, jsonObj.isLockScreen, jsonObj.iconHash);
 }
-export async function onSyncIconPackPacket(jsonObj: any, socket: ws, appWindow: BrowserWindow | null) {
+export async function onSyncIconPackPacket(jsonObj: any, socket: ws,server:Server) {
     logger.writeDebug("Request sync icon pack");
     const filePath = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconArchive`;
     const extractDir = `${app.getPath("userData")}/programData/devices_data/${global.clientMetadata.androidId}/assets/iconCache/`;
@@ -118,15 +119,15 @@ export async function onSyncIconPackPacket(jsonObj: any, socket: ws, appWindow: 
         //不放在这发送事件时窗口更替还没完成 会崩溃
         Util.execTaskWithAutoRetry(() => {
             try {
-                if (!appWindow || appWindow.isDestroyed()) {
+                if (!server.appWindow || server.appWindow.isDestroyed()) {
                     return false
                 }
-                appWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "busy_waiting_icon_pack" });
+                server.appWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "busy_waiting_icon_pack" });
                 return true
             } catch (error) {
                 return false;
             }
-        }, 300, 5, "addIconPackReceivingState");
+        }, 500, 5, "addIconPackReceivingState");
         fileSocket.setEventHandle({
             onError: (err) => {
                 logger.writeWarn(`Failed to download application icons pack\n${err}`);
@@ -155,11 +156,11 @@ export async function onSyncIconPackPacket(jsonObj: any, socket: ws, appWindow: 
                 //移除提醒
                 Util.execTaskWithAutoRetry(() => {
                     try {
-                        if (!appWindow || appWindow.isDestroyed()) {
+                        if (!server.appWindow || server.appWindow.isDestroyed()) {
                             return false
                         }
-                        appWindow.webContents.send("webviewEvent", "editState", { type: "remove", id: "busy_waiting_icon_pack" });
-                        appWindow.webContents.send("webviewEvent", "updatedIconPack");
+                        server.appWindow.webContents.send("webviewEvent", "editState", { type: "remove", id: "busy_waiting_icon_pack" });
+                        server.appWindow.webContents.send("webviewEvent", "updatedIconPack");
                         return true
                     } catch (error) {
                         return false;

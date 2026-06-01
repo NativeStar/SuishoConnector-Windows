@@ -1,4 +1,4 @@
-import { type BrowserWindow as BrowserWindowType, app, ipcMain, type Tray } from "electron";
+import { type BrowserWindow as BrowserWindowType, app, ipcMain } from "electron";
 import type { IncomingMessage } from "http";
 import https from "https";
 import ws, { type AddressInfo } from "ws";
@@ -6,7 +6,6 @@ import randomThing from "randomthing-js";
 import fs from "fs-extra";
 import Util from "./Util";
 import ResponseManager from "./ResponseManager";
-import TransmitFileWriter from "./TransmitFileWriter";
 import TransmitFileUploader from "./TransmitFileUploader";
 import NotificationCore from "./NotificationCore";
 import RequestId from "../constant/RequestId";
@@ -306,7 +305,7 @@ class Server {
                 onNotificationForwardPacket(jsonObj, this.notificationCore);
                 break
             case "syncIconPack"://同步应用图标资源包
-                onSyncIconPackPacket(jsonObj, socket, this.appWindow);
+                onSyncIconPackPacket(jsonObj, socket, this);
                 break
             case "trustModeChange":
                 //设备信任模式切换
