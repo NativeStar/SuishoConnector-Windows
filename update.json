@@ -1,6 +1,6 @@
 {
-    "versionCode":14,
-    "versionName":"1.2.2",
-    "downloadUrl":"https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.2/Suisho.Connector.Setup.1.2.2.exe",
-    "description": "支持设置窗口透明度\n主页实时通知显示允许关闭\n优化应用状态显示\n支持在关于页中手动检查更新\n一些代码和布局优化"
+    "versionCode":15,
+    "versionName":"1.2.3",
+    "downloadUrl":"https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.3/Suisho.Connector.Setup.1.2.3.exe",
+    "description": "支持管理之前连接过的设备的数据\n尝试优化性能"
 }
