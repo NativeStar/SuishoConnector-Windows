@@ -19,7 +19,7 @@ declare global {
             readonly setEventHandle: (callback: (_electronEvent: never, event: string, ...args: any[]) => void) => Promise<void>;
             readonly removeEventHandle: (callback: Function) => Promise<void>;
             readonly getDeviceBaseInfo: () => Promise<DeviceBaseInfo>;
-            readonly getDeviceDetailInfo: () => Promise<{ batteryLevel: number, memoryInfo: { total: number, avail: number } }>;
+            readonly getDeviceDetailInfo: () => Promise<{ batteryLevel: number, memoryInfo: { total: number, avail: number },doNotDisturbEnabled:boolean}>;
             readonly registerFileUploadProgressListener: (callback: (_event: never, progress: number) => void) => Promise<void>;
             readonly unregisterFileUploadProgressListener: (callback: Function) => Promise<void>;
             readonly openFile: (path: string) => Promise<boolean>;

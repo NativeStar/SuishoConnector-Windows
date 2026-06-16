@@ -3,11 +3,12 @@ import { twMerge } from "tailwind-merge"
 import { time2str } from "~/utils"
 
 export interface DeviceState {
-    memoryUsage: number,
-    batteryTemperature: number,
-    batteryLevel: number,
-    latency: number,
+    memoryUsage: number
+    batteryTemperature: number
+    batteryLevel: number
+    latency: number
     charging: boolean
+    doNotDisturb:boolean
 }
 interface DeviceStateBarProps {
     state: DeviceState
@@ -26,7 +27,7 @@ export default function DeviceStatePanel({ state, className }: DeviceStateBarPro
         }
     }, [])
     return (
-        <mdui-card className={twMerge("fixed flex flex-col h-[30%] w-[34%]", className)}>
+        <mdui-card className={twMerge("fixed flex flex-col h-[35%] w-[34%]", className)}>
             <small className="text-[gray] ml-1 mt-1">设备状态</small>
             <mdui-divider />
             <div className="flex mt-1.5 ml-1">
@@ -44,6 +45,10 @@ export default function DeviceStatePanel({ state, className }: DeviceStateBarPro
             <div className="flex mt-1.5 ml-1">
                 <mdui-icon name="wifi" />
                 <small className="text-[gray] mt-0.5">通讯延迟:   {state.latency}ms</small>
+            </div>
+            <div className="flex mt-1.5 ml-1">
+                <mdui-icon name="nights_stay" />
+                <small className="text-[gray] mt-0.5">勿扰模式:   {state.doNotDisturb?"开启":"关闭"}</small>
             </div>
             <div className="flex mt-1.5 ml-1">
                 <mdui-icon name="access_time" />

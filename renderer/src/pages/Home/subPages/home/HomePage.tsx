@@ -23,7 +23,8 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
         batteryLevel: 0,
         batteryTemperature: 0,
         latency: 0,
-        charging: false
+        charging: false,
+        doNotDisturb:false
     });
     const batteryFullState = useRef(false);
     useEffect(() => {
@@ -31,7 +32,8 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             setDeviceState(prevState => ({
                 ...prevState,
                 batteryLevel: value.batteryLevel,
-                memoryUsage: ((value.memoryInfo.total - value.memoryInfo.avail) / value.memoryInfo.total) * 100
+                memoryUsage: ((value.memoryInfo.total - value.memoryInfo.avail) / value.memoryInfo.total) * 100,
+                doNotDisturb: value.doNotDisturbEnabled
             }))
             console.debug(`Init device state:${JSON.stringify(value)}`);
         })
@@ -64,7 +66,8 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
                 charging: value.charging,
                 batteryLevel: value.batteryLevel,
                 batteryTemperature: value.batteryTemp,
-                memoryUsage: ((value.memInfo.total - value.memInfo.avail) / value.memInfo.total) * 100
+                memoryUsage: ((value.memInfo.total - value.memInfo.avail) / value.memInfo.total) * 100,
+                doNotDisturb: value.doNotDisturb
             }));
             console.debug("Updated device state");
         });
@@ -104,7 +107,7 @@ export default function HomePage({ hidden, applicationStates, applicationStatesD
             <ActiveNotifications className="top-[45.5%] left-[45%]" />
             <ApplicationStatesBar states={applicationStates} className="top-[9%] right-[2.3%]" dispatch={applicationStatesDispatch} />
             <MediaControl className="right-[15%] top-[9.5%]" />
-            <AudioForwardPanel className="top-[78.5%] left-[10%]" />
+            <AudioForwardPanel className="top-[83.5%] left-[10%]" />
             <FabMenu className="bottom-[2%] right-[2%]" />
         </div>
     )

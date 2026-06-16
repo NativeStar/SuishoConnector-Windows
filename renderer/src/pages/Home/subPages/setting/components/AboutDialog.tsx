@@ -50,6 +50,8 @@ export default function AboutDialog({ setVisible }: AboutDialogProps) {
             setCheckingUpdate(false)
         }
     }
+    // TODO 加入协议版本显示
+    //TODO 清空设备数据时也应当清空indexedDb localStorage
     return (
         <ModalLayout onLayoutClick={() => setVisible(false)}>
             <div className="w-10/12 h-8/12 fixed top-29 left-18 z-20 bg-[rgb(var(--mdui-color-surface-container-highest))] rounded-xl flex" onClick={(e) => e.stopPropagation()}>

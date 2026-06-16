@@ -12,6 +12,7 @@ export default function DeviceDataManagerDialog({ setVisibility, boundDeviceId, 
     const ipc = useMainWindowIpc();
     const [deviceList, setDeviceList] = useState<ConnectedDeviceHistoryList[] | null>(null);
     useEffect(() => {
+        //TODO 拉取indexedDb列表项合并显示 处理之前的bug
         ipc.getConnectedDevicesHistory().then(list => {
             setDeviceList(list);
         })

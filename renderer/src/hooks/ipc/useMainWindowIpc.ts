@@ -3,7 +3,7 @@ import type { States } from "~/types/applicationState";
 import type { NotificationItem } from "~/types/database";
 import type { FileSyncAppendEvent, MediaSessionMetadata, MediaSessionState } from "~/types/ipc";
 interface IpcEvents {
-    updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean ,inDoze:boolean};
+    updateDeviceState: { batteryLevel: number, memInfo: { total: number, avail: number }, batteryTemp: number, charging: boolean ,inDoze:boolean,doNotDisturb:boolean};
     updateNetworkLatency: number,
     editState: { type: "add" | "remove", id: States },
     updatedIconPack:void,
