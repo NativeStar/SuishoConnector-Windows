@@ -42,7 +42,6 @@ export default function FabMenu({ className }: FabMenuProps) {
             });
             return
         }
-        //TODO 协议版本不匹配 警告状态
         ipc.sendRequestPacket<ChangeInterruptionFilterModePacketResponse>({ packetType: "changeDoNotDisturbMode" }).then(value => {
             if (!value.result) {
                 snackbar({

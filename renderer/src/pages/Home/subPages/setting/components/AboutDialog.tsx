@@ -50,7 +50,6 @@ export default function AboutDialog({ setVisible }: AboutDialogProps) {
             setCheckingUpdate(false)
         }
     }
-    // TODO 加入协议版本显示
     //TODO 清空设备数据时也应当清空indexedDb localStorage
     return (
         <ModalLayout onLayoutClick={() => setVisible(false)}>
@@ -60,6 +59,7 @@ export default function AboutDialog({ setVisible }: AboutDialogProps) {
                     <img src="./icon.png" className="size-30 mt-5" />
                     <span className="text-[gray] mt-1">Suisho Connector</span>
                     <span className="text-[gray] mt-0.5">{`${ApplicationVersion.APPLICATION_VERSION_NAME}(${ApplicationVersion.APPLICATION_VERSION_CODE})`}</span>
+                    <span className="text-[gray] mt-0.5">协议版本:{`${ApplicationVersion.PROTOCOL_VERSION}`}</span>
                     <span className="text-[gray] mt-5">感谢使用</span>
                     <div className="text-[gray] mt-1">
                         项目已在
