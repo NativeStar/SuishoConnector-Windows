@@ -106,7 +106,14 @@ class Server {
                 key: fs.readFileSync(path.resolve(`${certPath}/cert.key`)),
                 cert: fs.readFileSync(path.resolve(`${certPath}/cert.crt`))
             }).listen(0, "0.0.0.0");
-            this.websocket = new ws.Server({ server });
+            this.websocket = new ws.Server({
+                server,
+                perMessageDeflate:{
+                    serverNoContextTakeover: true,
+                    clientNoContextTakeover: true,
+                    threshold: 1024
+                }
+            });
             logger.writeInfo("Server launched");
         } catch (error: any) {
             //严重错误处理
