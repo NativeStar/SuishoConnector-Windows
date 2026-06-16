@@ -13,6 +13,7 @@ import ConnectionCloseCode from "../enum/ConnectionCloseCode";
 import ConnectionCloseReasonString from "../constant/CloseCodeReasonString";
 import path from "path";
 import DeviceConfig from "./DeviceConfig";
+import ApplicationVersion from "shared/const/ApplicationVersion";
 import { type ApplicationListData } from "shared/index";
 import { getTrayInstance } from "./Tray"
 import { onNotificationForwardPacket, onSyncIconPackPacket, onTransmitPacket } from "./ServerPacketHandle";
@@ -46,7 +47,7 @@ class Server {
         // 是否通过验证 协议版本等
         this.isConnectVerified = false;
         //客户端协议版本
-        this.protocolVersion = 2;
+        this.protocolVersion = ApplicationVersion.PROTOCOL_VERSION;
         //窗口对象
         this.appWindow = window;
         //是否在主页面
@@ -498,7 +499,16 @@ class Server {
         setImmediate(() => {
             global.config.enableFileContextMenu ? Util.registerContextMenu() : Util.unregisterContextMenu();
             logger.writeDebug("Update file context menu status");
-        })
+        });
+        //检查协议版本和提醒
+        setTimeout(() => {
+            setImmediate(() => {
+                if (global.clientMetadata.protocolVersion !== ApplicationVersion.PROTOCOL_VERSION) {
+                    logger.writeDebug("Send protocol version mismatch warning to renderer process")
+                    this.appWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "warn_protocol_version_mismatch" });
+                }
+            });
+        }, 3000);
     }
     /**
      * @description 跨进程消息处理

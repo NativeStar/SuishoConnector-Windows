@@ -80,16 +80,12 @@ class FileWatcher {
                 logger.writeDebug("Send missing directory warning to renderer process")
             }, 1500);
         }
+        //协议版本2开始支持
         if (global.clientMetadata.protocolVersion >= 2) {
             logger.writeInfo("Init file watcher paths")
             this.watcher.add(existsPaths);
         } else {
             logger.writeInfo(`Android client protocol version low(${global.clientMetadata.protocolVersion}).Disable file sync`)
-            //协议版本低 提醒Android端不支持功能
-            setTimeout(() => {
-                logger.writeDebug("Send android client too old warning to renderer process")
-                this.browserWindow.webContents.send("webviewEvent", "editState", { type: "add", id: "warn_android_client_version_low" });
-            }, 1500);
         }
         //无论如何都注册ipc保证基础功能
         this.ipcInit();

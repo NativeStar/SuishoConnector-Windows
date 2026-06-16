@@ -105,10 +105,10 @@ const States = {
             dispatch({ type: "remove", id: "warn_watch_directory_missing" })
         }
     },
-    warn_android_client_version_low: {
+    warn_protocol_version_mismatch: {
         level: ApplicationStateLevel.Warn,
-        title: "Android端版本低",
-        content: "部分功能可能无法工作",
+        title: "协议版本不匹配",
+        content: "部分功能可能无法正常工作 建议更新双方客户端",
         clickable: false,
         icon:"security_update_warning"
     },
