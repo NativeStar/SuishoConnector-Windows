@@ -1,6 +1,6 @@
 {
-    "versionCode":15,
-    "versionName":"1.2.3",
-    "downloadUrl":"https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.3/Suisho.Connector.Setup.1.2.3.exe",
-    "description": "支持管理之前连接过的设备的数据\n尝试优化性能"
+    "versionCode":16,
+    "versionName":"1.2.4",
+    "downloadUrl":"https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.4/Suisho.Connector.Setup.1.2.4.exe",
+    "description": "支持调整Android勿扰模式设置\n增加协议版本不匹配警告\n开启WebSocket数据包压缩\n修复清理其他设备数据时未清理indexedDb等数据"
 }
