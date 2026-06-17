@@ -51,7 +51,7 @@ export default function FabMenu({ className }: FabMenuProps) {
                 return
             }
             snackbar({
-                message: "已切换勿扰模式",
+                message: `已${value.mode==="enable"?"启用":"禁用"}勿扰模式`,
                 autoCloseDelay: 2500
             })
         })
