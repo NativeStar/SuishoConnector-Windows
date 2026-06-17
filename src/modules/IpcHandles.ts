@@ -409,8 +409,14 @@ export async function registerConnectedIpcHandles(connectedDevice: PhoneServer, 
     });
     ipcMain.handle("main_deleteConnectedHistoryDeviceData", async (_event, deviceId: string) => {
         try {
+            const targetPath=`${app.getPath("userData")}/programData/devices_data/${deviceId}`;
             logger.writeInfo(`Deleting device data:${deviceId}`);
-            await fs.rm(`${app.getPath("userData")}/programData/devices_data/${deviceId}`, { recursive: true })
+            //处理之前删不干净的bug 此时目录已经不存在了
+            if (!await fs.exists(targetPath)) {
+                logger.writeInfo(`Device data not exists:${deviceId}`);
+                return true;
+            }
+            await fs.rm(targetPath, { recursive: true })
             return true
         } catch (error) {
             logger.writeError(`Delete device data failed:${error}`);
