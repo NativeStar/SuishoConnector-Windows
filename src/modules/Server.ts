@@ -108,7 +108,7 @@ class Server {
             }).listen(0, "0.0.0.0");
             this.websocket = new ws.Server({
                 server,
-                perMessageDeflate:{
+                perMessageDeflate: {
                     serverNoContextTakeover: true,
                     clientNoContextTakeover: true,
                     threshold: 1024
@@ -402,6 +402,14 @@ class Server {
                 notification.show();
             })
         }
+        //更改tray图标
+        const tray = getTrayInstance();
+        if (tray) {
+            import("electron").then(({nativeImage})=>{
+                const newIconImage=nativeImage.createFromPath(path.join(app.getAppPath(), "res", "iconTrayNotification.ico"));
+                tray.setImage(newIconImage);
+            })
+        }
         //只留下主窗口
         import("electron").then(({ BrowserWindow }) => {
             BrowserWindow.getAllWindows().forEach(window => {
@@ -436,7 +444,6 @@ class Server {
         } catch (error) {
             logger.writeError(`Send socket closed message to renderer process failed:${error}`);
         };
-
     }
     /**
      * @description 连接心跳检测
