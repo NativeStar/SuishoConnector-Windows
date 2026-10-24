@@ -1,6 +1,6 @@
 {
-    "versionCode":16,
-    "versionName":"1.2.4",
-    "downloadUrl":"https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.4/Suisho.Connector.Setup.1.2.4.exe",
-    "description": "支持调整Android勿扰模式设置\n增加协议版本不匹配警告\n开启WebSocket数据包压缩\n修复清理其他设备数据时未清理indexedDb等数据"
+    "versionCode": 17,
+    "versionName": "1.2.5",
+    "downloadUrl": "https://github.com/NativeStar/SuishoConnector-Windows/releases/download/1.2.5/Suisho.Connector.Setup.1.2.5.exe",
+    "description": "掉线时更改托盘图标\n修复来自手机的文本消息被选中背景不显示\n将托盘图标打开窗口从双击改为单击"
 }
