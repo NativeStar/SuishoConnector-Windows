@@ -102,5 +102,5 @@ mdui-slider[disabled]:not([disabled="false" i]) {
 }
 /* 选中文本背景色 */
 ::selection {
-  background-color: rgba(var(--mdui-color-surface-container-highest), 1.0);
+  background-color: rgba(var(--mdui-color-on-surface-variant-dark), 1.0);
 }
