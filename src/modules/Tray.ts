@@ -13,9 +13,9 @@ export async function init(mainWindow: BrowserWindowType, connectedDevice: Phone
     trayInstance = new Tray(trayImage);
     trayInstance.setTitle("Suisho Connector");
     trayInstance.setToolTip("Suisho Connector");
-    trayInstance.addListener("double-click", () => {
+    trayInstance.addListener("click", () => {
         if (mainWindow !== null && !mainWindow.isDestroyed()) {
-            logger.writeDebug("Show main window by tray double click");
+            logger.writeDebug("Show main window by tray click");
             mainWindow.show();
             if (mainWindow.isMinimized()) {
                 mainWindow.restore();
